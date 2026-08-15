@@ -1,0 +1,56 @@
+# Agent tooling. Installed per-machine by whoever wants it, never committed —
+# skills, harness config and their lock file are all reinstallable from the org's
+# own tooling. A fresh clone deliberately has none of it. See CLAUDE.md.
+.agents/
+.claude/
+.impeccable/
+skills-lock.json
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Secrets. These live in the Vercel and Render dashboards and are never committed.
+.env
+.env.*
+!.env.example
+
+# Next.js — apps/web
+.next/
+out/
+next-env.d.ts
+.vercel/
+
+# Strapi — apps/cms
+.tmp/
+.cache/
+.strapi/
+apps/cms/build/
+apps/cms/dist/
+apps/cms/exports/
+apps/cms/*.db
+apps/cms/public/uploads/*
+!apps/cms/public/uploads/.gitkeep
+.strapi-cloud.json
+.strapi-updater.json
+
+# Build and test output
+coverage/
+*.tsbuildinfo
+playwright-report/
+test-results/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editors and OS
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+.vscode/*
+!.vscode/extensions.json

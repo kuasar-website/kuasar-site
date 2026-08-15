@@ -1,0 +1,99 @@
+schema: spec-driven
+
+# Project constitution. Injected into every artifact prompt, so it stays short:
+# rules and pointers only. Detail lives in docs/adr/*.md and design/*.md.
+context: |
+  KUASAR — bilingual (Turkish/English) promotional and archival site for a student
+  rocketry team at Koç University. Not an application. Five contributors with annual
+  turnover: every artifact must be legible to someone who joins in three years and finds
+  nobody left who built this.
+
+  Two audiences, neither ranked: sponsors (reach Connect Us or the sponsorship PDF) and
+  prospective members (reach Join Us). Everyone else is served by credibility.
+
+  Stack — settled, not open for renegotiation. See docs/adr/0001-stack.md.
+  Next.js 16 App Router + TypeScript on Vercel; Strapi 5 CE on Render with Postgres on
+  Neon; media on Cloudflare R2. One repo: apps/web, apps/cms. pnpm workspaces, Node 22.
+  Tailwind v4, design tokens as CSS custom properties in @theme.
+
+  Non-negotiable rules:
+  - Static generation with on-demand revalidation. User-facing routes NEVER fetch Strapi
+    in the request path. NEVER add a cron or time-based revalidation.
+  - All time-relative state (past/live/upcoming) is derived in the browser. The server
+    ships raw ISO dates and renders the neutral form.
+  - Adding a mission, talk, event, alumnus or sponsor is a DATA operation. Never edit a
+    component or a layout to add a record.
+  - Content splits at the entity level: missions and the timeline live in git, everything
+    else lives in Strapi. Never split one entity across both systems.
+  - Motion tiers: L3 micro = CSS only, no exceptions. L2 section = no library.
+    L1 signature = library allowed, dynamically imported, capped at two routes (home hero
+    and /timeline). A third L1, or a second animation library, requires its own ADR.
+  - The un-animated baseline ships first and is the permanent fallback. Every animation
+    declares a genuine non-animated reduced-motion path and a mobile fallback.
+  - Both locales are path-prefixed with fully localized URL segments. Event brand names
+    (Galactic Summit, Stellar Talk, Nebula Night) stay English; generic sections
+    translate. Missing translations: CMS content falls back silently, git content shows a
+    visible notice.
+  - Orange is semantic — launch, ignition, live, upcoming, primary CTA. Never decorative.
+  - The display face (Orbitron) lacks ğ Ğ ş Ş ı İ. Any heading or label containing them
+    uses Inter instead.
+  - Inter is a deliberate override of impeccable's guidance, justified by Turkish glyph
+    coverage and recorded in design/brand.md. Do not re-open it on every critique.
+  - NEVER add third-party analytics, embeds, pixels or tag managers. KVKK is unresolved.
+    Google Forms may be linked, never embedded.
+  - Never a member's personal card on any account.
+
+  Detail lives in these files. Read the relevant one; do not restate it:
+  docs/adr/0001-stack.md, docs/adr/0002-cms.md, docs/adr/0003-motion-stack.md,
+  docs/adr/0004-verification.md, docs/ops/cms-runbook.md, docs/HANDOVER.md,
+  design/tokens.md, design/motion.md, design/content-model.md, design/i18n.md,
+  design/brand.md
+
+  Where the ADRs and any older project brief disagree, the ADRs win.
+
+  Use context7 before writing against Next.js App Router, Strapi 5 or GSAP APIs — all
+  three move faster than model training data. gsap-skills is the authority for GSAP;
+  emilkowalski/skill governs interface motion only, never narrative motion.
+
+rules:
+  proposal:
+    - State which audience the change serves — sponsors, prospective members, or neither.
+      "Serves credibility only" is a valid and common answer; say it explicitly.
+    - If the change adds content, name each entity's storage location (git or Strapi) and
+      confirm no entity is split across both.
+    - Declare any new runtime dependency. A second animation library, a second scroll
+      system, or a third L1 route requires its own ADR before the proposal is viable.
+  specs:
+    - Write requirements against observable behaviour in both locales. A requirement that
+      holds only in English is incomplete, not merely untranslated.
+    - Any requirement involving dates must separate the neutral server-rendered form from
+      the client-derived past/live/upcoming state.
+    - Any requirement describing motion must express its reduced-motion path and its
+      mobile fallback as scenarios, not as prose asides.
+    - Requirements for a collection must cover zero, one, and many entries.
+  design:
+    - Name the motion tier (L1/L2/L3) for every animation introduced, and the route it
+      lives on.
+    - State the per-route first-load JS impact, and whether any import reaches an
+      animation library from a non-L1 route.
+    - For CMS-backed content, state whether a new Strapi field is needed and whether it is
+      locale-specific.
+    - Point at docs/adr/*.md and design/*.md rather than restating their content.
+  tasks:
+    - Order tasks so the un-animated, reduced-motion baseline ships before any
+      enhancement built on top of it.
+    - Include both locales whenever content or user-facing copy is added.
+    - Include a verification task naming which CI gate covers the change; if no existing
+      gate covers it, say so rather than implying coverage.
+
+operations:
+  apply:
+    guidance:
+      - Keep the un-animated baseline working at every commit. Never leave the site in a
+        state where the enhancement is required for the page to function.
+      - Add content as data. If adding a record seems to require a layout edit, stop and
+        report it — that is a design defect, not a task detail.
+  archive:
+    guidance:
+      - "Note any ASSUMPTION: line in docs/ or design/ that the change resolved or
+        invalidated, so the documents can be corrected rather than drifting."
