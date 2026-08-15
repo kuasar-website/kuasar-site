@@ -1,0 +1,1976 @@
+<title>KUASAR Skill Routing</title>
+
+<style>
+  /* ============================================================
+     Palette, type and components are inherited verbatim from
+     docs/workflow.html so the two pages read as one set. If you
+     change a token here, change it there too — or better, don't
+     change it here.
+
+     Orange appears nowhere on this page, for the same reason it
+     appears nowhere on its sibling: per design/tokens.md it is
+     reserved for launch, live, upcoming and the primary CTA.
+
+     One addition over workflow.html: the .local callout, which
+     marks a rule that is true in THIS repository and nowhere
+     else. Everything not so marked is portable.
+     ============================================================ */
+
+  :root {
+    /* surfaces — dark (primary) */
+    --canvas:        oklch(0.13 0.025 265);
+    --surface:       oklch(0.17 0.028 265);
+    --raised:        oklch(0.22 0.024 264);
+    --inset:         oklch(0.26 0.020 262);
+    --border:        oklch(0.32 0.018 262);
+    --border-strong: oklch(0.44 0.014 260);
+
+    /* ink */
+    --ink:        oklch(0.97 0.004 260);
+    --ink-body:   oklch(0.88 0.006 260);
+    --ink-muted:  oklch(0.70 0.010 260);
+    --ink-faint:  oklch(0.58 0.012 260);
+
+    /* accents — orbital blue carries structure, nebula marks planning */
+    --accent:      oklch(0.74 0.12 238);
+    --accent-deep: oklch(0.62 0.15 240);
+    --accent-wash: oklch(0.30 0.045 240);
+    --plan:        oklch(0.72 0.14 296);
+    --plan-wash:   oklch(0.28 0.050 296);
+
+    --shadow: 0 1px 2px oklch(0 0 0 / 0.4);
+
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code",
+                 Menlo, Consolas, monospace;
+
+    --measure: 68ch;
+    --rail: 254px;
+
+    color-scheme: dark;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --canvas:        oklch(0.985 0.003 265);
+      --surface:       oklch(0.962 0.005 265);
+      --raised:        oklch(0.932 0.007 264);
+      --inset:         oklch(0.905 0.009 262);
+      --border:        oklch(0.862 0.011 262);
+      --border-strong: oklch(0.735 0.014 260);
+
+      --ink:       oklch(0.21 0.022 265);
+      --ink-body:  oklch(0.33 0.018 264);
+      --ink-muted: oklch(0.49 0.015 262);
+      --ink-faint: oklch(0.60 0.013 261);
+
+      --accent:      oklch(0.48 0.145 243);
+      --accent-deep: oklch(0.40 0.130 244);
+      --accent-wash: oklch(0.94 0.022 240);
+      --plan:        oklch(0.45 0.170 297);
+      --plan-wash:   oklch(0.945 0.024 298);
+
+      --shadow: 0 1px 2px oklch(0.2 0.02 265 / 0.10);
+
+      color-scheme: light;
+    }
+  }
+
+  :root[data-theme="light"] {
+    --canvas:        oklch(0.985 0.003 265);
+    --surface:       oklch(0.962 0.005 265);
+    --raised:        oklch(0.932 0.007 264);
+    --inset:         oklch(0.905 0.009 262);
+    --border:        oklch(0.862 0.011 262);
+    --border-strong: oklch(0.735 0.014 260);
+
+    --ink:       oklch(0.21 0.022 265);
+    --ink-body:  oklch(0.33 0.018 264);
+    --ink-muted: oklch(0.49 0.015 262);
+    --ink-faint: oklch(0.60 0.013 261);
+
+    --accent:      oklch(0.48 0.145 243);
+    --accent-deep: oklch(0.40 0.130 244);
+    --accent-wash: oklch(0.94 0.022 240);
+    --plan:        oklch(0.45 0.170 297);
+    --plan-wash:   oklch(0.945 0.024 298);
+
+    --shadow: 0 1px 2px oklch(0.2 0.02 265 / 0.10);
+
+    color-scheme: light;
+  }
+
+  /* ---------- base ---------- */
+
+  body {
+    margin: 0;
+    background: var(--canvas);
+    color: var(--ink-body);
+    font-family: var(--font-sans);
+    font-size: 16.5px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 1220px;
+    margin: 0 auto;
+    padding: 0 28px 96px;
+    display: grid;
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: 0 56px;
+    align-items: start;
+  }
+
+  /* ---------- masthead ---------- */
+
+  .masthead {
+    grid-column: 1 / -1;
+    padding: 56px 0 34px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 44px;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin: 0 0 14px;
+  }
+
+  h1 {
+    font-size: clamp(2.1rem, 1.5rem + 2.2vw, 3.1rem);
+    line-height: 1.06;
+    letter-spacing: -0.026em;
+    font-weight: 650;
+    color: var(--ink);
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+
+  .standfirst {
+    font-size: 1.14rem;
+    line-height: 1.55;
+    color: var(--ink-body);
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  .masthead-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 26px;
+    margin-top: 26px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+  }
+  .masthead-meta b {
+    color: var(--ink-muted);
+    font-weight: 500;
+  }
+
+  /* ---------- rail ---------- */
+
+  .rail {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    padding-bottom: 24px;
+  }
+
+  .rail-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 14px;
+  }
+
+  .rail ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    counter-reset: rail;
+  }
+
+  .rail a {
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    gap: 8px;
+    padding: 5px 8px 5px 0;
+    color: var(--ink-muted);
+    text-decoration: none;
+    font-size: 13.5px;
+    line-height: 1.35;
+    border-radius: 4px;
+  }
+  .rail li { counter-increment: rail; }
+  .rail a::before {
+    content: counter(rail, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-align: right;
+    padding-top: 2px;
+  }
+  .rail a:hover { color: var(--ink); background: var(--surface); }
+  .rail a:hover::before { color: var(--accent); }
+  .rail a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  /* ---------- main ---------- */
+
+  main { min-width: 0; }
+
+  section { margin: 0 0 60px; scroll-margin-top: 20px; }
+
+  h2 {
+    font-size: 1.62rem;
+    line-height: 1.2;
+    letter-spacing: -0.018em;
+    font-weight: 640;
+    color: var(--ink);
+    margin: 0 0 6px;
+    text-wrap: balance;
+  }
+
+  .sec-num {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 9px;
+  }
+
+  h3 {
+    font-size: 1.06rem;
+    font-weight: 640;
+    color: var(--ink);
+    letter-spacing: -0.008em;
+    margin: 34px 0 8px;
+  }
+
+  h4 {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    font-weight: 500;
+    margin: 26px 0 8px;
+  }
+
+  p { margin: 0 0 14px; max-width: var(--measure); }
+  main > section > p:first-of-type { margin-top: 14px; }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+  strong { color: var(--ink); font-weight: 620; }
+
+  ul, ol { max-width: var(--measure); margin: 0 0 16px; padding-left: 1.15rem; }
+  li { margin-bottom: 7px; }
+  li::marker { color: var(--ink-faint); }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.855em;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.1em 0.34em;
+    color: var(--ink);
+    word-break: break-word;
+  }
+
+  /* a repo path, distinct from a command */
+  .path {
+    font-family: var(--font-mono);
+    font-size: 0.855em;
+    color: var(--ink-muted);
+    background: none;
+    border: none;
+    padding: 0;
+    white-space: nowrap;
+  }
+
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 0 0 18px;
+    line-height: 1.55;
+  }
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 13px;
+    color: var(--ink-body);
+    white-space: pre;
+    word-break: normal;
+  }
+  pre .c { color: var(--ink-faint); }
+
+  /* ---------- tables ---------- */
+
+  .tw { overflow-x: auto; margin: 0 0 20px; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 520px;
+    font-size: 14.5px;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 14px 9px 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    font-weight: 500;
+    border-bottom-color: var(--border-strong);
+    white-space: nowrap;
+  }
+  td { color: var(--ink-body); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* the skill-name column: mono, never wraps mid-name */
+  td .sk {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  /* ---------- callouts ---------- */
+
+  .note {
+    border-left: 2px solid var(--border-strong);
+    padding: 2px 0 2px 18px;
+    margin: 0 0 20px;
+    max-width: var(--measure);
+    color: var(--ink-body);
+  }
+  .note > :last-child { margin-bottom: 0; }
+  .note.key { border-left-color: var(--accent); }
+
+  .note-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 5px;
+  }
+  .note.key .note-label { color: var(--accent); }
+
+  /* a rule that is true in THIS repo and nowhere else */
+  .local {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--plan);
+    border-radius: 0 6px 6px 0;
+    padding: 14px 18px;
+    margin: 0 0 20px;
+    max-width: var(--measure);
+  }
+  .local > :last-child { margin-bottom: 0; }
+  .local .note-label { color: var(--plan); }
+
+  .tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 1px solid var(--border-strong);
+    color: var(--ink-muted);
+    vertical-align: 2px;
+    white-space: nowrap;
+  }
+  h4 .tag, h3 .tag { margin-left: 8px; }
+  .tag.writes { border-color: var(--accent-deep); color: var(--accent); }
+  .tag.reads  { border-color: var(--border-strong); color: var(--ink-muted); }
+  .tag.manual { border-color: var(--plan); color: var(--plan); }
+  .tag.absent { border-style: dashed; }
+
+  /* ---------- the loop steps ---------- */
+
+  .steps { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+  .steps > li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 0 16px;
+    padding: 0 0 22px;
+    margin: 0;
+    position: relative;
+  }
+  .steps > li::before {
+    content: counter(step);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    margin-top: 1px;
+  }
+  .steps > li::after {
+    content: "";
+    position: absolute;
+    left: 13px;
+    top: 30px;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+  .steps > li:last-child::after { display: none; }
+  .steps > li > div > :last-child { margin-bottom: 0; }
+  .step-h {
+    color: var(--ink);
+    font-weight: 620;
+    margin: 0 0 5px;
+  }
+  .step-h code { font-weight: 500; }
+
+  /* ---------- recipes ---------- */
+
+  .recipe {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 16px 18px;
+    margin: 0 0 16px;
+    max-width: var(--measure);
+  }
+  .recipe > :last-child { margin-bottom: 0; }
+  .recipe-h {
+    color: var(--ink);
+    font-weight: 620;
+    margin: 0 0 10px;
+  }
+  .recipe ol { margin: 0; padding-left: 1.15rem; }
+  .recipe ol li { margin-bottom: 6px; }
+  .recipe .why {
+    margin: 12px 0 0;
+    padding-top: 11px;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--ink-muted);
+    max-width: none;
+  }
+
+  /* ---------- figures ---------- */
+
+  figure {
+    margin: 0 0 24px;
+    padding: 0;
+  }
+  .fig-frame {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 18px;
+    overflow-x: auto;
+  }
+  figure svg {
+    display: block;
+    width: 100%;
+    min-width: 620px;
+    max-width: 100%;
+    height: auto;
+    color: var(--ink-muted);
+  }
+  figcaption {
+    font-size: 13.5px;
+    color: var(--ink-muted);
+    margin-top: 10px;
+    max-width: var(--measure);
+  }
+
+  .svg-box { fill: var(--raised); stroke: var(--border-strong); }
+  .svg-box-plan { fill: var(--plan-wash); stroke: var(--plan); }
+  .svg-box-code { fill: var(--accent-wash); stroke: var(--accent-deep); }
+  .svg-box-off { fill: none; stroke: var(--border); stroke-dasharray: 3 4; }
+  .svg-lane { fill: none; stroke: var(--border); stroke-dasharray: 3 4; }
+  .svg-tm { fill: var(--ink); font-family: var(--font-mono); font-size: 12px; }
+  .svg-s { fill: var(--ink-muted); font-family: var(--font-mono); font-size: 11px; }
+  .svg-lbl { fill: var(--ink-faint); font-family: var(--font-mono); font-size: 10.5px;
+             letter-spacing: 0.08em; text-transform: uppercase; }
+  .svg-line { stroke: var(--border-strong); fill: none; }
+  .svg-axis { stroke: var(--border-strong); fill: none; }
+
+  /* ---------- misc ---------- */
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0 0 34px;
+  }
+
+  .lede {
+    font-size: 1.03rem;
+    color: var(--ink-body);
+    max-width: var(--measure);
+  }
+
+  .colophon {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+    margin-top: 20px;
+    font-size: 13.5px;
+    color: var(--ink-faint);
+    max-width: var(--measure);
+  }
+  .colophon p { max-width: none; }
+
+  ::selection { background: var(--accent-wash); color: var(--ink); }
+
+  @media (max-width: 940px) {
+    .page { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 20px 72px; }
+    .rail {
+      position: static;
+      max-height: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 16px 12px;
+      margin-bottom: 40px;
+      background: var(--surface);
+    }
+    .rail ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0 12px; }
+    .masthead { padding-top: 40px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="page">
+
+  <header class="masthead">
+    <p class="eyebrow">KUASAR site · agent tooling guide</p>
+    <h1>Skill Routing</h1>
+    <p class="standfirst">
+      Six skill suites are installed on this project and roughly seventy individual skills
+      sit inside them. Almost none of the value is in any one of them. It is in knowing
+      which one owns the question you are about to ask — because an agent that loads the
+      wrong skill does confident, plausible, expensive work in the wrong direction.
+    </p>
+    <div class="masthead-meta">
+      <span><b>Audience</b> anyone driving a coding agent</span>
+      <span><b>Status</b> living document</span>
+      <span><b>Source</b> <span class="path">docs/agent-skills.html</span></span>
+    </div>
+  </header>
+
+  <nav class="rail" aria-label="Contents">
+    <p class="rail-title">Contents</p>
+    <ol>
+      <li><a href="#start">Read this first</a></li>
+      <li><a href="#fires">How a skill actually fires</a></li>
+      <li><a href="#map">The routing map</a></li>
+      <li><a href="#emil">emilkowalski/skill</a></li>
+      <li><a href="#gsap">gsap-skills</a></li>
+      <li><a href="#impeccable">impeccable</a></li>
+      <li><a href="#superpowers">superpowers</a></li>
+      <li><a href="#openspec">openspec</a></li>
+      <li><a href="#context7">context7</a></li>
+      <li><a href="#recipes">Recipes</a></li>
+      <li><a href="#collisions">Where two skills collide</a></li>
+      <li><a href="#antipatterns">How to waste money</a></li>
+      <li><a href="#install">Installing and keeping it current</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- 01 -->
+    <section id="start">
+      <span class="sec-num">01</span>
+      <h2>Read this first</h2>
+
+      <p class="lede">
+        A skill is not a tool. It is a folder of instructions that the agent chooses to read
+        into its own context, mid-task, and then obeys.
+      </p>
+
+      <p>
+        That single sentence explains everything else on this page. A skill cannot be called
+        and cannot fail. It is loaded or it is not, and when it is loaded the agent behaves as
+        though the author of that skill were standing behind it. So the interesting question
+        is never <em>"does this skill work?"</em> — it is <em>"did the right one load, and did
+        anything load that shouldn't have?"</em>
+      </p>
+
+      <p>
+        Two consequences follow, and both are load-bearing.
+      </p>
+
+      <p>
+        <strong>Loading is not free.</strong> Every skill you pull in occupies context you
+        could have spent on the codebase, and it competes for the agent's attention with
+        everything else already in there. Concrete numbers from what is installed here: a
+        single GSAP skill is 600–3,000 words, <span class="path">emil-design-eng</span> is
+        3,877, and impeccable's reference library is <strong>50,301 words</strong> across
+        thirty-five playbooks — of which it loads exactly one per task, on purpose. Skills are
+        designed around progressive disclosure. Defeating that design by loading five suites
+        "to be safe" makes the agent worse, not safer.
+      </p>
+
+      <p>
+        <strong>Skills conflict, and conflicts are silent.</strong> Two skills can both
+        plausibly claim a task and give opposing instructions. Nothing errors. You get an
+        answer that is internally consistent and wrong at the level of intent. Section
+        <a href="#collisions">11</a> lists the collisions that actually occur in this set.
+      </p>
+
+      <h3>What this page is not</h3>
+
+      <p>
+        It is not a description of what each skill contains — the skills document themselves,
+        and duplicating them here would guarantee two versions that drift. This page is a
+        <strong>router</strong>. It answers "which one do I reach for", and stops.
+      </p>
+
+      <div class="note key">
+        <span class="note-label">Its sibling</span>
+        <p>
+          <span class="path">docs/workflow.html</span> §11 already answers this in four lines,
+          for people who only need four lines. This page is the long version of that section.
+          If the two disagree, they are both wrong and one of them needs fixing — say which
+          when you report it.
+        </p>
+      </div>
+
+      <div class="local">
+        <span class="note-label">In this repo</span>
+        <p>
+          Agent tooling is gitignored: <span class="path">.claude/</span>,
+          <span class="path">.agents/</span>, <span class="path">.impeccable/</span> and
+          <span class="path">skills-lock.json</span> never get committed, so a fresh clone has
+          none of it. This page is committed anyway, because a guide that only exists on the
+          machine of whoever installed the tooling is not a guide. Section
+          <a href="#install">13</a> is how you get from a fresh clone to a working toolbelt.
+        </p>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section id="fires">
+      <span class="sec-num">02</span>
+      <h2>How a skill actually fires</h2>
+
+      <p>
+        Three mechanisms, and it is worth being able to tell them apart, because "the skill
+        didn't trigger" almost always means you were relying on the wrong one.
+      </p>
+
+      <h3>1 · The agent decides, from the description</h3>
+
+      <p>
+        Every skill is a <span class="path">SKILL.md</span> with YAML frontmatter. The
+        <code>description</code> field is not documentation for you — it is a routing
+        instruction written for the model, which is why they read like keyword soup:
+      </p>
+
+      <pre><code>---
+name: gsap-scrolltrigger
+description: Official GSAP skill for ScrollTrigger — scroll-linked animations,
+  pinning, scrub, triggers. Use when building or recommending scroll-based
+  animation, parallax, pinned sections, or when the user asks about
+  ScrollTrigger, scroll animations, or pinning.
+license: MIT
+---</code></pre>
+
+      <p>
+        The agent sees every installed skill's <code>name</code> and
+        <code>description</code> at all times — that list is cheap. It reads the body only
+        when it decides one applies. So <strong>the words you use in your prompt are the
+        routing key.</strong> Say "pin the hero while the copy scrubs past" and ScrollTrigger
+        loads. Say "make the hero cooler" and nothing loads, because nothing matched.
+      </p>
+
+      <h3>2 · You name it</h3>
+
+      <p>
+        Typing <code>/skill-name</code> loads it unconditionally. Use this when you know what
+        you want and don't want to gamble on the description matching. Some skills
+        <em>require</em> it: the frontmatter key <code>disable-model-invocation: true</code>
+        means the agent will never load it on its own, no matter what you say. Three of the
+        installed skills are marked that way, and each for a good reason — they are expensive,
+        opinionated, or destructive of flow if they fire uninvited:
+      </p>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Manual-only skill</th><th>Why it never self-triggers</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="sk">review-animations</span></td>
+              <td>It is a hostile reviewer by design — "default to flagging, approval is earned". Firing it unasked turns every animation edit into a fight.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">prototype</span></td>
+              <td>It builds several complete alternative implementations. Enormously useful when you asked for it; enormously wasteful when you didn't.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">pick-ui-library</span></td>
+              <td>It recommends adding dependencies. That should always be a decision you asked for.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3 · A hook fires it</h3>
+
+      <p>
+        Hooks are harness configuration, not skills — the harness runs them, the agent doesn't
+        choose to. impeccable ships one: a design detector that runs after every UI file edit
+        and feeds its findings back into the agent's context as if you had said them.
+      </p>
+
+      <div class="local">
+        <span class="note-label">In this repo</span>
+        <p>
+          It is already wired, in <span class="path">.claude/settings.local.json</span>:
+          a <code>PostToolUse</code> hook on Edit/Write for immediate-tier findings, and a
+          <code>Stop</code> hook that runs the full rule set over everything touched in the
+          session. Both shell out to <code>node</code>. Without Node on
+          <code>PATH</code> they no-op silently — <strong>that is not an error</strong>, and
+          the file is gitignored, so your teammate not having it is also not an error.
+        </p>
+      </div>
+
+      <h3>Where they live, and the one rule about editing them</h3>
+
+      <pre><code>.agents/skills/&lt;name&gt;/SKILL.md    harness-agnostic copy
+.claude/skills/&lt;name&gt;/SKILL.md    Claude Code copy
+.claude/commands/opsx/*.md         slash commands (thin wrappers)
+skills-lock.json                   source repo + content hash per skill</code></pre>
+
+      <p>
+        Two copies of the same skills is normal: one per harness that can read them. The lock
+        file records where each came from and a hash of what it contained.
+      </p>
+
+      <div class="note key">
+        <span class="note-label">Never hand-edit a file under a skills directory</span>
+        <p>
+          Your edit diverges from the recorded hash and is silently discarded at the next
+          sync. If a skill is wrong for this project, override it in
+          <span class="path">openspec/config.yaml</span> or an ADR — a place that survives.
+          The Inter font decision in <span class="path">design/brand.md</span> is exactly this
+          pattern: impeccable's guidance is overridden in a durable document rather than by
+          editing impeccable.
+        </p>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section id="map">
+      <span class="sec-num">03</span>
+      <h2>The routing map</h2>
+
+      <p class="lede">
+        The six suites are not alternatives to each other. They own different phases of the
+        same job, and two of them own the same phase — which is the only genuine conflict in
+        the set.
+      </p>
+
+      <figure>
+        <div class="fig-frame">
+          <svg viewBox="0 0 950 350" role="img"
+               aria-label="A grid of six skill suites against five phases of work: decide, shape, build, judge, land. OpenSpec covers decide and land. Superpowers covers all five. Impeccable covers shape, build and judge. Emilkowalski covers shape, build and judge. GSAP covers build only. Context7 spans shape through judge.">
+            <!-- phase headers -->
+            <text class="svg-lbl" x="150" y="26">decide</text>
+            <text class="svg-lbl" x="310" y="26">shape</text>
+            <text class="svg-lbl" x="470" y="26">build</text>
+            <text class="svg-lbl" x="630" y="26">judge</text>
+            <text class="svg-lbl" x="790" y="26">land</text>
+
+            <!-- column separators -->
+            <line class="svg-lane" x1="304" y1="34" x2="304" y2="330" />
+            <line class="svg-lane" x1="464" y1="34" x2="464" y2="330" />
+            <line class="svg-lane" x1="624" y1="34" x2="624" y2="330" />
+            <line class="svg-lane" x1="784" y1="34" x2="784" y2="330" />
+
+            <!-- row 1 — openspec -->
+            <text class="svg-tm" x="8" y="80">openspec</text>
+            <rect class="svg-box-plan" x="150" y="58" width="152" height="34" rx="4" />
+            <text class="svg-s" x="226" y="79" text-anchor="middle">explore · propose</text>
+            <rect class="svg-box-plan" x="790" y="58" width="152" height="34" rx="4" />
+            <text class="svg-s" x="866" y="79" text-anchor="middle">apply · sync · archive</text>
+
+            <!-- row 2 — superpowers -->
+            <text class="svg-tm" x="8" y="122">superpowers</text>
+            <rect class="svg-box-off" x="150" y="100" width="152" height="34" rx="4" />
+            <text class="svg-s" x="226" y="121" text-anchor="middle">brainstorming</text>
+            <rect class="svg-box-off" x="310" y="100" width="152" height="34" rx="4" />
+            <text class="svg-s" x="386" y="121" text-anchor="middle">writing-plans</text>
+            <rect class="svg-box-off" x="470" y="100" width="152" height="34" rx="4" />
+            <text class="svg-s" x="546" y="121" text-anchor="middle">TDD · debugging</text>
+            <rect class="svg-box-off" x="630" y="100" width="152" height="34" rx="4" />
+            <text class="svg-s" x="706" y="121" text-anchor="middle">code review</text>
+            <rect class="svg-box-off" x="790" y="100" width="152" height="34" rx="4" />
+            <text class="svg-s" x="866" y="121" text-anchor="middle">finish branch</text>
+
+            <!-- row 3 — impeccable -->
+            <text class="svg-tm" x="8" y="164">impeccable</text>
+            <rect class="svg-box" x="310" y="142" width="152" height="34" rx="4" />
+            <text class="svg-s" x="386" y="163" text-anchor="middle">shape · new-work</text>
+            <rect class="svg-box" x="470" y="142" width="152" height="34" rx="4" />
+            <text class="svg-s" x="546" y="163" text-anchor="middle">enhance · fix</text>
+            <rect class="svg-box" x="630" y="142" width="152" height="34" rx="4" />
+            <text class="svg-s" x="706" y="163" text-anchor="middle">critique · audit</text>
+
+            <!-- row 4 — emilkowalski -->
+            <text class="svg-tm" x="8" y="206">emilkowalski</text>
+            <rect class="svg-box" x="310" y="184" width="152" height="34" rx="4" />
+            <text class="svg-s" x="386" y="205" text-anchor="middle">prototype · pick-ui</text>
+            <rect class="svg-box" x="470" y="184" width="152" height="34" rx="4" />
+            <text class="svg-s" x="546" y="205" text-anchor="middle">animate</text>
+            <rect class="svg-box" x="630" y="184" width="152" height="34" rx="4" />
+            <text class="svg-s" x="706" y="205" text-anchor="middle">review · improve</text>
+
+            <!-- row 5 — gsap -->
+            <text class="svg-tm" x="8" y="248">gsap-skills</text>
+            <rect class="svg-box-code" x="470" y="226" width="152" height="34" rx="4" />
+            <text class="svg-s" x="546" y="247" text-anchor="middle">the whole suite</text>
+
+            <!-- row 6 — context7 -->
+            <text class="svg-tm" x="8" y="290">context7</text>
+            <rect class="svg-box-code" x="310" y="268" width="472" height="34" rx="4" />
+            <text class="svg-s" x="546" y="289" text-anchor="middle">any unfamiliar or fast-moving API, at any point</text>
+
+            <!-- collision marker: the two phases both openspec and superpowers claim -->
+            <rect x="144" y="40" width="324" height="270" rx="6"
+                  fill="none" stroke="var(--accent)" stroke-dasharray="4 4" />
+            <text class="svg-lbl" x="306" y="330" text-anchor="middle" fill="var(--accent)">↑ the one real collision — see §11</text>
+          </svg>
+        </div>
+        <figcaption>
+          Solid boxes write or judge code. Dashed boxes are process, not code. The only
+          overlap that forces a choice is <em>decide</em> and <em>shape</em>, where OpenSpec
+          and superpowers both want to own planning.
+        </figcaption>
+      </figure>
+
+      <h3>The one-line version</h3>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Suite</th><th>Owns</th><th>Reach for it when</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="sk">openspec</span></td>
+              <td>The artifacts of a change</td>
+              <td>Work is big enough to deserve a written proposal, spec and task list before code exists.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">superpowers</span></td>
+              <td>Engineering discipline</td>
+              <td>You are debugging, testing, stuck on a hard problem, or want review gates between tasks.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">impeccable</span></td>
+              <td>The interface as a whole</td>
+              <td>The question is about a screen: hierarchy, layout, colour, type, a11y, responsiveness, polish.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">emilkowalski</span></td>
+              <td>Interface motion and feel</td>
+              <td>The question is about how one component behaves — hover, press, open, dismiss, drag.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">gsap-skills</span></td>
+              <td>The GSAP API</td>
+              <td>You have already decided to animate with GSAP and now need it to be correct.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">context7</span></td>
+              <td>Current documentation</td>
+              <td>You are about to write against any library API. Always. Before, not after.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note key">
+        <span class="note-label">The distinction people get wrong most often</span>
+        <p>
+          <strong>impeccable is about the screen; emilkowalski is about the component;
+          gsap-skills is about the API call.</strong> "This page feels cluttered" is
+          impeccable. "This dropdown opens wrong" is emilkowalski. "How do I stop this tween
+          leaking on unmount" is gsap-react. Asking impeccable the third question gets you a
+          thoughtful answer about visual hierarchy and no <code>useGSAP</code>.
+        </p>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section id="emil">
+      <span class="sec-num">04</span>
+      <h2>emilkowalski/skill</h2>
+
+      <p class="lede">
+        Ten skills encoding one person's taste about how interfaces should feel. The
+        substantive bar throughout is Emil Kowalski's animation philosophy: ease-out on
+        entrances, sub-300ms for interface motion, transform and opacity only, correct
+        transform-origin, reduced-motion handled, and — most importantly — the willingness to
+        conclude that something should not animate at all.
+      </p>
+
+      <h3>The four animation skills, which are constantly confused</h3>
+
+      <p>
+        Four of the ten are about animation and they are <em>not</em> interchangeable. Each
+        one's own description explicitly disclaims the other three. Two questions separate
+        them completely.
+      </p>
+
+      <figure>
+        <div class="fig-frame">
+          <svg viewBox="0 0 640 420" role="img"
+               aria-label="A two-by-two matrix. Horizontal axis: does the motion already exist, no on the left, yes on the right. Vertical axis: scope, one piece at the top, whole codebase at the bottom. Top left is animate, top right is review-animations, bottom left is find-animation-opportunities, bottom right is improve-animations.">
+            <!-- axes -->
+            <line class="svg-axis" x1="60" y1="360" x2="600" y2="360" />
+            <line class="svg-axis" x1="60" y1="40" x2="60" y2="360" />
+
+            <!-- quadrants -->
+            <rect class="svg-box-code" x="80" y="52" width="248" height="140" rx="6" />
+            <text class="svg-tm" x="204" y="102" text-anchor="middle">animate</text>
+            <text class="svg-s" x="204" y="126" text-anchor="middle">writes the implementation</text>
+            <text class="svg-s" x="204" y="146" text-anchor="middle">one component, from scratch</text>
+            <text class="svg-lbl" x="204" y="170" text-anchor="middle">writes code</text>
+
+            <rect class="svg-box" x="340" y="52" width="248" height="140" rx="6" />
+            <text class="svg-tm" x="464" y="102" text-anchor="middle">review-animations</text>
+            <text class="svg-s" x="464" y="126" text-anchor="middle">judges a diff, harshly</text>
+            <text class="svg-s" x="464" y="146" text-anchor="middle">approval is earned</text>
+            <text class="svg-lbl" x="464" y="170" text-anchor="middle">manual-only · read-only</text>
+
+            <rect class="svg-box" x="80" y="204" width="248" height="140" rx="6" />
+            <text class="svg-tm" x="204" y="254" text-anchor="middle">find-animation-</text>
+            <text class="svg-tm" x="204" y="270" text-anchor="middle">opportunities</text>
+            <text class="svg-s" x="204" y="294" text-anchor="middle">where is motion missing?</text>
+            <text class="svg-lbl" x="204" y="322" text-anchor="middle">read-only · proposes values</text>
+
+            <rect class="svg-box" x="340" y="204" width="248" height="140" rx="6" />
+            <text class="svg-tm" x="464" y="254" text-anchor="middle">improve-animations</text>
+            <text class="svg-s" x="464" y="278" text-anchor="middle">audit, then hand plans</text>
+            <text class="svg-s" x="464" y="296" text-anchor="middle">to cheaper agents</text>
+            <text class="svg-lbl" x="464" y="322" text-anchor="middle">read-only · writes plans</text>
+
+            <!-- axis labels -->
+            <text class="svg-lbl" x="334" y="392" text-anchor="middle">does the motion already exist?</text>
+            <text class="svg-s" x="204" y="378" text-anchor="middle">no</text>
+            <text class="svg-s" x="464" y="378" text-anchor="middle">yes</text>
+
+            <text class="svg-lbl" x="0" y="0" transform="translate(26,200) rotate(-90)" text-anchor="middle">scope</text>
+            <text class="svg-s" x="0" y="0" transform="translate(48,122) rotate(-90)" text-anchor="middle">one piece</text>
+            <text class="svg-s" x="0" y="0" transform="translate(48,274) rotate(-90)" text-anchor="middle">whole codebase</text>
+          </svg>
+        </div>
+        <figcaption>
+          Only one of the four writes animation code. If you asked for a survey and got a
+          commit, you invoked the wrong quadrant.
+        </figcaption>
+      </figure>
+
+      <h3>All ten</h3>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Skill</th><th>Mode</th><th>Use it when</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="sk">animate</span></td>
+              <td><span class="tag writes">writes</span></td>
+              <td>You want motion built. It walks the decisions in the order that determines whether it feels right: should it animate at all → what purpose → which tool → which properties → curve and duration → interruption → exit.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">review-animations</span></td>
+              <td><span class="tag manual">manual</span></td>
+              <td>You have a diff containing motion and want it torn apart before review. Ten non-negotiable standards, plus a full rule catalogue in its <span class="path">STANDARDS.md</span>.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">find-animation-opportunities</span></td>
+              <td><span class="tag reads">read-only</span></td>
+              <td>"What could be animated here?" Its premise is <em>You Don't Need Animations</em> — it is built to reject most candidates, and proposes exact values for the few it accepts.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">improve-animations</span></td>
+              <td><span class="tag reads">read-only</span></td>
+              <td>"The whole app feels off." Surveys all motion code, writes a prioritised audit plus self-contained implementation plans that a cheaper model can execute.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">emil-design-eng</span></td>
+              <td><span class="tag reads">read-only</span></td>
+              <td>The philosophy underneath the rest — polish, component design, the invisible details. Load it when you want judgement, not a procedure. Largest of the ten at 3,877 words.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">apple-design</span></td>
+              <td><span class="tag reads">read-only</span></td>
+              <td>Anything gestural or physical: drag, swipe, sheets, springs, momentum, interruptible transitions, translucent materials. The through-line is that motion should start from the current on-screen value and inherit the user's velocity.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">prototype</span></td>
+              <td><span class="tag manual">manual</span></td>
+              <td>You cannot decide between directions. Builds several genuinely divergent versions behind a live picker, in an isolated surface — never in production code — and integrates only the winner.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">pick-ui-library</span></td>
+              <td><span class="tag manual">manual</span></td>
+              <td>"What should I use for a command menu / OTP input / virtualised list / drag and drop?" A curated opinionated list, one recommendation, no menu of options.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">animation-vocabulary</span></td>
+              <td><span class="tag reads">read-only</span></td>
+              <td>You can describe an effect but not name it. "The bouncy thing when a popover opens" → <em>pop in</em>. Cheap, and it makes every subsequent prompt sharper.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">ask-sonner</span></td>
+              <td><span class="tag reads">read-only</span></td>
+              <td>Only if you use Sonner for toasts. Setup, promise toasts, and the specific failure modes — toasts behind a modal, ignoring Tailwind classes, appearing twice.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="local">
+        <span class="note-label">In this repo</span>
+        <p>
+          These skills govern <strong>interface motion only</strong> — the L3 and L2 tiers in
+          <span class="path">design/motion.md</span>. They have no authority over narrative
+          motion (L1: the home hero and <span class="path">/timeline</span>), and narrative
+          guidance has no authority over a button hover. Two budgets, kept separate on purpose.
+          <span class="path">ask-sonner</span> is currently dormant: no toast library is
+          chosen. <span class="path">pick-ui-library</span> recommends dependencies, and a
+          second animation library needs its own ADR before it is even proposable.
+        </p>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section id="gsap">
+      <span class="sec-num">05</span>
+      <h2>gsap-skills</h2>
+
+      <p class="lede">
+        Eight skills from GreenSock covering the GSAP API. This is the only suite here that is
+        purely factual — it tells you what the library does, not what you should want.
+      </p>
+
+      <p>
+        They stack, and the stacking pattern is always the same: <strong>gsap-core plus the
+        one domain skill your task lives in.</strong> Add gsap-performance only when something
+        actually janks.
+      </p>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Skill</th><th>Covers</th><th>Load it when</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="sk">gsap-core</span></td>
+              <td><code>to</code>, <code>from</code>, <code>fromTo</code>, easing, duration, stagger, defaults, <code>gsap.matchMedia()</code></td>
+              <td>Always, as the base. It also owns <code>matchMedia()</code>, which is how responsive and <code>prefers-reduced-motion</code> variants are expressed — so it is the reduced-motion skill too.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">gsap-timeline</span></td>
+              <td><code>gsap.timeline()</code>, the position parameter, nesting, playback control</td>
+              <td>More than one thing has to happen in a defined order. The position parameter is the part people get wrong; at 637 words this is the cheapest skill in the set to load.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">gsap-scrolltrigger</span></td>
+              <td>Scroll-linked animation, pinning, scrub, trigger points</td>
+              <td>Anything driven by scroll position: parallax, pinned sections, progress-linked reveals.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">gsap-react</span></td>
+              <td><code>useGSAP</code>, refs, <code>gsap.context()</code>, cleanup on unmount</td>
+              <td>Any React or Next.js project, every single time. It is the skill that prevents leaked tweens and SSR mismatches, and it is short — 974 words.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">gsap-frameworks</span></td>
+              <td>Vue, Nuxt, Svelte, SvelteKit lifecycle and cleanup</td>
+              <td>The same job as gsap-react, for everything that isn't React. Skip it entirely on a React project.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">gsap-plugins</span></td>
+              <td>Registration, ScrollTo, ScrollSmoother, Flip, Draggable, Inertia, Observer, SplitText, ScrambleText, SVG and physics plugins, CustomEase, CustomWiggle, CustomBounce, GSDevTools</td>
+              <td>You named a plugin, or you described something only a plugin does — FLIP layout transitions, drag with inertia, split-by-character text, drawing an SVG path.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">gsap-performance</span></td>
+              <td>Transforms over layout properties, layout thrashing, <code>will-change</code>, batching</td>
+              <td>Something drops frames. Not preventively — the other skills already prefer transforms, so loading this up front mostly restates them.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">gsap-utils</span></td>
+              <td><code>clamp</code>, <code>mapRange</code>, <code>normalize</code>, <code>interpolate</code>, <code>random</code>, <code>snap</code>, <code>toArray</code>, <code>wrap</code>, <code>pipe</code></td>
+              <td>You are about to hand-write value mapping. Mapping scroll progress to a range, snapping to a grid, randomising a stagger — all of it already exists here.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <span class="note-label">A bias worth knowing about</span>
+        <p>
+          Several of these descriptions instruct the agent to <em>recommend GSAP</em> when no
+          library has been chosen. That is reasonable advice from GreenSock and it is still
+          advocacy. The decision of whether to reach for a library at all is not GSAP's to
+          make — it belongs to whatever governs your motion budget.
+        </p>
+      </div>
+
+      <div class="local">
+        <span class="note-label">In this repo</span>
+        <p>
+          <span class="path">gsap-skills</span> is the authority for GSAP, and GSAP is only
+          permitted at tier L1 — dynamically imported, capped at two routes (home hero and
+          <span class="path">/timeline</span>). L2 sections use no library. L3 micro-interactions
+          are CSS only, <em>no exceptions</em>. A third L1 route or a second animation library
+          requires its own ADR. So: <span class="path">gsap-react</span> and
+          <span class="path">gsap-core</span> are the everyday pair here,
+          <span class="path">gsap-frameworks</span> never applies, and if a GSAP skill starts
+          proposing motion on a third route the answer is an ADR, not a tween. See
+          <span class="path">docs/adr/0003-motion-stack.md</span>.
+        </p>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section id="impeccable">
+      <span class="sec-num">06</span>
+      <h2>impeccable</h2>
+
+      <p class="lede">
+        One skill with a sub-command surface. Its <span class="path">SKILL.md</span> is 1,438
+        words; behind it sit thirty-five playbooks totalling 50,301 words, of which it loads
+        exactly one per task. Understanding that structure is most of understanding how to use
+        it.
+      </p>
+
+      <h3>How a run is shaped</h3>
+
+      <ol class="steps">
+        <li>
+          <div>
+            <p class="step-h">It reads your project first</p>
+            <p>
+              A setup script loads <span class="path">PRODUCT.md</span> (who this is for,
+              brand, principles) and <span class="path">DESIGN.md</span> (colours, type,
+              components) if they exist. Without them it is designing blind, which is why
+              <code>init</code> exists.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <p class="step-h">It picks exactly one playbook</p>
+            <p>
+              The command you named, or the one your request clearly implies. If two fit it
+              asks once. This is why a vague request produces a menu rather than work.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <p class="step-h">It declares a mode</p>
+            <p>
+              <strong>Persuade</strong> (the visitor decides and acts — landing pages),
+              <strong>Operate</strong> (the visitor completes a task — dashboards, admin),
+              <strong>Read</strong> (the visitor understands something — docs),
+              <strong>Experience</strong> (the visitor is inside the work — portfolios,
+              galleries). The mode is chosen from <em>the surface</em>, not the product: a
+              developer tool's landing page is still Persuade.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <p class="step-h">It verifies in bounded passes, then stops</p>
+            <p>
+              Build fully → one batched inspection round → fix everything it found in one
+              batch → at most one confirming round → stop. Open-ended self-QA is explicitly
+              banned in the skill, because it burns money doing badly what a review does well.
+            </p>
+          </div>
+        </li>
+      </ol>
+
+      <h3>The commands, by category</h3>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Category</th><th>Commands</th><th>What the category is for</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Build</b></td>
+              <td><span class="sk">shape</span> <span class="sk">init</span> <span class="sk">document</span> <span class="sk">extract</span></td>
+              <td>Bringing something into existence. <code>shape</code> plans UX before code. <code>init</code> writes PRODUCT.md once per project. <code>document</code> reverse-engineers DESIGN.md from code you already have. <code>extract</code> pulls repeated patterns back into a system. (<code>craft</code> is a deprecated alias — ignore it.)</td>
+            </tr>
+            <tr>
+              <td><b>Evaluate</b></td>
+              <td><span class="sk">critique</span> <span class="sk">audit</span></td>
+              <td>Judgement, no edits. <code>critique</code> is design review with heuristic scoring; <code>audit</code> is technical — accessibility, performance, responsive, theming — scored P0–P3. Ask for a critique when you suspect it's ugly, an audit when you suspect it's broken.</td>
+            </tr>
+            <tr>
+              <td><b>Refine</b></td>
+              <td><span class="sk">polish</span> <span class="sk">bolder</span> <span class="sk">quieter</span> <span class="sk">distill</span> <span class="sk">harden</span> <span class="sk">onboard</span></td>
+              <td>The thing exists and is wrong in a nameable direction. <code>bolder</code> and <code>quieter</code> are opposites; <code>distill</code> removes; <code>harden</code> adds error states, i18n and edge cases; <code>onboard</code> designs first-run and empty states. <code>polish</code> reads the last critique as its backlog.</td>
+            </tr>
+            <tr>
+              <td><b>Enhance</b></td>
+              <td><span class="sk">animate</span> <span class="sk">colorize</span> <span class="sk">typeset</span> <span class="sk">layout</span> <span class="sk">delight</span> <span class="sk">overdrive</span></td>
+              <td>Adding a dimension that isn't there. <code>colorize</code> for monochrome UIs, <code>typeset</code> for hierarchy and fonts, <code>layout</code> for spacing and rhythm, <code>delight</code> for personality, <code>overdrive</code> for pushing past conventional limits.</td>
+            </tr>
+            <tr>
+              <td><b>Fix</b></td>
+              <td><span class="sk">clarify</span> <span class="sk">adapt</span> <span class="sk">optimize</span></td>
+              <td>A specific defect. <code>clarify</code> for copy, labels and error messages; <code>adapt</code> for breakpoints, touch targets and cross-device; <code>optimize</code> for UI performance.</td>
+            </tr>
+            <tr>
+              <td><b>Iterate</b></td>
+              <td><span class="sk">live</span></td>
+              <td>Pick elements in a running browser, generate variants, hot-swap them via HMR. Needs a dev server. Web only — it does not apply to native targets.</td>
+            </tr>
+            <tr>
+              <td><b>Operate</b></td>
+              <td><span class="sk">hooks</span> <span class="sk">doctor</span> <span class="sk">pin</span></td>
+              <td>Managing the tool itself. <code>hooks on|off|status</code> controls the design detector. <code>doctor</code> reports drift between your artifacts and the installed version. <code>pin &lt;command&gt;</code> creates a standalone shortcut for a command you run constantly.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note key">
+        <span class="note-label">Invoking it with no argument is a real move</span>
+        <p>
+          Bare <code>/impeccable</code> runs a context-aware triage: it looks at whether you
+          have PRODUCT.md, when you last ran a critique and what it scored, which files are
+          dirty in git, whether a dev server is up, and runs its offline detector over the
+          changed files. Then it recommends two or three commands with reasons. It never
+          auto-runs one. When you know something is wrong but not what, this beats guessing a
+          sub-command.
+        </p>
+      </div>
+
+      <div class="note">
+        <span class="note-label">The hook has two tiers</span>
+        <p>
+          Per-edit, it reports only mechanical and unambiguous problems — broken images,
+          clipped content, contrast failures, gradient text, glow shadows, design-system drift.
+          Everything subtler (copy cadence, palette taste, layout rhythm) is deferred to a
+          single deep pass when the session ends, deduplicated against what already fired. A
+          clean session ends silently.
+        </p>
+      </div>
+
+      <div class="local">
+        <span class="note-label">In this repo</span>
+        <p>
+          impeccable's font guidance flags Inter. That override is deliberate — Orbitron lacks
+          <b>ğ Ğ ş Ş ı İ</b>, so any heading containing them uses Inter — and it is recorded in
+          <span class="path">design/brand.md</span>. Dismiss the finding with a pointer to that
+          file; do not re-litigate it on every run, and do not "fix" it by editing the skill.
+          Note also that <span class="path">PRODUCT.md</span> and
+          <span class="path">DESIGN.md</span> do not exist here: <span class="path">design/</span>
+          plays that role and the ADRs outrank both.
+        </p>
+      </div>
+    </section>
+
+    <!-- 07 -->
+    <section id="superpowers">
+      <span class="sec-num">07</span>
+      <h2>superpowers</h2>
+
+      <p>
+        <span class="tag absent">not installed here</span>
+      </p>
+
+      <p class="lede">
+        Thirty-one skills covering how to <em>work</em> rather than what to build: brainstorming,
+        planning, TDD, debugging, code review, and a set of problem-solving techniques for when
+        you are stuck. It is the broadest suite of the six and the only one that spans the
+        entire lifecycle — which is exactly why it collides with OpenSpec.
+      </p>
+
+      <div class="note">
+        <span class="note-label">Status</span>
+        <p>
+          Superpowers is <strong>not currently installed on this project</strong> — it is
+          absent from <span class="path">skills-lock.json</span>,
+          <span class="path">.agents/skills/</span> and the plugin marketplaces. This section
+          describes what it would give you and what it would take away, so the decision to add
+          it is an informed one. Everything below is from the upstream repositories, not from
+          local files.
+        </p>
+      </div>
+
+      <h3>The chain it wants you to run</h3>
+
+      <p>
+        Superpowers' core proposition is a mandatory workflow, not a menu. Its own
+        documentation describes the skills as triggering automatically in sequence:
+      </p>
+
+      <pre><code>brainstorming              <span class="c">Socratic questioning until the design is fully formed</span>
+  ↓
+using-git-worktrees        <span class="c">isolate the work before touching anything</span>
+  ↓
+writing-plans              <span class="c">bite-sized tasks for an engineer with zero context</span>
+  ↓
+subagent-driven-development <span class="c">fresh subagent per task, review gate between each</span>
+  or executing-plans        <span class="c">batches with review checkpoints</span>
+  ↓
+test-driven-development    <span class="c">test first, watch it fail, minimal code to pass</span>
+  ↓
+requesting-code-review     <span class="c">dispatch a reviewer subagent before proceeding</span>
+  ↓
+finishing-a-development-branch <span class="c">merge, PR, or clean up</span></code></pre>
+
+      <h3>The catalogue</h3>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Category</th><th>Skills</th><th>Worth it for</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>collaboration</b><br><span class="path">11 skills</span></td>
+              <td><span class="sk">brainstorming</span> <span class="sk">writing-plans</span> <span class="sk">executing-plans</span> <span class="sk">subagent-driven-development</span> <span class="sk">dispatching-parallel-agents</span> <span class="sk">requesting-code-review</span> <span class="sk">receiving-code-review</span> <span class="sk">using-git-worktrees</span> <span class="sk">finishing-a-development-branch</span> <span class="sk">remembering-conversations</span></td>
+              <td>The workflow spine. <span class="path">dispatching-parallel-agents</span> earns its place on its own: three or more independent failures, investigated concurrently. <span class="path">receiving-code-review</span> is the underrated one — it exists to stop an agent from performatively agreeing with review feedback that is wrong.</td>
+            </tr>
+            <tr>
+              <td><b>debugging</b><br><span class="path">4 skills</span></td>
+              <td><span class="sk">systematic-debugging</span> <span class="sk">root-cause-tracing</span> <span class="sk">defense-in-depth</span> <span class="sk">verification-before-completion</span></td>
+              <td>The highest-value category, and the one with no equivalent anywhere else in this toolbelt. <span class="path">systematic-debugging</span> is a four-phase framework whose entire purpose is to stop the agent proposing a fix before it has found the cause. <span class="path">verification-before-completion</span> forces it to run the command and read the output before claiming success.</td>
+            </tr>
+            <tr>
+              <td><b>testing</b><br><span class="path">3 skills</span></td>
+              <td><span class="sk">test-driven-development</span> <span class="sk">testing-anti-patterns</span> <span class="sk">condition-based-waiting</span></td>
+              <td><span class="path">testing-anti-patterns</span> is blunt and useful: never test mock behaviour, never add test-only methods to production classes. <span class="path">condition-based-waiting</span> replaces arbitrary timeouts with condition polling — the standard cure for flaky async tests.</td>
+            </tr>
+            <tr>
+              <td><b>problem-solving</b><br><span class="path">6 skills</span></td>
+              <td><span class="sk">when-stuck</span> <span class="sk">inversion-exercise</span> <span class="sk">simplification-cascades</span> <span class="sk">collision-zone-thinking</span> <span class="sk">scale-game</span> <span class="sk">meta-pattern-recognition</span></td>
+              <td>Lateral-thinking techniques. <span class="path">when-stuck</span> is a dispatcher that routes to the right one based on <em>how</em> you're stuck, so it is the only entry point you need to remember. <span class="path">simplification-cascades</span> — find one insight that deletes three components — is the one that pays for the category.</td>
+            </tr>
+            <tr>
+              <td><b>meta</b><br><span class="path">5 skills</span></td>
+              <td><span class="sk">writing-skills</span> <span class="sk">testing-skills-with-subagents</span> <span class="sk">sharing-skills</span> <span class="sk">gardening-skills-wiki</span> <span class="sk">pulling-updates-from-skills-repository</span></td>
+              <td>Writing your own skills. <span class="path">writing-skills</span> applies TDD to prose: test the skill against a subagent with no context, watch it fail, write the instruction that fixes the failure, repeat. If you ever write a project-specific skill, start here.</td>
+            </tr>
+            <tr>
+              <td><b>architecture · research</b><br><span class="path">2 skills</span></td>
+              <td><span class="sk">preserving-productive-tensions</span> <span class="sk">tracing-knowledge-lineages</span></td>
+              <td>Narrow but sharp. The first is for when you keep oscillating between two approaches that optimise for different legitimate priorities — it says preserve the tension rather than forcing a premature resolution. The second is for "why do we use X" archaeology.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Installing it</h3>
+
+      <pre><code>/plugin install superpowers@claude-plugins-official
+
+<span class="c"># or, for the upstream marketplace</span>
+/plugin marketplace add obra/superpowers-marketplace
+/plugin install superpowers@superpowers-marketplace</code></pre>
+
+      <p>
+        Installation is per-harness: if you drive more than one agent tool, install it in each.
+        The core skills ship with the plugin at <span class="path">obra/superpowers</span>; the
+        full categorised library lives in <span class="path">obra/superpowers-skills</span> and
+        is community-editable, so a <code>find-skills</code> search there is worth doing before
+        assuming a technique isn't covered.
+      </p>
+
+      <div class="local">
+        <span class="note-label">Before you install it here</span>
+        <p>
+          Read §<a href="#collisions">11</a> first. Superpowers' planning chain and OpenSpec's
+          planning chain do the same job with different vocabularies and different artifacts.
+          Installing superpowers without deciding which one owns planning gets you two sets of
+          design documents in two directories and no way to tell which one a reviewer should
+          read. The debugging, testing and problem-solving categories carry no such conflict
+          and are pure gain.
+        </p>
+      </div>
+    </section>
+
+    <!-- 08 -->
+    <section id="openspec">
+      <span class="sec-num">08</span>
+      <h2>openspec</h2>
+
+      <p class="lede">
+        Six skills wrapping the <code>openspec</code> CLI. Where the other suites are
+        knowledge, this one is <strong>bookkeeping</strong>: it produces artifacts on disk that
+        outlive the conversation that created them.
+      </p>
+
+      <p>
+        That is the whole point. A chat is lost; a proposal in
+        <span class="path">openspec/changes/</span> is reviewable by someone who was not there
+        and is still legible in three years. If nothing about a task needs to survive the
+        session, OpenSpec is overhead — use it for work worth writing down.
+      </p>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Skill</th><th>Command</th><th>What it does, and its boundary</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="sk">openspec-explore</span></td>
+              <td><code>/opsx:explore</code></td>
+              <td>A thinking partner. Reads code, asks questions, draws diagrams. <strong>Explicitly may not write code</strong> — it may create planning artifacts, nothing else. Use it when you don't yet know what you want.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">openspec-propose</span></td>
+              <td><code>/opsx:propose</code></td>
+              <td>Generates the full set in one step: <span class="path">proposal.md</span> (what and why), delta <span class="path">specs/</span> (what the system must do), <span class="path">design.md</span> (how), <span class="path">tasks.md</span> (steps). It stops when the artifacts are written — it will not start implementing in the same turn even if you asked it to build something.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">openspec-update-change</span></td>
+              <td><code>/opsx:update</code></td>
+              <td>Revises an existing change's artifacts and keeps them coherent with each other. Never touches code. This is what you run when the plan was right and then reality moved.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">openspec-apply-change</span></td>
+              <td><code>/opsx:apply</code></td>
+              <td>The only one that writes code. Works through <span class="path">tasks.md</span> in order.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">openspec-sync-specs</span></td>
+              <td><code>/opsx:sync</code></td>
+              <td>Folds the delta specs into the main specs. Agent-driven and intelligent — it can add one scenario to an existing requirement rather than copying the whole thing.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">openspec-archive-change</span></td>
+              <td><code>/opsx:archive</code></td>
+              <td>Moves a completed change into <span class="path">archive/</span>. Because it moves directories, running it before a merge puts that move inside your diff.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note key">
+        <span class="note-label">The planning boundary is the feature</span>
+        <p>
+          <code>propose</code> refuses to implement, <code>explore</code> refuses to write
+          code, <code>update</code> refuses to touch code. If you find this annoying, it is
+          working: the separation is what makes a proposal reviewable before anyone has
+          sunk an afternoon into building it.
+        </p>
+      </div>
+
+      <div class="local">
+        <span class="note-label">In this repo</span>
+        <p>
+          <span class="path">openspec/config.yaml</span> is the project constitution and its
+          <code>rules:</code> are injected into every generated artifact — they are
+          requirements, not suggestions. A proposal here must name which audience it serves
+          (sponsors, prospective members, or "credibility only" — a valid and common answer),
+          state each entity's storage location, and declare any new runtime dependency.
+          Requirements must hold in both locales. Every motion requirement must express its
+          reduced-motion path and mobile fallback as scenarios. Tasks must order the
+          un-animated baseline before any enhancement.
+          <span class="path">docs/workflow.html</span> is the full process document; this page
+          only routes you to the skill.
+        </p>
+      </div>
+    </section>
+
+    <!-- 09 -->
+    <section id="context7">
+      <span class="sec-num">09</span>
+      <h2>context7</h2>
+
+      <p class="lede">
+        Two shell commands that fetch current documentation for a library. The smallest tool
+        here and the one with the highest ratio of harm prevented to effort spent.
+      </p>
+
+      <pre><code><span class="c"># 1 — resolve the name to an ID</span>
+npx ctx7@latest library "Next.js" "app router revalidateTag cache profiles"
+<span class="c">   → /vercel/next.js</span>
+
+<span class="c"># 2 — fetch docs with that ID</span>
+npx ctx7@latest docs /vercel/next.js "revalidateTag signature and arguments"</code></pre>
+
+      <p>
+        You must run <code>library</code> first unless you already have an ID in
+        <code>/org/project</code> form. Version-pinned IDs work too:
+        <code>/vercel/next.js/v14.3.0</code>.
+      </p>
+
+      <h3>The rules that make it work</h3>
+
+      <ul>
+        <li><strong>Use the official name with its real punctuation.</strong> "Next.js" not "nextjs", "Three.js" not "threejs". The resolver is matching against a catalogue, not guessing.</li>
+        <li><strong>One concept per query.</strong> A combined multi-topic question dilutes ranking and returns something shallow about each. Run a separate <code>docs</code> call per concept — unless the question is specifically about how two concepts interact.</li>
+        <li><strong>Be specific.</strong> "How do I clean up an async effect on unmount" beats "useEffect".</li>
+        <li><strong>Three commands per question, maximum.</strong> Past that you are burning time; take the best result you have.</li>
+        <li><strong>Never put credentials in a query.</strong> It is a network call to a third party.</li>
+      </ul>
+
+      <h3>When not to use it</h3>
+
+      <p>
+        Refactoring, writing a script from scratch, debugging your own business logic, code
+        review, general programming concepts. It answers "what does this library do", not
+        "what should my code do".
+      </p>
+
+      <div class="note key">
+        <span class="note-label">Why this is not optional</span>
+        <p>
+          The failure mode it prevents is <em>silent</em>. A pre-16 <code>revalidateTag</code>
+          example copied into a Next.js 16 codebase typechecks, passes review, and
+          under-revalidates in production. Nothing throws. Nothing turns red. You find out when
+          content doesn't update and you have no reason to suspect the cache. Model training
+          data is a snapshot; App Router, Strapi 5 and GSAP all move faster than it does.
+        </p>
+      </div>
+
+      <div class="local">
+        <span class="note-label">In this repo</span>
+        <p>
+          Mandatory before writing against Next.js App Router, Strapi 5 or GSAP — recorded in
+          <span class="path">openspec/config.yaml</span> and in
+          <span class="path">CLAUDE.md</span>. If a quota error comes back, say so and stop;
+          falling back to training data silently is the exact failure the rule exists to
+          prevent.
+        </p>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section id="recipes">
+      <span class="sec-num">10</span>
+      <h2>Recipes</h2>
+
+      <p class="lede">
+        Eight tasks you will actually have, and the sequence that handles each. The pattern
+        underneath all of them: <strong>decide, then look up, then build, then judge</strong> —
+        and never load a skill for a phase you are not in.
+      </p>
+
+      <div class="recipe">
+        <p class="recipe-h">A whole new page or section, from nothing</p>
+        <ol>
+          <li><code>/opsx:explore</code> — until you can state what the page is for and who it serves.</li>
+          <li><code>/opsx:propose</code> — proposal, delta specs, design, tasks. Read them. Revise with <code>/opsx:update</code> rather than arguing in chat.</li>
+          <li><code>/impeccable shape</code> — the UX and visual structure, before any component exists.</li>
+          <li><code>/opsx:apply</code> — build it. context7 fires on every unfamiliar API along the way.</li>
+          <li><code>/impeccable critique</code> then <code>/impeccable audit</code> — one for taste, one for a11y and performance.</li>
+          <li><code>/opsx:sync</code>, merge, then <code>/opsx:archive</code> on main.</li>
+        </ol>
+        <p class="why">Motion is deliberately absent from this list. The un-animated version ships first and stays as the permanent fallback; animation is a separate pass on top of something that already works.</p>
+      </div>
+
+      <div class="recipe">
+        <p class="recipe-h">"This hero should do something when you scroll"</p>
+        <ol>
+          <li>Check your motion budget <em>first</em>. Is a library even permitted on this route?</li>
+          <li>context7 for the current GSAP and framework APIs.</li>
+          <li><code>gsap-core</code> + <code>gsap-scrolltrigger</code> + <code>gsap-react</code> — the three that actually apply. Not the whole suite.</li>
+          <li>Build the reduced-motion path in the same pass, via <code>gsap.matchMedia()</code>. Not afterwards.</li>
+          <li><code>/review-animations</code> on the diff before you open the PR.</li>
+        </ol>
+        <p class="why">Loading <span class="path">gsap-plugins</span> "just in case" costs you 2,951 words of context about DrawSVG and Draggable that this task will never use.</p>
+      </div>
+
+      <div class="recipe">
+        <p class="recipe-h">"The site feels dead"</p>
+        <ol>
+          <li><code>/find-animation-opportunities</code> — read-only, biased toward rejecting. It returns a short list with exact values.</li>
+          <li>You pick which of its proposals are worth it. This step is yours, not the agent's.</li>
+          <li><code>animate</code> for each one you accepted.</li>
+          <li><code>/review-animations</code> on the result.</li>
+        </ol>
+        <p class="why">Skipping step 1 and going straight to <code>animate</code> gets you motion everywhere, which is the specific failure that skill was designed to prevent.</p>
+      </div>
+
+      <div class="recipe">
+        <p class="recipe-h">"The animations across the app are inconsistent"</p>
+        <ol>
+          <li><code>improve-animations</code> — surveys everything, writes a prioritised audit plus self-contained plans.</li>
+          <li>Read the audit and cut it down. It is a proposal, not a work order.</li>
+          <li>Hand the surviving plans to a cheaper model or a subagent — they were written to be executable without context.</li>
+        </ol>
+        <p class="why">This is the only skill in the set explicitly designed as an expensive-model-plans / cheap-model-executes split. Using your best model for the execution wastes the design.</p>
+      </div>
+
+      <div class="recipe">
+        <p class="recipe-h">Reviewing someone else's PR</p>
+        <ol>
+          <li><code>/impeccable audit</code> scoped to the changed files — a11y, performance, responsive, scored P0–P3.</li>
+          <li><code>/review-animations</code> if the diff contains motion. It is manual-only, so it will not fire on its own.</li>
+          <li>Check the proposal, not just the code: does what was built match what was specified?</li>
+        </ol>
+        <p class="why">The scoping matters. <code>audit</code> across a whole repo returns a wall of findings nobody reads; scoped to a diff it returns a review.</p>
+      </div>
+
+      <div class="recipe">
+        <p class="recipe-h">A bug you cannot reproduce or explain</p>
+        <ol>
+          <li><code>systematic-debugging</code> (superpowers) — its four phases exist to stop you fixing before you have found the cause.</li>
+          <li><code>root-cause-tracing</code> when the error surfaces deep in a call stack far from its trigger.</li>
+          <li><code>condition-based-waiting</code> if it is a flaky async test rather than a bug.</li>
+          <li><code>verification-before-completion</code> before you say it's fixed.</li>
+        </ol>
+        <p class="why">Nothing else in this toolbelt covers debugging. If superpowers is not installed, this recipe has no substitute — that is the strongest argument for adding it.</p>
+      </div>
+
+      <div class="recipe">
+        <p class="recipe-h">You cannot decide between two design directions</p>
+        <ol>
+          <li><code>/prototype</code> — builds several genuinely divergent versions behind a live picker, in an isolated surface.</li>
+          <li>Flip through them in the browser and pick one.</li>
+          <li>Only the winner gets integrated into real code.</li>
+        </ol>
+        <p class="why">It is manual-only for a reason: it is expensive. But it is far cheaper than building the wrong direction properly and discovering it in review. Each variant must diverge on a <em>named axis</em> — layout, density, personality, motion — so three tints of one idea is a failed run.</p>
+      </div>
+
+      <div class="recipe">
+        <p class="recipe-h">"Make this look better" — and that's all you know</p>
+        <ol>
+          <li>Bare <code>/impeccable</code>, no argument. It triages: what you've built, what changed in git, when you last critiqued, what its offline detector finds now.</li>
+          <li>It recommends two or three commands with reasons. Pick one.</li>
+        </ol>
+        <p class="why">Guessing a sub-command when you can't name the problem usually gets the wrong playbook. The triage exists precisely for this state and it never auto-runs anything.</p>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section id="collisions">
+      <span class="sec-num">11</span>
+      <h2>Where two skills collide</h2>
+
+      <p class="lede">
+        Nothing errors when two skills claim the same task. You get a confident answer shaped
+        by whichever loaded first. These are the collisions worth knowing in advance.
+      </p>
+
+      <h3>openspec vs superpowers — the real one</h3>
+
+      <figure>
+        <div class="fig-frame">
+          <svg viewBox="0 0 950 300" role="img"
+               aria-label="Two parallel workflow chains. The OpenSpec chain runs explore, propose, apply, sync, archive. The superpowers chain runs brainstorming, writing-plans, subagent-driven-development, requesting-code-review, finishing-a-development-branch. The first two columns of each are marked as a collision zone where you must pick one. The last three columns are marked complementary.">
+            <!-- zone backgrounds -->
+            <rect class="svg-box-off" x="96" y="34" width="310" height="212" rx="6" />
+            <rect class="svg-box-off" x="418" y="34" width="524" height="212" rx="6" />
+            <text class="svg-lbl" x="251" y="54" text-anchor="middle">collision — pick one</text>
+            <text class="svg-lbl" x="680" y="54" text-anchor="middle">complementary — run both</text>
+
+            <!-- openspec chain -->
+            <text class="svg-lbl" x="8" y="120">openspec</text>
+            <rect class="svg-box-plan" x="110" y="96" width="132" height="40" rx="4" />
+            <text class="svg-s" x="176" y="121" text-anchor="middle">explore</text>
+            <rect class="svg-box-plan" x="258" y="96" width="132" height="40" rx="4" />
+            <text class="svg-s" x="324" y="121" text-anchor="middle">propose</text>
+            <rect class="svg-box-plan" x="432" y="96" width="150" height="40" rx="4" />
+            <text class="svg-s" x="507" y="121" text-anchor="middle">apply</text>
+            <rect class="svg-box-plan" x="600" y="96" width="150" height="40" rx="4" />
+            <text class="svg-s" x="675" y="121" text-anchor="middle">sync</text>
+            <rect class="svg-box-plan" x="768" y="96" width="150" height="40" rx="4" />
+            <text class="svg-s" x="843" y="121" text-anchor="middle">archive</text>
+
+            <line class="svg-line" x1="242" y1="116" x2="258" y2="116" />
+            <line class="svg-line" x1="390" y1="116" x2="432" y2="116" />
+            <line class="svg-line" x1="582" y1="116" x2="600" y2="116" />
+            <line class="svg-line" x1="750" y1="116" x2="768" y2="116" />
+
+            <!-- superpowers chain -->
+            <text class="svg-lbl" x="8" y="218">superpowers</text>
+            <rect class="svg-box" x="110" y="194" width="132" height="40" rx="4" />
+            <text class="svg-s" x="176" y="219" text-anchor="middle">brainstorming</text>
+            <rect class="svg-box" x="258" y="194" width="132" height="40" rx="4" />
+            <text class="svg-s" x="324" y="219" text-anchor="middle">writing-plans</text>
+            <rect class="svg-box" x="432" y="194" width="150" height="40" rx="4" />
+            <text class="svg-s" x="507" y="219" text-anchor="middle">TDD · subagents</text>
+            <rect class="svg-box" x="600" y="194" width="150" height="40" rx="4" />
+            <text class="svg-s" x="675" y="219" text-anchor="middle">code review</text>
+            <rect class="svg-box" x="768" y="194" width="150" height="40" rx="4" />
+            <text class="svg-s" x="843" y="219" text-anchor="middle">finish branch</text>
+
+            <line class="svg-line" x1="242" y1="214" x2="258" y2="214" />
+            <line class="svg-line" x1="390" y1="214" x2="432" y2="214" />
+            <line class="svg-line" x1="582" y1="214" x2="600" y2="214" />
+            <line class="svg-line" x1="750" y1="214" x2="768" y2="214" />
+
+            <!-- verdicts -->
+            <text class="svg-s" x="251" y="272" text-anchor="middle">same job · two vocabularies · two sets of documents</text>
+            <text class="svg-s" x="680" y="272" text-anchor="middle">OpenSpec tracks the artifacts, superpowers supplies the discipline</text>
+          </svg>
+        </div>
+        <figcaption>
+          Both suites want to own planning. Neither wants to own debugging, testing or review
+          gates — only superpowers does. That asymmetry is the basis of the ruling below.
+        </figcaption>
+      </figure>
+
+      <div class="note key">
+        <span class="note-label">The ruling</span>
+        <p>
+          In a repository with OpenSpec configured, <strong>OpenSpec owns the planning
+          artifacts</strong> — it is the one whose output is committed, reviewed and readable
+          in three years, and its rules are injected from the project's own constitution.
+          Superpowers' <code>brainstorming</code>, <code>writing-plans</code> and
+          <code>executing-plans</code> are then redundant, and running both produces two sets
+          of design documents in two directories with no way to tell which one is current.
+          Its debugging, testing and problem-solving categories have no OpenSpec equivalent
+          and layer on top without conflict.
+        </p>
+      </div>
+
+      <h3>impeccable animate vs emilkowalski animate</h3>
+
+      <p>
+        Both are named <code>animate</code>. They are different skills with different scopes.
+        impeccable's reviews a <em>feature</em> and adds motion as one dimension of a broader
+        design pass; emilkowalski's builds <em>one animation</em> and reasons about curve,
+        duration, interruption and exit in detail. Name the suite when you invoke it —
+        <code>/impeccable animate</code> is unambiguous, a bare "animate this" is not.
+      </p>
+
+      <h3>gsap-core vs emilkowalski on easing and duration</h3>
+
+      <p>
+        GSAP tells you what its easing API can express. emilkowalski tells you which curve is
+        correct for an entrance and how long it may last. These do not actually conflict — one
+        is capability, the other is judgement — but an agent holding only the GSAP skill will
+        happily produce a technically fine <code>ease-in</code> entrance that feels wrong.
+        Judgement first, API second.
+      </p>
+
+      <h3>Any suite vs your project's own decisions</h3>
+
+      <p>
+        Every skill here is generic and confident. Your project's recorded decisions are
+        specific and were made with information the skill does not have. <strong>The recorded
+        decision wins</strong>, and the correct response to a conflict is to point at the
+        document, not to argue and not to edit the skill.
+      </p>
+
+      <div class="local">
+        <span class="note-label">In this repo, in order</span>
+        <ol>
+          <li><span class="path">openspec/config.yaml</span> — the constitution.</li>
+          <li><span class="path">docs/adr/</span> — the decisions and why. <strong>Where anything disagrees with an ADR, the ADR wins.</strong></li>
+          <li><span class="path">design/</span> — the system those decisions produce.</li>
+          <li>Everything a skill says, including this page.</li>
+        </ol>
+      </div>
+
+      <div class="local">
+        <span class="note-label">What an agent may not decide alone</span>
+        <ul>
+          <li>The stack. Settled in ADR 0001 and 0002, not open for renegotiation.</li>
+          <li>A third L1 motion route, or a second animation library. Both require their own ADR first.</li>
+          <li>Any budget exception. A first-load cap is not raised because a skill noticed it would be convenient.</li>
+          <li>Anything an ADR decided. If an ADR is wrong, supersede it with a new one — do not quietly diverge.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 12 -->
+    <section id="antipatterns">
+      <span class="sec-num">12</span>
+      <h2>How to waste money</h2>
+
+      <p class="lede">
+        Six habits that cost real tokens and real time. Each one is easy to fall into and easy
+        to stop.
+      </p>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Anti-pattern</th><th>What it costs</th><th>Instead</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Loading a suite "to be safe"</b></td>
+              <td>Thousands of words of irrelevant instruction competing for attention with your actual codebase, and a higher chance of a collision.</td>
+              <td>Load the one skill for the phase you are in. Add a second only when the first proves insufficient.</td>
+            </tr>
+            <tr>
+              <td><b>Vague prompts</b></td>
+              <td>Nothing routes. "Make the hero cooler" matches no description, so you get generic work with no skill behind it.</td>
+              <td>Use the vocabulary the skill descriptions use. "Pin the hero and scrub the copy past it" routes to ScrollTrigger on its own.</td>
+            </tr>
+            <tr>
+              <td><b>Skipping the doc lookup because you're confident</b></td>
+              <td>Code that typechecks, passes review, and is subtly wrong against the current API. The failure is silent and surfaces late.</td>
+              <td>context7 first, every time, on any fast-moving library. It costs two commands.</td>
+            </tr>
+            <tr>
+              <td><b>Asking a survey skill to build</b></td>
+              <td>Three of the four animation skills are read-only by design. Pushing them to implement gets you either a refusal or work outside the discipline they encode.</td>
+              <td>Survey with the read-only skill, then invoke <code>animate</code> deliberately on what you accepted.</td>
+            </tr>
+            <tr>
+              <td><b>Hand-editing a vendored skill</b></td>
+              <td>The edit diverges from the recorded hash and disappears at the next sync. You then debug behaviour that no longer exists on disk.</td>
+              <td>Record the override in a durable document — an ADR, the constitution, the design system.</td>
+            </tr>
+            <tr>
+              <td><b>Re-litigating a settled override every session</b></td>
+              <td>A generic skill flags a deliberate decision; the agent argues; you explain; next session it happens again.</td>
+              <td>Point at the document that records the decision and move on. That is what those documents are for.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note key">
+        <span class="note-label">The one-sentence version</span>
+        <p>
+          Skills reward precision and punish hedging: name the phase you are in, name the
+          skill that owns it, and let the other sixty-odd stay unloaded.
+        </p>
+      </div>
+    </section>
+
+    <!-- 13 -->
+    <section id="install">
+      <span class="sec-num">13</span>
+      <h2>Installing and keeping it current</h2>
+
+      <p class="lede">
+        A fresh clone has none of this. That is deliberate, not a broken checkout — the tooling
+        is per-machine and per-harness, and none of it is committed.
+      </p>
+
+      <h3>What you install, and from where</h3>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Suite</th><th>Source</th><th>Mechanism</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="sk">emilkowalski/skill</span></td>
+              <td><span class="path">emilkowalski/skill</span></td>
+              <td>Skills CLI — <code>npx skills add</code>. Recorded in <span class="path">skills-lock.json</span> with a content hash per skill.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">gsap-skills</span></td>
+              <td><span class="path">greensock/gsap-skills</span></td>
+              <td>Same. Eight skills, MIT licensed.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">impeccable</span></td>
+              <td><span class="path">npx impeccable</span></td>
+              <td>Installs the skill plus its script bundle. Its hook is wired separately, per project, via <code>/impeccable hooks on</code>.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">openspec</span></td>
+              <td><span class="path">npx openspec</span> (v1.9.0)</td>
+              <td>The CLI generates the skills and the <code>/opsx:*</code> slash commands into your harness directory.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">superpowers</span></td>
+              <td><span class="path">obra/superpowers</span></td>
+              <td>Plugin install — see §<a href="#superpowers">7</a>. Not installed here.</td>
+            </tr>
+            <tr>
+              <td><span class="sk">context7</span></td>
+              <td><span class="path">npx ctx7@latest</span></td>
+              <td>No install. It is a CLI you invoke, so it works on any machine with Node.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Keeping it healthy</h3>
+
+      <ul>
+        <li><strong>Sync on a cadence, not never.</strong> These repositories move. <span class="path">skills-lock.json</span> tells you what you have; a sync tells you what changed.</li>
+        <li><strong><code>/impeccable doctor</code></strong> reports drift between your project's artifacts and the installed version. It reports; it does not repair as a side effect of a design task.</li>
+        <li><strong>Install per harness.</strong> Skills are per-tool. If you drive two agents, you install twice — that is why <span class="path">.agents/skills/</span> and <span class="path">.claude/skills/</span> both exist here.</li>
+        <li><strong>Node on <code>PATH</code>.</strong> impeccable's hook and scripts shell out to it. Without Node they no-op silently rather than failing loudly, so a missing Node looks like a missing feature.</li>
+      </ul>
+
+      <div class="note key">
+        <span class="note-label">Nothing here is required to contribute</span>
+        <p>
+          Every one of these is optional and reinstallable. Someone who clones this repository
+          with none of it installed can still read every document, make every change and open
+          every pull request. The skills make the work faster; they are not a dependency of it.
+          If they ever become one, something has gone wrong that no skill will fix.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="colophon">
+    <p>
+      <strong>KUASAR Skill Routing</strong> — routing only. It describes which tool owns which
+      question and deliberately does not restate what any skill contains; the skills document
+      themselves and two copies would drift. Its sibling
+      <span class="path">docs/workflow.html</span> covers how work moves through the
+      repository.
+    </p>
+    <p>
+      Where this page disagrees with <span class="path">docs/adr/</span> or
+      <span class="path">openspec/config.yaml</span>, they win and this page has a bug.
+      Palette and type derive from <span class="path">design/tokens.md</span>, and there is no
+      orange anywhere on it — that is reserved for launch, live, upcoming and the primary call
+      to action, and a routing document is none of those.
+    </p>
+  </footer>
+
+</div>

@@ -1,0 +1,1714 @@
+<title>KUASAR Flight Rules</title>
+
+<style>
+  /* ============================================================
+     Palette derives from design/tokens.md. Dark is the primary
+     theme because the site is a night-sky site; the light theme
+     preserves the same hue relationships on a pale ground.
+
+     Orange appears nowhere on this page. Per design/tokens.md it
+     is reserved for launch, live, upcoming and the primary CTA,
+     and a process document contains none of those.
+     ============================================================ */
+
+  :root {
+    /* surfaces — dark (primary) */
+    --canvas:        oklch(0.13 0.025 265);
+    --surface:       oklch(0.17 0.028 265);
+    --raised:        oklch(0.22 0.024 264);
+    --inset:         oklch(0.26 0.020 262);
+    --border:        oklch(0.32 0.018 262);
+    --border-strong: oklch(0.44 0.014 260);
+
+    /* ink */
+    --ink:        oklch(0.97 0.004 260);
+    --ink-body:   oklch(0.88 0.006 260);
+    --ink-muted:  oklch(0.70 0.010 260);
+    --ink-faint:  oklch(0.58 0.012 260);
+
+    /* accents — orbital blue carries structure, nebula marks planning */
+    --accent:      oklch(0.74 0.12 238);
+    --accent-deep: oklch(0.62 0.15 240);
+    --accent-wash: oklch(0.30 0.045 240);
+    --plan:        oklch(0.72 0.14 296);
+    --plan-wash:   oklch(0.28 0.050 296);
+
+    --shadow: 0 1px 2px oklch(0 0 0 / 0.4);
+
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code",
+                 Menlo, Consolas, monospace;
+
+    --measure: 68ch;
+    --rail: 254px;
+
+    color-scheme: dark;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --canvas:        oklch(0.985 0.003 265);
+      --surface:       oklch(0.962 0.005 265);
+      --raised:        oklch(0.932 0.007 264);
+      --inset:         oklch(0.905 0.009 262);
+      --border:        oklch(0.862 0.011 262);
+      --border-strong: oklch(0.735 0.014 260);
+
+      --ink:       oklch(0.21 0.022 265);
+      --ink-body:  oklch(0.33 0.018 264);
+      --ink-muted: oklch(0.49 0.015 262);
+      --ink-faint: oklch(0.60 0.013 261);
+
+      --accent:      oklch(0.48 0.145 243);
+      --accent-deep: oklch(0.40 0.130 244);
+      --accent-wash: oklch(0.94 0.022 240);
+      --plan:        oklch(0.45 0.170 297);
+      --plan-wash:   oklch(0.945 0.024 298);
+
+      --shadow: 0 1px 2px oklch(0.2 0.02 265 / 0.10);
+
+      color-scheme: light;
+    }
+  }
+
+  :root[data-theme="light"] {
+    --canvas:        oklch(0.985 0.003 265);
+    --surface:       oklch(0.962 0.005 265);
+    --raised:        oklch(0.932 0.007 264);
+    --inset:         oklch(0.905 0.009 262);
+    --border:        oklch(0.862 0.011 262);
+    --border-strong: oklch(0.735 0.014 260);
+
+    --ink:       oklch(0.21 0.022 265);
+    --ink-body:  oklch(0.33 0.018 264);
+    --ink-muted: oklch(0.49 0.015 262);
+    --ink-faint: oklch(0.60 0.013 261);
+
+    --accent:      oklch(0.48 0.145 243);
+    --accent-deep: oklch(0.40 0.130 244);
+    --accent-wash: oklch(0.94 0.022 240);
+    --plan:        oklch(0.45 0.170 297);
+    --plan-wash:   oklch(0.945 0.024 298);
+
+    --shadow: 0 1px 2px oklch(0.2 0.02 265 / 0.10);
+
+    color-scheme: light;
+  }
+
+  /* ---------- base ---------- */
+
+  body {
+    margin: 0;
+    background: var(--canvas);
+    color: var(--ink-body);
+    font-family: var(--font-sans);
+    font-size: 16.5px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 1220px;
+    margin: 0 auto;
+    padding: 0 28px 96px;
+    display: grid;
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: 0 56px;
+    align-items: start;
+  }
+
+  /* ---------- masthead ---------- */
+
+  .masthead {
+    grid-column: 1 / -1;
+    padding: 56px 0 34px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 44px;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin: 0 0 14px;
+  }
+
+  h1 {
+    font-size: clamp(2.1rem, 1.5rem + 2.2vw, 3.1rem);
+    line-height: 1.06;
+    letter-spacing: -0.026em;
+    font-weight: 650;
+    color: var(--ink);
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+
+  .standfirst {
+    font-size: 1.14rem;
+    line-height: 1.55;
+    color: var(--ink-body);
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  .masthead-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 26px;
+    margin-top: 26px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+  }
+  .masthead-meta b {
+    color: var(--ink-muted);
+    font-weight: 500;
+  }
+
+  /* ---------- rail ---------- */
+
+  .rail {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    padding-bottom: 24px;
+  }
+
+  .rail-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 14px;
+  }
+
+  .rail ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    counter-reset: rail;
+  }
+
+  .rail a {
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    gap: 8px;
+    padding: 5px 8px 5px 0;
+    color: var(--ink-muted);
+    text-decoration: none;
+    font-size: 13.5px;
+    line-height: 1.35;
+    border-radius: 4px;
+  }
+  .rail li { counter-increment: rail; }
+  .rail a::before {
+    content: counter(rail, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-align: right;
+    padding-top: 2px;
+  }
+  .rail a:hover { color: var(--ink); background: var(--surface); }
+  .rail a:hover::before { color: var(--accent); }
+  .rail a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  /* ---------- main ---------- */
+
+  main { min-width: 0; }
+
+  section { margin: 0 0 60px; scroll-margin-top: 20px; }
+
+  h2 {
+    font-size: 1.62rem;
+    line-height: 1.2;
+    letter-spacing: -0.018em;
+    font-weight: 640;
+    color: var(--ink);
+    margin: 0 0 6px;
+    text-wrap: balance;
+  }
+
+  .sec-num {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 9px;
+  }
+
+  h3 {
+    font-size: 1.06rem;
+    font-weight: 640;
+    color: var(--ink);
+    letter-spacing: -0.008em;
+    margin: 34px 0 8px;
+  }
+
+  h4 {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    font-weight: 500;
+    margin: 26px 0 8px;
+  }
+
+  p { margin: 0 0 14px; max-width: var(--measure); }
+  main > section > p:first-of-type { margin-top: 14px; }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+  strong { color: var(--ink); font-weight: 620; }
+
+  ul, ol { max-width: var(--measure); margin: 0 0 16px; padding-left: 1.15rem; }
+  li { margin-bottom: 7px; }
+  li::marker { color: var(--ink-faint); }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.855em;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.1em 0.34em;
+    color: var(--ink);
+    word-break: break-word;
+  }
+
+  /* a repo path, distinct from a command */
+  .path {
+    font-family: var(--font-mono);
+    font-size: 0.855em;
+    color: var(--ink-muted);
+    background: none;
+    border: none;
+    padding: 0;
+    white-space: nowrap;
+  }
+
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 0 0 18px;
+    line-height: 1.55;
+  }
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 13px;
+    color: var(--ink-body);
+    white-space: pre;
+    word-break: normal;
+  }
+  pre .c { color: var(--ink-faint); }
+
+  /* ---------- tables ---------- */
+
+  .tw { overflow-x: auto; margin: 0 0 20px; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 520px;
+    font-size: 14.5px;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 14px 9px 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    font-weight: 500;
+    border-bottom-color: var(--border-strong);
+    white-space: nowrap;
+  }
+  td { color: var(--ink-body); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ---------- callouts ---------- */
+
+  .note {
+    border-left: 2px solid var(--border-strong);
+    padding: 2px 0 2px 18px;
+    margin: 0 0 20px;
+    max-width: var(--measure);
+    color: var(--ink-body);
+  }
+  .note > :last-child { margin-bottom: 0; }
+  .note.key { border-left-color: var(--accent); }
+  .note.plan-note { border-left-color: var(--plan); }
+
+  .note-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 5px;
+  }
+  .note.key .note-label { color: var(--accent); }
+  .note.plan-note .note-label { color: var(--plan); }
+
+  /* proposed convention — awaiting ratification */
+  .proposed {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 15px 18px;
+    margin: 0 0 14px;
+    max-width: var(--measure);
+  }
+  .proposed > :last-child { margin-bottom: 0; }
+  .proposed h4 { margin-top: 0; }
+  .tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 1px solid var(--border-strong);
+    color: var(--ink-muted);
+    vertical-align: 2px;
+    margin-left: 8px;
+    white-space: nowrap;
+  }
+
+  /* ---------- the loop steps ---------- */
+
+  .steps { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+  .steps > li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 0 16px;
+    padding: 0 0 22px;
+    margin: 0;
+    position: relative;
+  }
+  .steps > li::before {
+    content: counter(step);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    margin-top: 1px;
+  }
+  .steps > li::after {
+    content: "";
+    position: absolute;
+    left: 13px;
+    top: 30px;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+  .steps > li:last-child::after { display: none; }
+  .steps > li > div > :last-child { margin-bottom: 0; }
+  .step-h {
+    color: var(--ink);
+    font-weight: 620;
+    margin: 0 0 5px;
+  }
+  .step-h code { font-weight: 500; }
+
+  /* ---------- figures ---------- */
+
+  figure {
+    margin: 0 0 24px;
+    padding: 0;
+  }
+  .fig-frame {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 18px;
+    overflow-x: auto;
+  }
+  figure svg {
+    display: block;
+    width: 100%;
+    min-width: 620px;
+    max-width: 100%;
+    height: auto;
+    color: var(--ink-muted);
+  }
+  figcaption {
+    font-size: 13.5px;
+    color: var(--ink-muted);
+    margin-top: 10px;
+    max-width: var(--measure);
+  }
+
+  .svg-box { fill: var(--raised); stroke: var(--border-strong); }
+  .svg-box-plan { fill: var(--plan-wash); stroke: var(--plan); }
+  .svg-box-code { fill: var(--accent-wash); stroke: var(--accent-deep); }
+  .svg-lane { fill: none; stroke: var(--border); stroke-dasharray: 3 4; }
+  .svg-t { fill: var(--ink); font-family: var(--font-sans); font-size: 13px; }
+  .svg-tm { fill: var(--ink); font-family: var(--font-mono); font-size: 12px; }
+  .svg-s { fill: var(--ink-muted); font-family: var(--font-mono); font-size: 11px; }
+  .svg-lbl { fill: var(--ink-faint); font-family: var(--font-mono); font-size: 10.5px;
+             letter-spacing: 0.08em; text-transform: uppercase; }
+  .svg-line { stroke: var(--border-strong); fill: none; }
+  .svg-line-a { stroke: var(--accent); fill: none; }
+
+  /* ---------- misc ---------- */
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0 0 34px;
+  }
+
+  .lede {
+    font-size: 1.03rem;
+    color: var(--ink-body);
+    max-width: var(--measure);
+  }
+
+  .colophon {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+    margin-top: 20px;
+    font-size: 13.5px;
+    color: var(--ink-faint);
+    max-width: var(--measure);
+  }
+  .colophon p { max-width: none; }
+
+  .kbd-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+
+  ::selection { background: var(--accent-wash); color: var(--ink); }
+
+  @media (max-width: 940px) {
+    .page { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 20px 72px; }
+    .rail {
+      position: static;
+      max-height: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 16px 12px;
+      margin-bottom: 40px;
+      background: var(--surface);
+    }
+    .rail ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0 12px; }
+    .masthead { padding-top: 40px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="page">
+
+  <header class="masthead">
+    <p class="eyebrow">KUASAR site · working guide</p>
+    <h1>Flight Rules</h1>
+    <p class="standfirst">
+      How work moves through this repository: which command to run, in what order, what each
+      one writes, and what happens after your pull request is merged. NASA writes flight
+      rules so decisions get made before the moment rather than during it. Same idea.
+    </p>
+    <div class="masthead-meta">
+      <span><b>Audience</b> everyone contributing to the site</span>
+      <span><b>Status</b> living document</span>
+      <span><b>Source</b> <span class="path">docs/workflow.html</span></span>
+    </div>
+  </header>
+
+  <nav class="rail" aria-label="Contents">
+    <p class="rail-title">Contents</p>
+    <ol>
+      <li><a href="#start">Read this first</a></li>
+      <li><a href="#setup">Set up your machine</a></li>
+      <li><a href="#map">The map</a></li>
+      <li><a href="#loop">The loop</a></li>
+      <li><a href="#commands">Command reference</a></li>
+      <li><a href="#state">Reading the state</a></li>
+      <li><a href="#proposal">What a good proposal does</a></li>
+      <li><a href="#first">First changes, in order</a></li>
+      <li><a href="#bite">Six rules that will bite you</a></li>
+      <li><a href="#pr">Before you open a PR</a></li>
+      <li><a href="#agents">Working with agents</a></li>
+      <li><a href="#unusual">Unusual situations</a></li>
+      <li><a href="#glossary">Glossary</a></li>
+      <li><a href="#open">Open items</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- 01 -->
+    <section id="start">
+      <span class="sec-num">01</span>
+      <h2>Read this first</h2>
+
+      <p class="lede">
+        This document describes <strong>how we work</strong>. It decides nothing on its own.
+      </p>
+
+      <p>
+        Everything about <em>what</em> was decided and <em>why</em> lives in the architecture
+        decision records and the design system. This page points at them and never restates
+        them, because two copies of a rule drift apart and then nobody can tell which one is
+        current. If something here appears to contradict an ADR, <strong>the ADR wins</strong>
+        and this page has a bug — fix it.
+      </p>
+
+      <h3>Where authority actually sits</h3>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Rank</th><th>Source</th><th>What it governs</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="path">1</span></td>
+              <td><span class="path">openspec/config.yaml</span></td>
+              <td>The project constitution. Injected into every generated planning artifact, so it is deliberately short — rules and pointers only.</td>
+            </tr>
+            <tr>
+              <td><span class="path">2</span></td>
+              <td><span class="path">docs/adr/</span></td>
+              <td>The decisions, and more importantly the reasoning. Read one before undoing what it decided.</td>
+            </tr>
+            <tr>
+              <td><span class="path">3</span></td>
+              <td><span class="path">design/</span></td>
+              <td>The design system those decisions produce: tokens, motion, content model, i18n, brand.</td>
+            </tr>
+            <tr>
+              <td><span class="path">4</span></td>
+              <td><span class="path">docs/workflow.html</span></td>
+              <td>This page. Process only.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note key">
+        <span class="note-label">The constraint behind everything</span>
+        <p>
+          Five contributors, annual turnover. Everyone who builds this graduates. Every
+          artifact — code, spec, commit message — is written for someone who joins in three
+          years and finds nobody left who built it. That single constraint explains most of
+          what looks over-engineered here.
+        </p>
+      </div>
+
+      <p>
+        If you have just inherited this project and nothing else, read
+        <span class="path">docs/HANDOVER.md</span> first. It covers accounts, the domain,
+        backups and deploys — the things that break irrecoverably. This page covers the daily
+        work.
+      </p>
+    </section>
+
+    <!-- 02 -->
+    <section id="setup">
+      <span class="sec-num">02</span>
+      <h2>Set up your machine</h2>
+
+      <p>
+        Four steps, then a warning about what your clone will look like.
+      </p>
+
+      <h4>1 · Runtime</h4>
+      <p>
+        Node 22 LTS and pnpm. <code>corepack enable</code> is the least painful way to get a
+        pnpm that matches the one the deploy platforms use.
+      </p>
+
+      <h4>2 · Clone</h4>
+      <pre><code>git clone https://github.com/kuasar-website/kuasar-site.git
+cd kuasar-site</code></pre>
+
+      <h4>3 · Install the OpenSpec commands</h4>
+      <p>
+        The <code>/opsx:*</code> commands are not in the repository — each person installs
+        them into their own agent. This writes the command and instruction files for the
+        tools you name:
+      </p>
+      <pre><code>npx openspec init --tools claude,codex,agents</code></pre>
+      <p>
+        Already installed and out of date? <code>npx openspec update</code>. The CLI is
+        pinned at <strong>v1.9.0</strong>; <code>npx openspec --version</code> tells you what
+        you actually have, and it is worth checking, because published OpenSpec
+        documentation is currently a few versions behind the CLI and describes commands that
+        may not exist in your install.
+      </p>
+
+      <h4>4 · Install the agent skills</h4>
+      <p>
+        Design, motion and GSAP skills come from the organisation's own tooling rather than
+        from this repository. See <a href="#open">Open items</a> — the exact install command
+        needs to be written down by whoever set it up.
+      </p>
+
+      <div class="note">
+        <span class="note-label">Your clone will look half-empty. That is correct.</span>
+        <p>
+          <span class="path">.claude/</span>, <span class="path">.agents/</span>,
+          <span class="path">.impeccable/</span> and <span class="path">skills-lock.json</span>
+          are gitignored on purpose: anyone in the organisation can install them, so they are
+          not the repository's business. A fresh clone having none of them is not a broken
+          checkout, and they must never be committed.
+        </p>
+      </div>
+
+      <div class="note">
+        <span class="note-label">There is also no application to run yet</span>
+        <p>
+          No <span class="path">package.json</span>, no <span class="path">apps/</span>, no
+          build, lint or test commands. Everything in
+          <span class="path">README.md</span> under <em>Running it locally</em> is marked
+          aspirational for exactly this reason. Do not invent commands — nothing runs yet.
+          <a href="#first">Section 08</a> is how that changes.
+        </p>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section id="map">
+      <span class="sec-num">03</span>
+      <h2>The map</h2>
+
+      <h3>The one rule to memorise</h3>
+
+      <div class="note key">
+        <p style="font-size:1.06rem;color:var(--ink);">
+          Missions and the timeline live in the repository. Everything else lives in Strapi.
+        </p>
+      </div>
+
+      <p>
+        That boundary is drawn at the <strong>entity</strong> level and never at the field
+        level. Half an entity in git and half in the CMS spares perhaps one pull request a
+        year and costs every future editor an inexplicable half-empty record. The reasoning
+        is in <span class="path">docs/adr/0002-cms.md</span>; the full field list for every
+        entity is in <span class="path">design/content-model.md</span>.
+      </p>
+
+      <figure>
+        <div class="fig-frame">
+          <svg viewBox="0 0 900 320" role="img"
+               aria-label="Two editing paths that never cross: developers edit mission and timeline files in git through a pull request, editors edit everything else in the Strapi admin panel; both end at the same statically generated page.">
+            <!-- lane divider -->
+            <line class="svg-lane" x1="450" y1="34" x2="450" y2="300" />
+            <text class="svg-lbl" x="450" y="24" text-anchor="middle">entity level — nothing crosses</text>
+
+            <!-- GIT PATH -->
+            <text class="svg-lbl" x="20" y="58">in the repository</text>
+
+            <rect class="svg-box" x="20" y="70" width="130" height="46" rx="5" />
+            <text class="svg-t" x="85" y="92" text-anchor="middle">Developer</text>
+            <text class="svg-s" x="85" y="107" text-anchor="middle">edits files</text>
+
+            <rect class="svg-box" x="180" y="70" width="150" height="46" rx="5" />
+            <text class="svg-tm" x="255" y="90" text-anchor="middle">content/missions/</text>
+            <text class="svg-tm" x="255" y="106" text-anchor="middle">content/timeline/</text>
+
+            <rect class="svg-box" x="20" y="150" width="310" height="42" rx="5" />
+            <text class="svg-t" x="175" y="176" text-anchor="middle">Pull request · reviewed · merged</text>
+
+            <line class="svg-line" x1="150" y1="93" x2="174" y2="93" marker-end="url(#mk-map)" />
+            <path class="svg-line" d="M255 116 L255 144" marker-end="url(#mk-map)" />
+            <path class="svg-line" d="M175 192 L175 230 L430 230" marker-end="url(#mk-map)" />
+            <text class="svg-s" x="196" y="212">build</text>
+
+            <!-- STRAPI PATH -->
+            <text class="svg-lbl" x="570" y="58">in the CMS</text>
+
+            <rect class="svg-box" x="570" y="70" width="130" height="46" rx="5" />
+            <text class="svg-t" x="635" y="92" text-anchor="middle">Editor</text>
+            <text class="svg-s" x="635" y="107" text-anchor="middle">fills a form</text>
+
+            <rect class="svg-box" x="730" y="70" width="150" height="46" rx="5" />
+            <text class="svg-tm" x="805" y="90" text-anchor="middle">Strapi admin</text>
+            <text class="svg-s" x="805" y="106" text-anchor="middle">talks, events, alumni…</text>
+
+            <rect class="svg-box" x="570" y="150" width="310" height="42" rx="5" />
+            <text class="svg-t" x="725" y="176" text-anchor="middle">Publish → webhook → revalidate</text>
+
+            <line class="svg-line" x1="700" y1="93" x2="724" y2="93" marker-end="url(#mk-map)" />
+            <path class="svg-line" d="M805 116 L805 144" marker-end="url(#mk-map)" />
+            <path class="svg-line" d="M725 192 L725 230 L470 230" marker-end="url(#mk-map)" />
+            <text class="svg-s" x="640" y="212">no rebuild</text>
+
+            <!-- convergence -->
+            <rect class="svg-box-code" x="330" y="256" width="240" height="44" rx="5" />
+            <text class="svg-t" x="450" y="277" text-anchor="middle">One static page</text>
+            <text class="svg-s" x="450" y="292" text-anchor="middle">served from files, never from the database</text>
+            <path class="svg-line" d="M450 230 L450 250" marker-end="url(#mk-map)" />
+
+            <defs>
+              <marker id="mk-map" viewBox="0 0 10 10" refX="9" refY="5"
+                      markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--border-strong)" />
+              </marker>
+            </defs>
+          </svg>
+        </div>
+        <figcaption>
+          Two editing paths that never meet. The path an entity takes is fixed by the entity,
+          not by the field — an entity appearing on both sides of the divider is the bug the
+          rule exists to prevent.
+        </figcaption>
+      </figure>
+
+      <h3>Where things are</h3>
+
+      <pre><code>apps/web/            Next.js site → Vercel                <span class="c">(planned)</span>
+apps/cms/            Strapi CMS → Render                  <span class="c">(planned)</span>
+content/missions/    Mission content, in git              <span class="c">(planned)</span>
+content/timeline/    Timeline entries, in git             <span class="c">(planned)</span>
+design/              Tokens, motion, content model, i18n, brand
+docs/adr/            Architecture decisions and the reasoning
+docs/ops/            CMS and media runbook
+openspec/            config.yaml (the constitution), changes/, specs/
+.github/             Pull request template, CI workflows  <span class="c">(CI planned)</span></code></pre>
+
+      <h3>The documents, by what they decide</h3>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>File</th><th>Decides</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="path">docs/adr/0001-stack.md</span></td><td>Framework, hosting, the static-rendering rule, client-derived dates, repo layout, analytics</td></tr>
+            <tr><td><span class="path">docs/adr/0002-cms.md</span></td><td>CMS, database, media, backups, the git/Strapi split, KVKK debt</td></tr>
+            <tr><td><span class="path">docs/adr/0003-motion-stack.md</span></td><td>Which animations may use a library and which may not</td></tr>
+            <tr><td><span class="path">docs/adr/0004-verification.md</span></td><td>What CI checks, and what it deliberately does not</td></tr>
+            <tr><td><span class="path">docs/ops/cms-runbook.md</span></td><td>Operating, backing up and restoring the CMS and media</td></tr>
+            <tr><td><span class="path">docs/HANDOVER.md</span></td><td>Accounts, domain, deploys, backups, inheriting the project</td></tr>
+            <tr><td><span class="path">design/tokens.md</span></td><td>Colour, spacing, type scale, breakpoints, motion primitives</td></tr>
+            <tr><td><span class="path">design/motion.md</span></td><td>The two separate motion budgets and the numeric weight caps</td></tr>
+            <tr><td><span class="path">design/content-model.md</span></td><td>Every entity, its fields, and where it is stored</td></tr>
+            <tr><td><span class="path">design/i18n.md</span></td><td>Turkish and English, both first-class; the URL segment map</td></tr>
+            <tr><td><span class="path">design/brand.md</span></td><td>Voice, wordmark, typography, photography</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section id="loop">
+      <span class="sec-num">04</span>
+      <h2>The loop</h2>
+
+      <p class="lede">
+        This is the spine of the whole document. Work moves through it in one direction.
+      </p>
+
+      <figure>
+        <div class="fig-frame">
+          <svg viewBox="0 0 980 372" role="img"
+               aria-label="The change lifecycle in five stages. Planning artifacts accumulate in the change folder during propose and update; code is written only during apply; the artifacts and the code travel together in one pull request; after merge, archive folds the delta specs into the main specs and moves the change folder into the archive.">
+            <!-- lane labels -->
+            <text class="svg-lbl" x="8" y="62">command</text>
+            <text class="svg-lbl" x="8" y="150">openspec/</text>
+            <text class="svg-lbl" x="8" y="164">changes/&lt;name&gt;/</text>
+            <text class="svg-lbl" x="8" y="272">apps/ · content/</text>
+
+            <!-- lane rules -->
+            <line class="svg-lane" x1="130" y1="96" x2="965" y2="96" />
+            <line class="svg-lane" x1="130" y1="228" x2="965" y2="228" />
+
+            <!-- STAGE 1 -->
+            <rect class="svg-box" x="130" y="34" width="150" height="40" rx="5" />
+            <text class="svg-tm" x="205" y="59" text-anchor="middle">/opsx:propose</text>
+            <rect class="svg-box-plan" x="130" y="116" width="150" height="88" rx="5" />
+            <text class="svg-s" x="145" y="136">proposal.md</text>
+            <text class="svg-s" x="145" y="154">specs/…/spec.md</text>
+            <text class="svg-s" x="145" y="172">design.md</text>
+            <text class="svg-s" x="145" y="190">tasks.md</text>
+            <text class="svg-s" x="205" y="272" text-anchor="middle">— untouched —</text>
+
+            <!-- STAGE 2 -->
+            <rect class="svg-box" x="300" y="34" width="150" height="40" rx="5" />
+            <text class="svg-tm" x="375" y="52" text-anchor="middle">you read it</text>
+            <text class="svg-s" x="375" y="67" text-anchor="middle">/opsx:update</text>
+            <rect class="svg-box-plan" x="300" y="116" width="150" height="88" rx="5" />
+            <text class="svg-s" x="375" y="165" text-anchor="middle">revised</text>
+            <text class="svg-s" x="375" y="272" text-anchor="middle">— untouched —</text>
+
+            <!-- STAGE 3 -->
+            <rect class="svg-box" x="470" y="34" width="150" height="40" rx="5" />
+            <text class="svg-tm" x="545" y="59" text-anchor="middle">/opsx:apply</text>
+            <rect class="svg-box-plan" x="470" y="116" width="150" height="88" rx="5" />
+            <text class="svg-s" x="545" y="158" text-anchor="middle">tasks ticked</text>
+            <text class="svg-s" x="545" y="176" text-anchor="middle">[ ] → [x]</text>
+            <rect class="svg-box-code" x="470" y="246" width="150" height="44" rx="5" />
+            <text class="svg-t" x="545" y="266" text-anchor="middle">code written</text>
+            <text class="svg-s" x="545" y="282" text-anchor="middle">first time, only time</text>
+
+            <!-- STAGE 4 -->
+            <rect class="svg-box" x="640" y="34" width="150" height="40" rx="5" />
+            <text class="svg-tm" x="715" y="52" text-anchor="middle">commit · PR</text>
+            <text class="svg-s" x="715" y="67" text-anchor="middle">review · merge</text>
+            <rect class="svg-box" x="640" y="150" width="150" height="106" rx="5"
+                  stroke-dasharray="4 4" />
+            <text class="svg-t" x="715" y="196" text-anchor="middle">both travel</text>
+            <text class="svg-t" x="715" y="214" text-anchor="middle">in one PR</text>
+
+            <!-- STAGE 5 -->
+            <rect class="svg-box" x="810" y="34" width="155" height="40" rx="5" />
+            <text class="svg-tm" x="887" y="59" text-anchor="middle">/opsx:archive</text>
+            <rect class="svg-box-plan" x="810" y="116" width="155" height="40" rx="5" />
+            <text class="svg-s" x="887" y="141" text-anchor="middle">deltas → specs/</text>
+            <rect class="svg-box" x="810" y="170" width="155" height="40" rx="5" />
+            <text class="svg-s" x="887" y="195" text-anchor="middle">folder → archive/</text>
+
+            <!-- flow arrows -->
+            <line class="svg-line-a" x1="280" y1="54" x2="296" y2="54" marker-end="url(#mk-loop-a)" />
+            <line class="svg-line-a" x1="450" y1="54" x2="466" y2="54" marker-end="url(#mk-loop-a)" />
+            <line class="svg-line-a" x1="620" y1="54" x2="636" y2="54" marker-end="url(#mk-loop-a)" />
+            <line class="svg-line-a" x1="790" y1="54" x2="806" y2="54" marker-end="url(#mk-loop-a)" />
+
+            <!-- update loop-back -->
+            <path class="svg-line" d="M330 116 L330 100 L250 100 L250 116"
+                  marker-end="url(#mk-loop)" />
+            <text class="svg-s" x="290" y="112" text-anchor="middle">revise</text>
+
+            <!-- into the PR -->
+            <path class="svg-line" d="M620 160 L636 160" marker-end="url(#mk-loop)" />
+            <path class="svg-line" d="M620 268 L630 268 L630 214 L636 214" marker-end="url(#mk-loop)" />
+
+            <!-- out of the PR -->
+            <path class="svg-line" d="M790 200 L800 200 L800 136 L806 136" marker-end="url(#mk-loop)" />
+
+            <text class="svg-lbl" x="715" y="318" text-anchor="middle">after merge, on main</text>
+            <path class="svg-line" d="M715 290 L715 306" marker-end="url(#mk-loop)" />
+            <path class="svg-line" d="M760 312 L880 312 L880 216" marker-end="url(#mk-loop)" />
+
+            <defs>
+              <marker id="mk-loop" viewBox="0 0 10 10" refX="9" refY="5"
+                      markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--border-strong)" />
+              </marker>
+              <marker id="mk-loop-a" viewBox="0 0 10 10" refX="9" refY="5"
+                      markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)" />
+              </marker>
+            </defs>
+          </svg>
+        </div>
+        <figcaption>
+          The mechanism worth internalising: planning artifacts accumulate in the change
+          folder first, code appears only at <code>apply</code>, both travel to review in a
+          single pull request, and <code>archive</code> runs last — folding the delta specs
+          into the permanent specs and moving the change folder out of the way.
+        </figcaption>
+      </figure>
+
+      <ol class="steps">
+
+        <li>
+          <div>
+            <p class="step-h">Ask whether this is a change at all</p>
+            <p>
+              A typo, a copy edit, a dependency bump or adding one content record does not
+              need a proposal — the ceremony would cost more than the work. Everything else
+              does. The threshold: <strong>if it changes observable behaviour or adds a
+              dependency, it needs a change.</strong> See
+              <a href="#conventions-skip">the proposed threshold</a> below.
+            </p>
+          </div>
+        </li>
+
+        <li>
+          <div>
+            <p class="step-h">Think first, if you need to — <code>/opsx:explore</code></p>
+            <p>
+              Optional. Explore mode is a thinking partner: it reads code, maps what exists,
+              compares approaches and draws diagrams, and it will <strong>not write
+              code</strong>. Use it when you do not yet know what you are building. Skip it
+              when you do.
+            </p>
+          </div>
+        </li>
+
+        <li>
+          <div>
+            <p class="step-h">Branch</p>
+            <pre><code>git switch -c change/&lt;change-name&gt;</code></pre>
+            <p>
+              Branch before you propose, so the planning artifacts are versioned with the
+              work from the first commit.
+            </p>
+          </div>
+        </li>
+
+        <li>
+          <div>
+            <p class="step-h">Draft the plan — <code>/opsx:propose &lt;name-or-description&gt;</code></p>
+            <p>
+              Creates <span class="path">openspec/changes/&lt;name&gt;/</span> and fills it:
+              <span class="path">proposal.md</span> (what and why),
+              <span class="path">specs/&lt;capability&gt;/spec.md</span> (the requirements, as
+              a <em>delta</em> — only what changes), <span class="path">design.md</span> (how)
+              and <span class="path">tasks.md</span> (the plan of work). It will ask you
+              questions where the scope is genuinely ambiguous.
+            </p>
+            <div class="note key">
+              <span class="note-label">It will stop, and that is not a malfunction</span>
+              <p>
+                <code>/opsx:propose</code> is <strong>planning-only and hard-stops</strong>. It
+                refuses to write implementation code in the same response — even if your
+                request said "build the timeline". Starting implementation takes a
+                <strong>new</strong> request. This surprises everyone once.
+              </p>
+            </div>
+          </div>
+        </li>
+
+        <li>
+          <div>
+            <p class="step-h">Read the plan yourself</p>
+            <p>
+              This is the step people skip, and it is the step the whole method exists for.
+              Reviewing four short documents is cheaper than reviewing a thousand lines of
+              code. Read them in this order and stop as soon as something is wrong:
+            </p>
+            <div class="tw">
+              <table>
+                <thead><tr><th>Order</th><th>File</th><th>What you are checking</th></tr></thead>
+                <tbody>
+                  <tr><td>1</td><td><span class="path">proposal.md</span></td><td>The intent and scope. <strong>If this is wrong, stop here</strong> — everything downstream is built on it.</td></tr>
+                  <tr><td>2</td><td><span class="path">specs/…/spec.md</span></td><td>The requirements. The heart of the review: are they observable, bilingual, and do they cover zero, one and many?</td></tr>
+                  <tr><td>3</td><td><span class="path">design.md</span></td><td>The technical approach. Larger changes only.</td></tr>
+                  <tr><td>4</td><td><span class="path">tasks.md</span></td><td>The plan of work. Does the un-animated baseline come first?</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </li>
+
+        <li>
+          <div>
+            <p class="step-h">Fix the plan if it is wrong — <code>/opsx:update</code></p>
+            <p>
+              Revises the artifacts that already exist and reconciles them against each other,
+              confirming every edit with you before writing. It <strong>never touches
+              code</strong>. If the change's <em>intent</em> has shifted rather than its
+              details, do not bend the old change into the new shape — start a fresh one.
+            </p>
+          </div>
+        </li>
+
+        <li>
+          <div>
+            <p class="step-h">Build it — <code>/opsx:apply</code></p>
+            <p>
+              Works through <span class="path">tasks.md</span> one task at a time, ticking
+              <code>- [ ]</code> to <code>- [x]</code> as it goes, so an interrupted session
+              resumes exactly where it stopped. It pauses rather than guessing when a task is
+              ambiguous, and it surfaces added scope instead of quietly absorbing it — if it
+              stops to ask, answer it rather than telling it to continue.
+            </p>
+          </div>
+        </li>
+
+        <li>
+          <div>
+            <p class="step-h">Commit, push, open the pull request</p>
+            <p>
+              <strong>The planning artifacts and the code go in the same pull request.</strong>
+              A reviewer reads the spec delta beside the diff that implements it — that
+              pairing is most of the review's value. Fill in
+              <span class="path">.github/PULL_REQUEST_TEMPLATE.md</span> honestly; see
+              <a href="#pr">section 10</a>.
+            </p>
+          </div>
+        </li>
+
+        <li>
+          <div>
+            <p class="step-h">Review and merge</p>
+            <p>
+              A peer reviews; the merge checker merges. A pull request touching motion is not
+              reviewable until the screen recording is attached — feel is not automatable and
+              no CI gate substitutes for a human watching it.
+            </p>
+          </div>
+        </li>
+
+        <li>
+          <div>
+            <p class="step-h">Close the loop — <code>/opsx:archive</code></p>
+            <p>
+              Run it <strong>after the merge, on <code>main</code></strong>. It checks the
+              artifacts and tasks are complete, offers to fold the delta specs into
+              <span class="path">openspec/specs/</span>, then moves the change folder to
+              <span class="path">openspec/changes/archive/YYYY-MM-DD-&lt;name&gt;/</span>.
+              Say yes to the sync — that is how the permanent specs learn what your change
+              did. Skipping it leaves the specs describing a system that no longer exists.
+            </p>
+          </div>
+        </li>
+
+      </ol>
+    </section>
+
+    <!-- 05 -->
+    <section id="commands">
+      <span class="sec-num">05</span>
+      <h2>Command reference</h2>
+
+      <p>
+        Six workflows, reachable two ways: type the slash command
+        (<code>/opsx:propose</code>), or invoke the skill by name
+        (<code>openspec-propose</code>). Same workflow either way — the slash commands are
+        just the shorter door.
+      </p>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr>
+              <th>Command</th><th>Writes</th><th>Never does</th><th>Leaves you</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/opsx:explore</code></td>
+              <td>Nothing, unless you ask it to capture the thinking as artifacts</td>
+              <td>Write or change code</td>
+              <td>With a clearer problem</td>
+            </tr>
+            <tr>
+              <td><code>/opsx:propose</code></td>
+              <td>The whole change folder: proposal, delta specs, design, tasks</td>
+              <td>Implement — it hard-stops, deliberately</td>
+              <td>With a plan to read</td>
+            </tr>
+            <tr>
+              <td><code>/opsx:update</code></td>
+              <td>Revisions to artifacts that already exist</td>
+              <td>Touch code, or create artifacts that do not exist yet</td>
+              <td>With a coherent plan</td>
+            </tr>
+            <tr>
+              <td><code>/opsx:apply</code></td>
+              <td>Code, plus tick marks in <span class="path">tasks.md</span></td>
+              <td>Silently narrow or defer specified behaviour</td>
+              <td>Ready to open a PR</td>
+            </tr>
+            <tr>
+              <td><code>/opsx:sync</code></td>
+              <td>Folds delta specs into <span class="path">openspec/specs/</span></td>
+              <td>Archive anything</td>
+              <td>With current main specs</td>
+            </tr>
+            <tr>
+              <td><code>/opsx:archive</code></td>
+              <td>Offers the sync, then moves the change into <span class="path">changes/archive/</span></td>
+              <td>Archive while a sync is still running</td>
+              <td>At a clean slate</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <span class="note-label">Two commands you will see referenced but do not have</span>
+        <p>
+          The installed workflows sometimes suggest <code>/opsx:continue</code> or
+          <code>/opsx:new</code>. Neither is installed here. When one is suggested, use the
+          CLI instead: <code>openspec status --change "&lt;name&gt;" --json</code> shows the
+          next artifact, and
+          <code>openspec instructions &lt;artifact-id&gt; --change "&lt;name&gt;" --json</code>
+          explains how to create it. Published OpenSpec documentation describes a few other
+          commands for the same reason — it is written against a different version.
+        </p>
+      </div>
+
+      <h3>When to reach for <code>/opsx:sync</code> on its own</h3>
+      <p>
+        Rarely. <code>/opsx:archive</code> runs the sync for you as part of archiving, which
+        is the normal path. Standalone sync is for when you want the permanent specs updated
+        <em>before</em> the change is finished — a long-running change whose first half has
+        shipped, for instance.
+      </p>
+    </section>
+
+    <!-- 06 -->
+    <section id="state">
+      <span class="sec-num">06</span>
+      <h2>Reading the state</h2>
+
+      <p>
+        These are read-only and safe to run at any time. Use them instead of guessing what
+        state a change is in.
+      </p>
+
+      <pre><code>npx openspec list                      <span class="c"># active changes, most recent first</span>
+npx openspec list --specs              <span class="c"># the permanent specs instead</span>
+npx openspec status --change "&lt;name&gt;"  <span class="c"># which artifacts exist, what is blocked</span>
+npx openspec show "&lt;name&gt;"             <span class="c"># read a change or a spec</span>
+npx openspec view                      <span class="c"># interactive dashboard of both</span>
+npx openspec validate --all --strict   <span class="c"># the check CI would run</span>
+npx openspec doctor                    <span class="c"># relationship health of the openspec root</span></code></pre>
+
+      <p>
+        <code>status</code> is the one to learn. It reports file existence, not correctness —
+        so an artifact reading <code>done</code> means the file is there, not that it is any
+        good. That is what step 5 of <a href="#loop">the loop</a> is for.
+      </p>
+    </section>
+
+    <!-- 07 -->
+    <section id="proposal">
+      <span class="sec-num">07</span>
+      <h2>What a good proposal does here</h2>
+
+      <p>
+        <span class="path">openspec/config.yaml</span> carries a <code>rules:</code> block for
+        each artifact type, and those rules are <strong>injected automatically</strong> when
+        the artifact is generated. You do not have to remember them. But knowing what they
+        ask for tells you what to check when you read the plan back — and a generated
+        artifact that ignores one is a defect worth catching.
+      </p>
+
+      <h4>proposal.md must</h4>
+      <ul>
+        <li>State which audience the change serves — sponsors, prospective members, or neither. <em>"Serves credibility only"</em> is a valid and common answer, but it has to be said out loud.</li>
+        <li>Name each entity's storage location if content is added, and confirm nothing is split across git and Strapi.</li>
+        <li>Declare any new runtime dependency. A second animation library, a second scroll system, or a third L1 route needs its own ADR <em>before</em> the proposal is viable.</li>
+      </ul>
+
+      <h4>specs must</h4>
+      <ul>
+        <li>Describe observable behaviour <strong>in both locales</strong>. A requirement that only holds in English is incomplete, not merely untranslated.</li>
+        <li>Separate the neutral server-rendered form of any date from the client-derived past/live/upcoming state.</li>
+        <li>Express reduced-motion and mobile fallbacks as <em>scenarios</em>, not as prose asides.</li>
+        <li>Cover zero, one and many entries for every collection.</li>
+      </ul>
+
+      <h4>design.md must</h4>
+      <ul>
+        <li>Name the motion tier (L1/L2/L3) of every animation, and the route it lives on.</li>
+        <li>State the per-route first-load JS impact, and whether any import reaches an animation library from a non-L1 route.</li>
+        <li>Say whether a new Strapi field is needed, and whether it is locale-specific.</li>
+        <li>Point at the ADRs and design documents rather than restating them.</li>
+      </ul>
+
+      <h4>tasks.md must</h4>
+      <ul>
+        <li>Order the work so the un-animated, reduced-motion baseline ships <strong>before</strong> anything built on top of it.</li>
+        <li>Include both locales wherever user-facing copy is added.</li>
+        <li>Name which CI gate covers the change — and if none does, say so rather than implying coverage.</li>
+      </ul>
+
+      <div class="note plan-note">
+        <span class="note-label">While implementing</span>
+        <p>
+          Keep the un-animated baseline working at <em>every</em> commit; never leave the site
+          in a state where the enhancement is required for the page to function. And add
+          content as data — if adding a record seems to require editing a layout, stop and
+          report it. That is a design defect, not a task detail.
+        </p>
+      </div>
+    </section>
+
+    <!-- 08 -->
+    <section id="first">
+      <span class="sec-num">08</span>
+      <h2>First changes, in order</h2>
+
+      <p>
+        Nothing is built yet, so the loop above has nothing to run against. This is a
+        <strong>starting sequence, not a schedule</strong> — each of these should become a
+        real change proposal that can argue with the ordering.
+      </p>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Change</th><th>Why here</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Scaffold the workspace and <span class="path">apps/web</span></td>
+              <td>pnpm workspaces, Node 22 pinned in <span class="path">.nvmrc</span> and <code>engines</code>, Next.js 16 pinned to an exact minor and recorded in ADR 0001. Nothing else can start until this exists.</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>CI Tier A and <span class="path">apps/web/budgets.json</span></td>
+              <td>The import-graph rule and the weight budget are worth far more before the code exists than after. Retrofitting a budget onto a built site means deleting work.</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Locale routing and the content pipeline</td>
+              <td>Path-prefixed locales, the localized URL segment map, MDX loading from <span class="path">content/</span>, and the locale-parity gate. Everything user-facing depends on this shape.</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Design tokens as real CSS</td>
+              <td><code>@theme</code> custom properties from <span class="path">design/tokens.md</span>. The motion checks in CI can only assert "durations reference tokens" once tokens exist.</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><span class="path">apps/cms</span>, R2, and the revalidation webhook</td>
+              <td>Follow <span class="path">docs/ops/cms-runbook.md</span> step by step; it is written for someone who has never seen the system. Includes the snapshot export — set it up now, not later.</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>Sections, one change each</td>
+              <td>Missions, timeline baseline, schedule, events, alumni, sponsors. Each is a normal trip round the loop.</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>The L1 signature sequence</td>
+              <td><strong>Last.</strong> ADR 0003 deliberately does not decide the technique; that proposal must argue its own budget and ship the static fallback first. The site is launchable without it.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <span class="note-label">Two things to settle before writing much code</span>
+        <p>
+          Whether sponsors are ranked into tiers — decide it <em>before the first sponsor is
+          added</em>, because changing it later means renegotiating with people who were
+          promised a tier. And Vercel's commercial-use question in ADR 0001, which has a
+          deadline attached: the Galactic Summit.
+        </p>
+      </div>
+    </section>
+
+    <!-- 09 -->
+    <section id="bite">
+      <span class="sec-num">09</span>
+      <h2>Six rules that will bite you</h2>
+
+      <p>
+        Each of these is enforced somewhere — in CI, in review, or by the shape of the
+        system. One sentence each; the reasoning is in the linked document.
+      </p>
+
+      <h3>1 · Motion is tiered, and most of the site may not use the library</h3>
+      <p>
+        L3 micro-interactions are <strong>CSS only, no exceptions</strong>; L2 section motion
+        uses <strong>no library</strong>; L1 signature motion may use GSAP, dynamically
+        imported, and is capped at <strong>two routes site-wide</strong> — the home hero and
+        <span class="path">/[locale]/timeline</span>. A third L1 requires its own ADR.
+      </p>
+      <p>
+        The tie-break when a tier is not obvious: <strong>if it responds to a pointer it is
+        L3; if it responds to a section entering the viewport it is L2; if someone would call
+        it "the animation", it is L1</strong> and needs a route budget.
+        <span class="path">docs/adr/0003-motion-stack.md</span>
+      </p>
+
+      <h3>2 · Nothing computes "now" on the server</h3>
+      <p>
+        Pages are static and are not rebuilt when a date passes. The server ships raw ISO
+        dates and renders the neutral form; a client component derives past/live/upcoming
+        after mount. A calendar that computed "this month" at build time is wrong within
+        weeks. <strong>Never add a cron or time-based revalidation</strong> to work around
+        this. <span class="path">docs/adr/0001-stack.md</span>, rule 3
+      </p>
+
+      <h3>3 · Adding content is a data operation</h3>
+      <p>
+        Adding a mission, talk, event, alumnus or sponsor must require adding
+        <strong>data only</strong> — never editing a component or a layout. Every collection
+        renders sensibly at zero, one and fifty entries. If a record needs a layout edit, that
+        is a defect to report, not a task to complete.
+        <span class="path">design/content-model.md</span>
+      </p>
+
+      <h3>4 · Both locales, always, in the same pull request</h3>
+      <p>
+        Turkish and English are both first-class; neither is a translation of the other. Git
+        content needs both locale files <em>and</em> a slug in each — a missing Turkish slug
+        is a broken route, not a missing translation, and CI blocks it. A locale file may
+        declare <code>status: incomplete</code> to show a visible notice; that is the
+        supported way to ship a translation backlog.
+        <strong>Do not machine-translate and publish.</strong>
+        <span class="path">design/i18n.md</span>
+      </p>
+
+      <h3>5 · No third-party analytics, embeds, pixels or tag managers</h3>
+      <p>
+        The KVKK position is unresolved, so the surface stays as small as it can be. Vercel
+        Web Analytics and Speed Insights are in; everything else is out. Google Forms may be
+        <strong>linked, never embedded</strong>.
+        <span class="path">docs/adr/0002-cms.md</span>
+      </p>
+
+      <h3>6 · Orange means one thing</h3>
+      <p>
+        Launch, ignition, live, upcoming, primary CTA. Nothing else — there is deliberately no
+        general-purpose orange token. The reviewer's test: if a proposed use of orange is not
+        one of those, it is wrong regardless of how good it looks. Related: no global neon, no
+        glow, no gradient washes. The site must not read as gaming.
+        <span class="path">design/tokens.md</span>
+      </p>
+    </section>
+
+    <!-- 10 -->
+    <section id="pr">
+      <span class="sec-num">10</span>
+      <h2>Before you open a PR</h2>
+
+      <p>
+        Fill in <span class="path">.github/PULL_REQUEST_TEMPLATE.md</span> properly. Delete a
+        section only when it genuinely does not apply — never because it is inconvenient.
+      </p>
+
+      <h3>What CI runs</h3>
+
+      <p>
+        Gates are tiered by cost, because this is a private repository with 2,000 Actions
+        minutes a month and the failure mode of running out is CI stopping for everyone,
+        mid-month.
+      </p>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Tier</th><th>When</th><th>Target</th><th>What it asserts</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>A</strong></td>
+              <td>Every push, every branch</td>
+              <td>&lt; 2 min</td>
+              <td>Typecheck · lint · <strong>the import-graph rule</strong> · first-load JS budget · four static motion checks · locale parity</td>
+            </tr>
+            <tr>
+              <td><strong>B</strong></td>
+              <td>PRs to <code>main</code>, path-filtered</td>
+              <td>&lt; 10 min</td>
+              <td>Lighthouse · axe-core across generated routes · motion determinism where an L1 exists</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        The import-graph rule is the load-bearing one. Because the animation library is
+        dynamically imported it never shows up in first-load JS, so a weight budget alone
+        would happily pass a route that pulled GSAP into the shared chunk. The import rule
+        catches that at zero bytes and zero CI seconds.
+        <span class="path">docs/adr/0004-verification.md</span>
+      </p>
+
+      <p>
+        Removing a path filter to "just be safe" is a <strong>budget decision</strong>, not a
+        convenience decision. Path filtering is what keeps the minute budget viable.
+      </p>
+
+      <h3>What CI cannot see</h3>
+
+      <ul>
+        <li><strong>Whether an animation feels right.</strong> Timing, easing and whether a sequence reads as intentional are human judgements. A motion PR attaches a short screen recording and the reviewer watches it. Do not build an agent screenshot loop to substitute — it produces confident output about a question it cannot answer.</li>
+        <li><strong>Layout drift.</strong> Visual regression was deliberately dropped: screenshot baselines are binaries that churn on every intentional design change, which is the same failure mode that keeps media out of git. The screen recording and human review are the compensating control, not a nice-to-have.</li>
+        <li><strong>Real-device performance.</strong> Lighthouse runs on a CI runner, not on a phone on a Turkish mobile network. Vercel Speed Insights is the only thing reporting back from reality — which is why the whole motion policy is falsifiable only through it.</li>
+        <li><strong>Whether the content is true.</strong> No gate checks that a stated apogee is correct.</li>
+      </ul>
+
+      <h3>Every animation declares three things</h3>
+      <pre><code>Tier:            L1 / L2 / L3, and the route
+Reduced motion:  what a reduced-motion user sees instead
+Mobile:          what a phone gets</code></pre>
+      <p>
+        An animation that cannot answer all three is not finished. A reduced-motion path means
+        a <strong>genuine non-animated path</strong> — the same sequence played faster is not
+        an implementation.
+      </p>
+    </section>
+
+    <!-- 11 -->
+    <section id="agents">
+      <span class="sec-num">11</span>
+      <h2>Working with agents</h2>
+
+      <p>
+        Agent-assisted development is assumed here — it is one of the reasons the stack was
+        chosen. That makes a few habits load-bearing.
+      </p>
+
+      <h3>Check the docs before writing against an API</h3>
+      <p>
+        Next.js App Router, Strapi 5 and GSAP all move faster than model training data, and
+        the failure is quiet. Next 16's <code>revalidateTag</code> takes a second cache-profile
+        argument that Next 15's did not: copy a pre-16 example and it typechecks, passes
+        review, and silently under-revalidates. Fetch current documentation rather than
+        trusting recall.
+      </p>
+
+      <h3>Which skill owns which question</h3>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Question</th><th>Authority</th></tr></thead>
+          <tbody>
+            <tr><td>Anything GSAP</td><td><code>gsap-*</code> skills — core, timeline, ScrollTrigger, react, plugins, performance</td></tr>
+            <tr><td>Interface motion: hover, focus, press, toasts</td><td><code>emil-design-eng</code>, <code>animate</code>, <code>apple-design</code></td></tr>
+            <tr><td>Interface critique, layout, hierarchy</td><td><code>impeccable</code></td></tr>
+            <tr><td>The spec workflow</td><td>The <code>openspec-*</code> skills and this page</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        <strong>The two motion budgets stay separate.</strong> The interface-motion skills
+        govern L3 and L2 only; they have no authority over narrative motion, and narrative
+        motion guidance has no authority over a button hover.
+        <span class="path">design/motion.md</span>
+      </p>
+
+      <h3>What an agent may not decide alone</h3>
+      <ul>
+        <li>The stack. It is settled in ADR 0001 and 0002 and is not open for renegotiation.</li>
+        <li>A third L1 route, or a second animation library — both require their own ADR first.</li>
+        <li>Any budget exception. A route's first-load cap is not raised by an agent noticing it would be convenient.</li>
+        <li>Anything an ADR decided. If the ADR is wrong, write a new ADR that supersedes it — do not quietly diverge.</li>
+      </ul>
+
+      <h3>Two local details</h3>
+      <ul>
+        <li>If the <code>impeccable</code> hook is installed, UI edits get critiqued automatically and the feedback arrives as hook output. It needs <code>node</code> on <code>PATH</code>; without it, it silently does nothing. Not having it is not an error.</li>
+        <li>Its font guidance flags Inter. That is <strong>deliberately overridden</strong> here for Turkish glyph coverage, and recorded in <span class="path">design/brand.md</span>. Dismiss it with a pointer rather than re-litigating it every run.</li>
+        <li>Never hand-edit anything under a <span class="path">skills/</span> directory — edits diverge from the recorded hash and vanish at the next sync.</li>
+      </ul>
+    </section>
+
+    <!-- 12 -->
+    <section id="unusual">
+      <span class="sec-num">12</span>
+      <h2>Unusual situations</h2>
+
+      <h3>You got pulled onto something else mid-change</h3>
+      <p>
+        Nothing breaks. Changes are folders, not sessions. Propose the second change, work it,
+        archive it, then <code>/opsx:apply &lt;first-change&gt;</code> — it resumes at the
+        first unticked task. Keep them on separate branches.
+      </p>
+
+      <h3>The change turned out to be a bad idea</h3>
+      <p>
+        Delete the folder under <span class="path">openspec/changes/</span> and close the
+        branch. An abandoned change is not worth archiving; the archive is for work that
+        shipped.
+      </p>
+
+      <h3>The change has no specs — docs, CI, tooling</h3>
+      <p>
+        Archive with <code>npx openspec archive "&lt;name&gt;" --skip-specs</code>. Nothing
+        about observable behaviour changed, so there is no delta to fold into the permanent
+        specs.
+      </p>
+
+      <h3>You need to change something an ADR decided</h3>
+      <p>
+        Write a new ADR that supersedes it. Number it in sequence, mark the old one
+        superseded, and record why the original reasoning no longer holds. The ADRs are a
+        record of thinking over time — editing an accepted one to match new reality destroys
+        exactly the thing that makes it useful in 2029.
+      </p>
+
+      <h3>You resolved or invalidated an <code>ASSUMPTION:</code></h3>
+      <p>
+        There are <strong>20 <code>ASSUMPTION:</code> lines across 10 files</strong>. They are
+        deliberate, marking things that were assumed rather than verified. Find them with:
+      </p>
+      <pre><code>grep -rn "ASSUMPTION:" docs design openspec</code></pre>
+      <p>
+        If your work settles one, correct the document in the same pull request rather than
+        leaving it to drift. Archiving prompts you to do this; take the prompt seriously.
+      </p>
+
+      <h3>Something in this document is wrong</h3>
+      <p>
+        Fix it. It is a tracked file — <span class="path">docs/workflow.html</span> — and it
+        goes through the same review as anything else.
+      </p>
+    </section>
+
+    <!-- 13 -->
+    <section id="glossary">
+      <span class="sec-num">13</span>
+      <h2>Glossary</h2>
+
+      <div class="tw">
+        <table>
+          <thead><tr><th>Term</th><th>Means</th></tr></thead>
+          <tbody>
+            <tr><td><strong>ADR</strong></td><td>Architecture Decision Record. One document per significant decision, recording the context, the decision, its consequences and the alternatives rejected. Never edited once accepted — superseded by a new one instead.</td></tr>
+            <tr><td><strong>Artifact</strong></td><td>One of the planning documents in a change folder: proposal, specs, design, tasks.</td></tr>
+            <tr><td><strong>Capability</strong></td><td>A named area of behaviour that specs are organised under — the directory under <span class="path">specs/</span>.</td></tr>
+            <tr><td><strong>Delta spec</strong></td><td>The requirements a change <em>adds, modifies, removes or renames</em> — not a full copy of the spec. Archiving folds the delta into the permanent spec.</td></tr>
+            <tr><td><strong>First-load JS</strong></td><td>The JavaScript a visitor downloads before the page is interactive, gzipped, per route. Capped on every route including L1 ones; the numbers live in <span class="path">design/motion.md</span> and <span class="path">apps/web/budgets.json</span>.</td></tr>
+            <tr><td><strong>L1 / L2 / L3</strong></td><td>Motion tiers. L1 signature (library allowed, two routes only), L2 section (no library), L3 micro (CSS only).</td></tr>
+            <tr><td><strong>KVKK</strong></td><td>Turkey's personal data protection law. Unresolved for this project, which is why third-party analytics and embeds are banned and why alumni consent fields are required.</td></tr>
+            <tr><td><strong>On-demand revalidation</strong></td><td>Static pages are rebuilt when the CMS publishes and pings the site — not on a timer. A timer is explicitly forbidden.</td></tr>
+            <tr><td><strong>Reduced motion</strong></td><td><code>prefers-reduced-motion</code>. Requires a genuine non-animated path, not a shortened animation.</td></tr>
+            <tr><td><strong>Tier A / Tier B</strong></td><td>The two CI gate levels — fast checks on every push, browser-based checks on PRs to <code>main</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 14 -->
+    <section id="open">
+      <span class="sec-num">14</span>
+      <h2>Open items</h2>
+
+      <p>
+        Things this document cannot answer yet. Each one is somebody's to close.
+      </p>
+
+      <div class="tw">
+        <table>
+          <thead><tr><th>Item</th><th>Why it matters</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>The agent-skills install command</td>
+              <td>Section 02 step 4 has a hole in it. Whoever set up the skills should write the command down here, or a new contributor cannot reproduce the environment.</td>
+            </tr>
+            <tr>
+              <td><code>&lt;DOMAIN&gt;</code> is unregistered</td>
+              <td>It appears as a placeholder in four documents. Register it (Cloudflare Registrar, per the runbook step 1) and replace every occurrence.</td>
+            </tr>
+            <tr>
+              <td>20 <code>ASSUMPTION:</code> lines</td>
+              <td>Deliberate, and waiting for someone with the facts. Sponsor tiers and account ownership are the two worth settling first.</td>
+            </tr>
+            <tr>
+              <td>Branch protection on <code>main</code></td>
+              <td>ADR 0004 assumes required reviews and required status checks are available on the organisation's plan for a private repository. Confirm it. If they are not, the pull request template is the <em>only</em> enforcement, and that should be stated rather than assumed.</td>
+            </tr>
+            <tr>
+              <td>The conventions in <a href="#conventions">section 15</a></td>
+              <td>Proposed, not ratified. Ratify or replace them.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- conventions -->
+    <section id="conventions">
+      <span class="sec-num">15</span>
+      <h2>Proposed conventions</h2>
+
+      <p>
+        None of the following is settled anywhere in the repository. They are proposals,
+        marked the way the ADRs mark their own assumptions, so that the team has something
+        concrete to argue with rather than a blank. <strong>Ratify, amend or replace
+        them</strong> — but decide, because five contributors improvising five conventions is
+        the outcome nobody wants.
+      </p>
+
+      <div class="proposed">
+        <h4>Branch names <span class="tag">proposed</span></h4>
+        <p>
+          <code>change/&lt;openspec-change-name&gt;</code> for anything with a change
+          proposal, so <code>git branch</code> and <code>openspec list</code> read the same.
+          <code>fix/&lt;short-description&gt;</code> and
+          <code>content/&lt;entity&gt;-&lt;slug&gt;</code> for work without one.
+        </p>
+      </div>
+
+      <div class="proposed">
+        <h4>One change per branch, per pull request <span class="tag">proposed</span></h4>
+        <p>
+          The pull request carries the spec delta <em>and</em> the code that implements it.
+          Two changes in one branch means a reviewer cannot approve half of it.
+        </p>
+      </div>
+
+      <div class="proposed">
+        <h4>Commit messages <span class="tag">proposed</span></h4>
+        <p>
+          <code>feat:</code> <code>fix:</code> <code>docs:</code> <code>content:</code>
+          <code>chore:</code>, with the change name in the body. Not enforced by CI — this is
+          a readability convention, not a gate.
+        </p>
+      </div>
+
+      <div class="proposed" id="conventions-skip">
+        <h4>When to skip OpenSpec entirely <span class="tag">proposed</span></h4>
+        <p>
+          Typos, copy edits, adding a single content record, dependency bumps, and fixing a
+          broken link. The threshold: <strong>if it changes observable behaviour or adds a
+          dependency, it needs a change proposal.</strong> When genuinely unsure, propose —
+          the proposal is four short documents, and being wrong the other way means an
+          undocumented behaviour change.
+        </p>
+      </div>
+
+      <div class="proposed">
+        <h4>Review <span class="tag">proposed</span></h4>
+        <p>
+          One peer review plus the merge checker, per the team shape recorded in ADR 0001. A
+          pull request touching motion is not reviewable until the screen recording is
+          attached — the reviewer should say so and stop rather than approving on the code
+          alone.
+        </p>
+      </div>
+
+      <div class="proposed">
+        <h4>Archive after merge <span class="tag">proposed</span></h4>
+        <p>
+          Run <code>/opsx:archive</code> on <code>main</code>, after the merge, by whoever
+          authored the change. Archiving moves directories; doing it before the merge puts
+          that move inside the pull request and makes the diff harder to read.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="colophon">
+    <p>
+      <strong>KUASAR Flight Rules</strong> — process only. Every decision it refers to lives in
+      <span class="path">docs/adr/</span> and <span class="path">design/</span>, and those win
+      where they disagree with this page.
+    </p>
+    <p>
+      Palette and type derive from <span class="path">design/tokens.md</span>. There is no
+      orange anywhere on this page: it is reserved for launch, live, upcoming and the primary
+      call to action, and a process document is none of those.
+    </p>
+  </footer>
+
+</div>

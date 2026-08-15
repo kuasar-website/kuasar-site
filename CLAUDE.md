@@ -49,6 +49,8 @@ Read the one that covers your task. Do not summarise them back into this file.
 
 | File | Decides |
 | --- | --- |
+| [docs/workflow.html](docs/workflow.html) | How work moves through this repository: the OpenSpec command sequence, review, CI, and the team's conventions. Process only — it decides nothing |
+| [docs/agent-skills.html](docs/agent-skills.html) | Which installed skill owns which question, and where two of them collide. Routing only — it decides nothing |
 | [docs/adr/0001-stack.md](docs/adr/0001-stack.md) | Framework, hosting, rendering rule, client-derived time state, repo layout, analytics |
 | [docs/adr/0002-cms.md](docs/adr/0002-cms.md) | CMS, database, media, backups, the git/CMS content split, KVKK debt |
 | [docs/adr/0003-motion-stack.md](docs/adr/0003-motion-stack.md) | Which animations may use a library and which may not |

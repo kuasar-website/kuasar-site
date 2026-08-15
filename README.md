@@ -55,8 +55,11 @@ you want it. A fresh clone having none of it is intentional.
 
 ## Where to read next
 
-- **[docs/HANDOVER.md](docs/HANDOVER.md)** — start here. Accounts, domain, deploys, backups,
-  and what to do if you have just inherited this project.
+- **[docs/workflow.html](docs/workflow.html)** — start here if you are contributing. How work
+  moves through this repository: which command to run, in what order, and what happens after
+  your pull request is merged.
+- **[docs/HANDOVER.md](docs/HANDOVER.md)** — start here if you have just inherited this
+  project. Accounts, domain, deploys, backups.
 - **[docs/adr/](docs/adr/)** — the decisions and the reasoning behind them. Read the relevant
   one before undoing anything; each was written for a stranger.
 - **[CLAUDE.md](CLAUDE.md)** — instructions for AI agents working in this repository.
