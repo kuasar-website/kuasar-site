@@ -63,14 +63,6 @@ At the 120px minimum width that is ~34px of untouched space around it. The viewB
 about 15 units of incidental padding, which is nowhere near enough — clear space has to come
 from layout, not from the asset.
 
-### Still outstanding: the editable source
-
-**Its source file is not recorded anywhere**, and an SVG export cannot be edited back into
-one. Record in [../docs/HANDOVER.md](../docs/HANDOVER.md) which design tool holds it, which
-account owns it, and where the file lives. A logo whose source exists only in one member's
-Figma or Illustrator is a logo the club loses the year they graduate — and this one is now
-one export away from being unmaintainable.
-
 Rules:
 
 - **Clear space** on all sides equal to the height of the K. Nothing enters it.

@@ -107,17 +107,9 @@ Two of these carry more weight than their row suggests:
 
 ### Brand assets
 
-| | |
-| --- | --- |
-| Wordmark, shipped | `apps/web/public/brand/kuasar-wordmark.svg` — in this repository |
-| Wordmark, **editable source** | **TBD** — which design tool, which account, which file |
-| Source file owner | TBD |
-
-**Fill in those two TBDs.** The committed SVG is an export; it can be displayed and
-recoloured but it cannot be meaningfully edited back into a source. If the source lives only
-in a graduating member's personal Figma or Illustrator account, the club loses the ability to
-change its own logo the day that account closes. See
-[../design/brand.md](../design/brand.md).
+The wordmark is committed at `apps/web/public/brand/kuasar-wordmark.svg`. It is a finished
+asset, not work in progress — see [../design/brand.md](../design/brand.md) for the rules on
+using it. There is nothing to chase here.
 
 ## Running it locally
 
