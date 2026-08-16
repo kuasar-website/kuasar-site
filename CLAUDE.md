@@ -32,8 +32,13 @@ Never create `openspec/project.md`. The constitution lives in `openspec/config.y
 
 ## Repository state
 
-There is **no application code**. No `package.json`, no build, lint or test toolchain, no
-`apps/` directory yet. Do not invent commands — nothing in this repository runs.
+There is **no application code**. No `package.json`, no build, lint or test toolchain. Do
+not invent commands — nothing in this repository runs.
+
+`apps/web/public/brand/kuasar-wordmark.svg` is the sole exception: the wordmark is committed
+ahead of the scaffold so it is under version control, and it sits at the path
+[design/brand.md](design/brand.md) documents. `apps/web/` is otherwise empty — its presence
+is not a partial scaffold, and the workspace change still creates everything else.
 
 The stack is settled and is not open for renegotiation. It is recorded in the `context:` key
 of `openspec/config.yaml` and argued in [docs/adr/0001-stack.md](docs/adr/0001-stack.md) and
@@ -55,6 +60,7 @@ Read the one that covers your task. Do not summarise them back into this file.
 | [docs/adr/0002-cms.md](docs/adr/0002-cms.md) | CMS, database, media, backups, the git/CMS content split, KVKK debt |
 | [docs/adr/0003-motion-stack.md](docs/adr/0003-motion-stack.md) | Which animations may use a library and which may not |
 | [docs/adr/0004-verification.md](docs/adr/0004-verification.md) | What CI checks and what it deliberately does not |
+| [docs/adr/0005-repository-visibility.md](docs/adr/0005-repository-visibility.md) | Why the repository is public, and what that costs. Amends 0004 |
 | [docs/ops/cms-runbook.md](docs/ops/cms-runbook.md) | Operating and restoring the CMS and media |
 | [docs/HANDOVER.md](docs/HANDOVER.md) | Accounts, domain, deploys, backups, inheriting the project |
 | [design/tokens.md](design/tokens.md) | Colour, spacing, type scale, breakpoints, motion primitives |
@@ -65,9 +71,10 @@ Read the one that covers your task. Do not summarise them back into this file.
 
 ## Unresolved, on purpose
 
-- **20 `ASSUMPTION:` lines across 10 files.** They are deliberate and awaiting correction, not
-  oversights. Find them with `grep -rn "ASSUMPTION:" docs design openspec`. If your work
-  resolves or invalidates one, correct the document rather than letting it drift.
+- **One `ASSUMPTION:` line**, in `design/tokens.md` as of 2026-08-16: the palette was
+  invented because no brand colours existed, and it closes when real ones do. Everything
+  else was resolved. Find it with `grep -rn "ASSUMPTION:" docs design openspec`. If your
+  work resolves or invalidates one, correct the document rather than letting it drift.
 - **`<DOMAIN>` is a placeholder** in `docs/HANDOVER.md`, `docs/adr/0001-stack.md`,
   `docs/adr/0002-cms.md` and `docs/ops/cms-runbook.md`. The domain is not registered. Replace
   every occurrence once it is — see the runbook, step 1.

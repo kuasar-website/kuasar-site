@@ -20,17 +20,19 @@ of the repository and **will not work until `apps/web` and `apps/cms` exist.**
 Next.js 16 (App Router) and TypeScript on Vercel, statically generated with on-demand
 revalidation — visitors never wait on a database, and the site stays up when the CMS is down.
 
-Strapi 5 CE on Render with Postgres on Neon, media on Cloudflare R2. One repository, pnpm
-workspaces, Node 22.
+Strapi 5 CE on Render with Postgres on Neon, media on Cloudflare R2. One repository, npm
+workspaces, Node 24 LTS.
 
 ## Running it locally
 
 *Aspirational — there is no `package.json` yet.*
 
+Requires Node 24 LTS; npm comes with it.
+
 ```bash
-pnpm install
-pnpm --filter web dev      # site   → http://localhost:3000
-pnpm --filter cms develop  # Strapi → http://localhost:1337/admin
+npm install
+npm run dev -w apps/web      # site   → http://localhost:3000
+npm run develop -w apps/cms  # Strapi → http://localhost:1337/admin
 ```
 
 The site needs environment variables to reach Strapi: copy `apps/web/.env.example` to
@@ -41,6 +43,7 @@ repository.
 
 ```
 apps/web/            Next.js site → Vercel                (planned)
+  └ public/brand/    Wordmark SVG                         (committed)
 apps/cms/            Strapi CMS → Render                  (planned)
 content/missions/    Mission content, in git              (planned)
 content/timeline/    Timeline entries, in git             (planned)
@@ -64,9 +67,11 @@ you want it. A fresh clone having none of it is intentional.
   one before undoing anything; each was written for a stranger.
 - **[CLAUDE.md](CLAUDE.md)** — instructions for AI agents working in this repository.
 
-Two things that look like bugs and are not: dates are computed in the browser rather than on
-the server ([0001](docs/adr/0001-stack.md)), and most of the site is forbidden from using the
-animation library ([0003](docs/adr/0003-motion-stack.md)). Both are enforced deliberately.
+Three things that look like bugs and are not: dates are computed in the browser rather than
+on the server ([0001](docs/adr/0001-stack.md)), most of the site is forbidden from using the
+animation library ([0003](docs/adr/0003-motion-stack.md)), and this repository is public on
+purpose — it is what makes branch protection and unlimited CI free
+([0005](docs/adr/0005-repository-visibility.md)). All three are deliberate.
 
 ## Contributing
 

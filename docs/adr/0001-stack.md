@@ -3,7 +3,9 @@
 - **Status:** Accepted
 - **Date:** 2026-08-15
 - **Supersedes:** nothing
-- **Related:** [0002-cms.md](0002-cms.md), [0003-motion-stack.md](0003-motion-stack.md), [0004-verification.md](0004-verification.md)
+- **Related:** [0002-cms.md](0002-cms.md), [0003-motion-stack.md](0003-motion-stack.md),
+  [0004-verification.md](0004-verification.md),
+  [0005-repository-visibility.md](0005-repository-visibility.md)
 
 Throughout this repository, `<DOMAIN>` stands for the registered apex domain. It is not
 yet registered — see [0002-cms.md](0002-cms.md) and
@@ -48,12 +50,31 @@ give. That is not a free trade — it is precisely why the motion policy in
 [0004-verification.md](0004-verification.md) exists to enforce it. If the motion policy is
 ever relaxed, this decision should be revisited rather than the policy.
 
-`ASSUMPTION:` Next.js 16 is the current major as of August 2026. Pin the exact minor when
-scaffolding and record it here. The revalidation API signature changed in 16 — see rule 2.
+Next.js 16 is the current major: `16.3.1` is the `latest` tag on npm as of 2026-08-16, and
+the 16.x line is what a fresh install gives every contributor. Scaffold against 16.3.x, pin
+the exact version in `package.json`, and commit the lockfile, so five machines and two
+deploy targets resolve to the same build. The revalidation API signature changed in 16 —
+see rule 2.
 
-`ASSUMPTION:` pnpm workspaces, Node 22 LTS, pinned in `.nvmrc` and `engines`, and matched
-in both Vercel and Render dashboards. A mismatch between local and deploy Node is a
-recurring source of "works on my machine" in a rotating team.
+### 1a. npm workspaces on Node 24 LTS
+
+Pinned in `.nvmrc` and in `engines`, and matched in both the Vercel and Render dashboards.
+A mismatch between local and deploy Node is a recurring source of "works on my machine" in
+a rotating team, and it presents as a code bug rather than as a configuration problem.
+
+**npm rather than pnpm**, for the same handover reason that drives everything else here:
+npm ships with Node, so anyone who has installed Node has already installed the package
+manager, with no `corepack` step to explain and no second version to keep in sync. Strapi's
+own `engines` field names npm, and its plugin resolution expects a flat `node_modules`
+rather than pnpm's strict layout. Vercel picks the package manager from the committed
+lockfile, so `package-lock.json` is what makes this real rather than aspirational.
+
+**Node 24 is a constraint, not a taste.** Vercel offers 20.x, 22.x and 24.x only, with 24.x
+as the default, so 24 is simultaneously the newest LTS line and the newest version that can
+be deployed at all. Node 26 shipped in May 2026 but is `Current`, not LTS until October
+2026, and Vercel does not offer it. Strapi 5.52 accepts `>=20.0.0 <=26.x.x`, so Strapi is
+not the binding constraint — Vercel is. Revisit when Vercel adds 26.x and it has reached
+LTS, not before.
 
 ### 2. Rendering: static generation with on-demand revalidation
 
@@ -176,10 +197,23 @@ completes — including a frontend-only hotfix that touches no CMS content at al
 removes the runtime dependency; it does not remove the build-time one, and no amount of
 static generation will.
 
-`ASSUMPTION:` accepted as-is for now, on the grounds that Render Starter does not sleep and
-outages should be rare. If it bites once, the mitigation is a build-time fallback to the
-newest dump in the `content-snapshots` branch — the data is already there for backup
-reasons, so the fallback is cheap to add later and should not be built speculatively.
+This is accepted rather than solved. Render Starter does not spin down when idle the way
+Render's free tier does, so Strapi should be reachable nearly always, and the coincidence
+that actually hurts — an urgent frontend hotfix arriving during a Strapi outage — is rare
+enough to carry.
+
+One mitigation is required, because what is omitted here costs confusion rather than
+downtime. **The build's Strapi fetch must fail with an explicit error that names Strapi and
+points at the runbook**, never with a raw network error. Someone in 2029 meeting
+`ECONNREFUSED` in a Vercel build log has no way to connect it to the CMS; someone meeting
+`Strapi unreachable at <url> — see docs/ops/cms-runbook.md` diagnoses it in ten seconds.
+This is a wrapper around the fetch, not a second code path, and it is the whole mitigation.
+
+The snapshot fallback is deliberately **not** built. If this bites in practice, the build
+can fall back to the newest dump on the `content-snapshots` branch — the data is already
+there for backup reasons, so it is cheap to add later. Do not add it speculatively: a
+fallback that fires unnoticed serves stale content silently, and a silent wrong answer is a
+worse failure than a loud stop.
 
 **Vercel Hobby's commercial-use restriction is a live risk, not a formality.** Vercel's
 terms restrict Hobby to non-commercial personal use, and lead-generation landing pages are

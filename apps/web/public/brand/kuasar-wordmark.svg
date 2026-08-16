@@ -1,0 +1,37 @@
+<!--
+  KUASAR wordmark. Artwork — do not re-typeset. See design/brand.md.
+
+  Colour is inherited: every path is `currentColor`, so the mark takes the CSS
+  `color` of its container. NEVER hardcode a fill here — the site canvas is
+  near-black and a black wordmark is invisible on it.
+
+  Letters are ordered K U A S A R below. The third glyph is the stylised
+  rocket A; it and the fifth A overshoot the cap height slightly, which is
+  intentional optical correction for pointed apexes, not misalignment.
+-->
+<svg width="311" height="125" viewBox="0 0 311 125" fill="none"
+     xmlns="http://www.w3.org/2000/svg"
+     role="img" aria-labelledby="kuasar-wordmark-title">
+  <title id="kuasar-wordmark-title">KUASAR</title>
+
+  <!-- K -->
+  <path d="M28.5 104.5H15.5V18.5H28.5V57L42 18.5H55.5L41 61L56.5 104.5H42.5L28.5 65.5V104.5Z" fill="currentColor"/>
+  <path d="M28.5 104.5H15.5V18.5H28.5V57L42 18.5H55.5L41 61L56.5 104.5H42.5L28.5 65.5V104.5Z" stroke="currentColor"/>
+
+  <!-- U -->
+  <path d="M82.5 105.5C66.5339 105.658 62.5 92 62.5 87C62.5 82 63 18.5 63 18.5H75.5C75.5 18.5 76 82 76 87C76 92 77.5 94.5 82 94.5C86.5 94.5 88 92 88 87V18.5H101V87C101 92 98.4661 105.342 82.5 105.5Z" fill="currentColor"/>
+  <path d="M82.5 105.5C66.5339 105.658 62.5 92 62.5 87C62.5 82 63 18.5 63 18.5H75.5C75.5 18.5 76 82 76 87C76 92 77.5 94.5 82 94.5C86.5 94.5 88 92 88 87V18.5H101V87C101 92 98.4661 105.342 82.5 105.5Z" stroke="currentColor"/>
+
+  <!-- A — the stylised rocket -->
+  <path d="M109.5 87.5L129.5 15L150 87L140.5 102L135 79L131.5 96.5L136 104L134 112L130 105L126 112L124 104L128.5 96.5L124 79L118.5 102.5L109.5 87.5Z" fill="currentColor" stroke="currentColor"/>
+
+  <!-- S -->
+  <path d="M191.5 46.5H179.5V34C179.5 34 179 28.5 174.5 28.5C170 28.5 168.5 32 168.5 34V40C168.5 43 170 44.5 172 47C174 49.5 186 62 187 64L189 68C190 70 192.5 75 192.5 80V90C192.5 99.5 185.5 107 174.5 107C163.5 107 156 96.5 156 90V73.5H169V90C169 92.5 170.5 95.5 174.5 95.5C178.5 95.5 179.5 92.5 179.5 90V80C179.5 75.5 177 72.5 175.5 71C174 69.5 164 59 162 57C160 55 156 47.5 156 44V34C156 22.5 164.5 17.5 174.5 17.5C184.5 17.5 191.5 24 191.5 34V46.5Z" fill="currentColor" stroke="currentColor"/>
+
+  <!-- A -->
+  <path d="M205 71L195.5 109L206.5 101L207.5 96H233.5L234.5 101L245.5 108.5L237 71L231 67L221 11.5L211.5 67L205 71Z" fill="currentColor" stroke="currentColor"/>
+
+  <!-- R -->
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M257.5 106V18.5H283.5C289.5 18.5 295.5 26 295.5 33V48C295.5 48 294 57.5 288 59.5C291.5 59.5 295.5 67.5 295.5 74V106H282.5V72C282.5 68 280.5 65 277.5 65H271V106H257.5ZM271 54V29H278.5C282 29 282.5 31.5 282.5 34V48C282.5 51 281 54 277.5 54H271Z" fill="currentColor"/>
+  <path d="M257.5 18.5V106H271V65M257.5 18.5C257.5 18.5 277.5 18.5 283.5 18.5M257.5 18.5H283.5M283.5 18.5C289.5 18.5 295.5 26 295.5 33M295.5 33C295.5 40 295.5 48 295.5 48M295.5 33V48M295.5 48C295.5 48 294 57.5 288 59.5C291.5 59.5 295.5 67.5 295.5 74M295.5 74C295.5 80.5 295.5 106 295.5 106M295.5 74V106M295.5 106H282.5M282.5 106C282.5 106 282.5 76 282.5 72M282.5 106V72M282.5 72C282.5 68 280.5 65 277.5 65M277.5 65C274.5 65 271 65 271 65M277.5 65H271M271 29V54M271 29C271 29 275 29 278.5 29M271 29H278.5M271 54C271 54 274 54 277.5 54M271 54H277.5M277.5 54C281 54 282.5 51 282.5 48M282.5 48C282.5 45 282.5 36.5 282.5 34M282.5 48V34M282.5 34C282.5 31.5 282 29 278.5 29" stroke="currentColor"/>
+</svg>

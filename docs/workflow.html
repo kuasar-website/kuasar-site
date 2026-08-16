@@ -649,8 +649,11 @@
 
       <h4>1 · Runtime</h4>
       <p>
-        Node 22 LTS and pnpm. <code>corepack enable</code> is the least painful way to get a
-        pnpm that matches the one the deploy platforms use.
+        <strong>Node 24 LTS.</strong> That is the whole list — npm ships with Node, so there
+        is no second tool to install and no version of it to keep in sync. Use
+        <code>nvm use</code> in the repository root; it reads <span class="path">.nvmrc</span>.
+        Node 24 is not a taste: Vercel offers 20.x, 22.x and 24.x only, so it is both the
+        newest LTS line and the newest version that deploys.
       </p>
 
       <h4>2 · Clone</h4>
@@ -693,11 +696,17 @@ cd kuasar-site</code></pre>
       <div class="note">
         <span class="note-label">There is also no application to run yet</span>
         <p>
-          No <span class="path">package.json</span>, no <span class="path">apps/</span>, no
-          build, lint or test commands. Everything in
-          <span class="path">README.md</span> under <em>Running it locally</em> is marked
-          aspirational for exactly this reason. Do not invent commands — nothing runs yet.
-          <a href="#first">Section 08</a> is how that changes.
+          No <span class="path">package.json</span>, no build, lint or test commands.
+          Everything in <span class="path">README.md</span> under <em>Running it locally</em>
+          is marked aspirational for exactly this reason. Do not invent commands — nothing
+          runs yet. <a href="#first">Section 08</a> is how that changes.
+        </p>
+        <p>
+          One exception, so it does not look like a half-finished scaffold:
+          <span class="path">apps/web/public/brand/kuasar-wordmark.svg</span> is committed
+          ahead of the workspace, because a logo that lives only on someone's laptop is a
+          logo the club loses. <span class="path">apps/web/</span> contains that file and
+          nothing else.
         </p>
       </div>
     </section>
@@ -793,6 +802,7 @@ cd kuasar-site</code></pre>
       <h3>Where things are</h3>
 
       <pre><code>apps/web/            Next.js site → Vercel                <span class="c">(planned)</span>
+  └ public/brand/    Wordmark SVG                         <span class="c">(committed)</span>
 apps/cms/            Strapi CMS → Render                  <span class="c">(planned)</span>
 content/missions/    Mission content, in git              <span class="c">(planned)</span>
 content/timeline/    Timeline entries, in git             <span class="c">(planned)</span>
@@ -814,6 +824,7 @@ openspec/            config.yaml (the constitution), changes/, specs/
             <tr><td><span class="path">docs/adr/0002-cms.md</span></td><td>CMS, database, media, backups, the git/Strapi split, KVKK debt</td></tr>
             <tr><td><span class="path">docs/adr/0003-motion-stack.md</span></td><td>Which animations may use a library and which may not</td></tr>
             <tr><td><span class="path">docs/adr/0004-verification.md</span></td><td>What CI checks, and what it deliberately does not</td></tr>
+            <tr><td><span class="path">docs/adr/0005-repository-visibility.md</span></td><td>Why the repository is public, and what that costs. Amends 0004</td></tr>
             <tr><td><span class="path">docs/ops/cms-runbook.md</span></td><td>Operating, backing up and restoring the CMS and media</td></tr>
             <tr><td><span class="path">docs/HANDOVER.md</span></td><td>Accounts, domain, deploys, backups, inheriting the project</td></tr>
             <tr><td><span class="path">design/tokens.md</span></td><td>Colour, spacing, type scale, breakpoints, motion primitives</td></tr>
@@ -1266,7 +1277,7 @@ npx openspec doctor                    <span class="c"># relationship health of 
             <tr>
               <td>1</td>
               <td>Scaffold the workspace and <span class="path">apps/web</span></td>
-              <td>pnpm workspaces, Node 22 pinned in <span class="path">.nvmrc</span> and <code>engines</code>, Next.js 16 pinned to an exact minor and recorded in ADR 0001. Nothing else can start until this exists.</td>
+              <td>npm workspaces, Node 24 LTS pinned in <span class="path">.nvmrc</span> and <code>engines</code>, Next.js pinned to an exact 16.3.x version with the lockfile committed. Nothing else can start until this exists.</td>
             </tr>
             <tr>
               <td>2</td>
@@ -1397,9 +1408,12 @@ npx openspec doctor                    <span class="c"># relationship health of 
       <h3>What CI runs</h3>
 
       <p>
-        Gates are tiered by cost, because this is a private repository with 2,000 Actions
-        minutes a month and the failure mode of running out is CI stopping for everyone,
-        mid-month.
+        Gates are tiered by <strong>how long they make you wait</strong>. Fast checks run on
+        every push; the browser matrix runs only on pull requests to <code>main</code>, and
+        only when paths that could affect it changed. Actions minutes are unlimited, because
+        this repository is public — ADR 0005 — so the tiering is about feedback speed, not
+        cost. ADR 0004 was written under a minute budget and carries an amendment note
+        saying so.
       </p>
 
       <div class="tw">
@@ -1547,8 +1561,11 @@ Mobile:          what a phone gets</code></pre>
 
       <h3>You resolved or invalidated an <code>ASSUMPTION:</code></h3>
       <p>
-        There are <strong>20 <code>ASSUMPTION:</code> lines across 10 files</strong>. They are
-        deliberate, marking things that were assumed rather than verified. Find them with:
+        There is <strong>one <code>ASSUMPTION:</code> line left</strong>, in
+        <span class="path">design/tokens.md</span> — the brand palette, which cannot be
+        settled until the brand colours exist. Everything else was resolved on 2026-08-16.
+        They are deliberate, marking things that were assumed rather than verified. Find
+        them with:
       </p>
       <pre><code>grep -rn "ASSUMPTION:" docs design openspec</code></pre>
       <p>
@@ -1609,12 +1626,12 @@ Mobile:          what a phone gets</code></pre>
               <td>It appears as a placeholder in four documents. Register it (Cloudflare Registrar, per the runbook step 1) and replace every occurrence.</td>
             </tr>
             <tr>
-              <td>20 <code>ASSUMPTION:</code> lines</td>
-              <td>Deliberate, and waiting for someone with the facts. Sponsor tiers and account ownership are the two worth settling first.</td>
+              <td>1 <code>ASSUMPTION:</code> line</td>
+              <td>Only <span class="path">design/tokens.md</span> is left: the palette was invented because no brand colours existed. It closes when someone produces real ones — every other assumption was resolved on 2026-08-16.</td>
             </tr>
             <tr>
-              <td>Branch protection on <code>main</code></td>
-              <td>ADR 0004 assumes required reviews and required status checks are available on the organisation's plan for a private repository. Confirm it. If they are not, the pull request template is the <em>only</em> enforcement, and that should be stated rather than assumed.</td>
+              <td>Make the repository public, then protect <code>main</code></td>
+              <td>Decided in ADR 0005 but <strong>not yet done</strong>. Branch protection is unavailable on a private repository without a paid plan, which is why the repository becomes public. Runbook step 0 has the sequence, and it should happen <em>before</em> <span class="path">apps/cms</span> exists — auditing a documentation-only history for secrets takes minutes.</td>
             </tr>
             <tr>
               <td>The conventions in <a href="#conventions">section 15</a></td>

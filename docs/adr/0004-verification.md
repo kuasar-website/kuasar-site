@@ -1,7 +1,12 @@
 # 0004 — CI gates that make the budgets enforceable
 
-- **Status:** Accepted
+- **Status:** Accepted, amended 2026-08-16
 - **Date:** 2026-08-15
+- **Amended by:** [0005-repository-visibility.md](0005-repository-visibility.md) — the
+  repository is public, so the CI minute ceiling below no longer binds and branch protection
+  is available. **Every gate in this ADR stands; only the constraint that motivated the
+  tiering changed.** The original reasoning is left in place rather than rewritten, because
+  a 2029 reader needs to see what was true when this was decided.
 - **Related:** [0001-stack.md](0001-stack.md), [0003-motion-stack.md](0003-motion-stack.md),
   [../../design/motion.md](../../design/motion.md),
   [../../.github/PULL_REQUEST_TEMPLATE.md](../../.github/PULL_REQUEST_TEMPLATE.md)
@@ -20,6 +25,14 @@ build period, and the failure mode is the worst available: CI stops for everyone
 with no warning that scales with usage.
 
 So the gates are tiered by cost, and the tiering is deliberate rather than incidental.
+
+> **Amended 2026-08-16 by [0005-repository-visibility.md](0005-repository-visibility.md).**
+> The repository is public, so Actions minutes are unlimited and the paragraph above no
+> longer describes a real constraint. The tiering survives on a **latency** argument
+> instead: a ten-minute browser matrix on every push costs every contributor ten minutes of
+> waiting, and a gate people route around is worse than no gate. This is the weaker of the
+> two arguments and 0005 says so — if the team would rather wait than let a regression sit
+> on a feature branch, nothing external stops them now.
 
 ## Decision
 
@@ -99,8 +112,8 @@ The reason is consistency with a decision already made elsewhere:
 [0002-cms.md](0002-cms.md) keeps media out of git because binary assets that churn make a
 repository unusable within two seasons. Per-breakpoint screenshot baselines are binaries
 that churn on **every intentional design change** — the same failure mode, adopted
-deliberately, on a repository whose whole design phase is ahead of it. Git LFS moves the
-problem to a 1 GB monthly bandwidth allowance; a hosted service solves it but adds a third
+deliberately, on a repository whose whole design phase is ahead of it. Git LFS relocates the
+storage problem without solving the churn one; a hosted service solves it but adds a third
 account to the handover for a five-person club.
 
 What is lost: automated detection of unintended layout drift. That is a real loss and is
@@ -158,12 +171,24 @@ Stated explicitly so that nobody later mistakes a passing build for full coverag
 
 ### Merge control
 
-`ASSUMPTION:` `main` is protected with a required review from the merge checker and
-required status checks for Tier A and Tier B. Confirm this is available on the
-organisation's current GitHub plan for a private repository before relying on it; if it is
-not, the same rules hold by convention and
-[../../.github/PULL_REQUEST_TEMPLATE.md](../../.github/PULL_REQUEST_TEMPLATE.md) becomes
-the only enforcement, which should be stated rather than assumed.
+**`main` is protected** with a required review from the merge checker and required status
+checks for Tier A and Tier B.
+
+This was checked rather than assumed, and the check is what produced
+[0005-repository-visibility.md](0005-repository-visibility.md). GitHub allows rulesets and
+branch protection on public repositories on every plan, but on private repositories only
+with Pro, Team or Enterprise — and `kuasar-website` is an organisation on Free. So the
+protection this section wanted was genuinely unavailable while the repository was private,
+and the fallback it described, with
+[../../.github/PULL_REQUEST_TEMPLATE.md](../../.github/PULL_REQUEST_TEMPLATE.md) as the only
+enforcement, was the true state of the world.
+
+0005 made the repository public, which makes the protection available at no cost. Configure
+it as a **ruleset** rather than a legacy branch protection rule; rulesets are what GitHub
+maintains, and they are visible to contributors who lack admin rights, which matters for a
+team where the person hitting the rule is rarely the person who set it up. The pull request
+template remains the enforcement for everything CI cannot see — above all the screen
+recording, which no ruleset can require.
 
 ## Consequences
 
@@ -172,6 +197,12 @@ run roughly 10. At 30 pull requests a month with a few pushes each, that is on t
 500–600 minutes against 2,000 — comfortable at normal volume, and tight only during an
 intensive build sprint. Path filtering is what preserves that headroom, so removing a path
 filter is a budget decision, not a convenience decision.
+
+> **Amended by [0005-repository-visibility.md](0005-repository-visibility.md):** there is no
+> minute budget any more. The run times above still hold and still matter, but as
+> *waiting time*, not as *spend*. Removing a path filter is now a decision about how long
+> contributors sit watching a check, which is a weaker reason to keep one — say so honestly
+> rather than invoking a budget that no longer exists.
 
 **Tier B runs only against `main`.** A regression can land on a feature branch and survive
 until the PR opens. That is the intended trade; the alternative spends the browser matrix
@@ -189,7 +220,10 @@ not a nice-to-have under this decision; it is the compensating control.
 
 **Full matrix on every push.** Simplest to explain, no gaps, no path-filter configuration
 to maintain. Rejected on the minute budget, and because the failure mode is CI stopping for
-everyone rather than degrading gracefully.
+everyone rather than degrading gracefully. *(Amended by
+[0005-repository-visibility.md](0005-repository-visibility.md): the minute budget is gone,
+so only the ten-minute wait on every push argues against this now. It is a live option
+again, and reopening it is a preference call rather than an ADR-level reversal.)*
 
 **Fast gates per PR, heavy gates nightly.** Cheapest and most predictable. Rejected because
 a regression would land on `main` and be reported hours later, which makes the budgets
@@ -202,5 +236,11 @@ absence is survivable. Reconsider if layout drift actually becomes a recurring p
 that is the trigger, and it should be an observed one rather than an anticipated one.
 
 **Git LFS for baselines.** Keeps baselines versioned with the code that produced them.
-Rejected on GitHub's 1 GB monthly LFS bandwidth allowance for private repositories, which
-per-breakpoint screenshots would consume during an active design phase.
+Rejected — though the quota half of the original reasoning was wrong and is corrected here
+rather than left to mislead: GitHub Free includes **10 GiB** of LFS storage and bandwidth,
+it is an **account-level** allowance rather than a per-repository one, and repository
+visibility does not change it. That is roomy enough that quota was never the real objection.
+The real objection is the one above and it is untouched: LFS still versions a binary that
+churns on every intentional design change, so it relocates the storage cost without
+addressing the churn. It also makes the allowance a shared resource across everything the
+`kuasar-website` account ever does, which is a coupling nobody would think to look for.

@@ -13,8 +13,10 @@ context: |
 
   Stack — settled, not open for renegotiation. See docs/adr/0001-stack.md.
   Next.js 16 App Router + TypeScript on Vercel; Strapi 5 CE on Render with Postgres on
-  Neon; media on Cloudflare R2. One repo: apps/web, apps/cms. pnpm workspaces, Node 22.
-  Tailwind v4, design tokens as CSS custom properties in @theme.
+  Neon; media on Cloudflare R2. One repo: apps/web, apps/cms. npm workspaces, Node 24 LTS
+  (Vercel offers 20/22/24 only). Tailwind v4, design tokens as CSS custom properties in
+  @theme. The repository is public — that is what makes branch protection and unlimited
+  Actions minutes free. See docs/adr/0005-repository-visibility.md.
 
   Non-negotiable rules:
   - Static generation with on-demand revalidation. User-facing routes NEVER fetch Strapi
@@ -35,17 +37,23 @@ context: |
     translate. Missing translations: CMS content falls back silently, git content shows a
     visible notice.
   - Orange is semantic — launch, ignition, live, upcoming, primary CTA. Never decorative.
-  - The display face (Orbitron) lacks ğ Ğ ş Ş ı İ. Any heading or label containing them
-    uses Inter instead.
+  - The display face (Orbitron) lacks ğ Ğ ş Ş İ (verified against the shipped font). Any
+    heading or label containing them uses Inter instead. Note ı (U+0131) IS covered — do
+    not add it to that list. Navigation is Inter in both locales regardless, on legibility
+    grounds: Orbitron is unreadable at 14–16px.
   - Inter is a deliberate override of impeccable's guidance, justified by Turkish glyph
     coverage and recorded in design/brand.md. Do not re-open it on every critique.
   - NEVER add third-party analytics, embeds, pixels or tag managers. KVKK is unresolved.
     Google Forms may be linked, never embedded.
+  - The repository is public and git history cannot be erased. The content snapshot export
+    excludes drafts and excludes the Alumni entity entirely, so an erasure request can be
+    honoured. Never commit a secret. Alumni therefore have no backup — that is deliberate.
   - Never a member's personal card on any account.
 
   Detail lives in these files. Read the relevant one; do not restate it:
   docs/adr/0001-stack.md, docs/adr/0002-cms.md, docs/adr/0003-motion-stack.md,
-  docs/adr/0004-verification.md, docs/ops/cms-runbook.md, docs/HANDOVER.md,
+  docs/adr/0004-verification.md, docs/adr/0005-repository-visibility.md,
+  docs/ops/cms-runbook.md, docs/HANDOVER.md,
   design/tokens.md, design/motion.md, design/content-model.md, design/i18n.md,
   design/brand.md
 
