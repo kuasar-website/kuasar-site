@@ -110,9 +110,23 @@ defect, not a variation.
 
 Hover stays minimal: arrow shift, slight scale, or border change. Nothing else.
 
-`ASSUMPTION:` at most one Primary CTA is visible in a viewport at a time. The two
-audiences are unranked, so two primary buttons side by side would rank them by visual
-weight whether or not we intend to.
+**Default to one Primary CTA visible per viewport.** Guidance, not a hard rule — a second
+one is allowed where the case is made, and the case goes in the pull request.
+
+The reasoning: [ADR 0001](../docs/adr/0001-stack.md) says the two audiences are **unranked**
+— sponsors heading for the sponsorship PDF, prospective members heading for Join Us. Two
+filled orange buttons side by side get ranked anyway, by position and reading order, and
+that visual precedence contradicts a decision made at ADR level. Orange is also reserved
+and semantic ([brand.md](brand.md)); the more of it is on screen, the less any of it means.
+
+The usual resolution is Primary plus Secondary outline rather than two Primaries.
+
+**Why this is guidance and not a rule.** Primary-plus-Secondary *also* ranks the two
+audiences — it just does it more quietly, so the rule does not actually deliver what its
+reasoning promises. And no CI gate can see this; [ADR 0004](../docs/adr/0004-verification.md)
+checks weight and imports, not visual hierarchy. Writing it as absolute would be pretending
+to an enforcement that does not exist. Treat it as the default a reviewer may ask you to
+justify departing from.
 
 ## Hover and reduced motion ship with the animation
 

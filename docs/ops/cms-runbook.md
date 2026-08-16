@@ -3,9 +3,11 @@
 **Audience: someone who has never seen this system before.** No prior context is assumed.
 If a step does not make sense, that is a bug in this document — fix it while you are here.
 
-- **Last verified:** 2026-08-15
+- **Last verified:** 2026-08-16
 - **Related:** [../adr/0002-cms.md](../adr/0002-cms.md),
-  [../adr/0001-stack.md](../adr/0001-stack.md), [../HANDOVER.md](../HANDOVER.md)
+  [../adr/0001-stack.md](../adr/0001-stack.md),
+  [../adr/0005-repository-visibility.md](../adr/0005-repository-visibility.md),
+  [../HANDOVER.md](../HANDOVER.md)
 
 `<DOMAIN>` throughout means the registered apex domain. It is not registered yet — that is
 step 1. Once it exists, replace every occurrence in this repository.
@@ -20,7 +22,8 @@ step 1. Once it exists, replace every occurrence in this repository.
 | Media | Cloudflare R2 | Free tier | ~$0 | Photographs and files. No egress charges |
 | Image resizing | Cloudflare | Free tier | ~$0 | 5,000 unique transformations/mo free |
 | Domain + DNS | Cloudflare | Registrar | ~$10/yr | `<DOMAIN>` and `media.<DOMAIN>` |
-| Code + CI | GitHub | Free, private | $0 | 2,000 Actions minutes/month |
+| Code + CI | GitHub | Free, **public** (step 0 — not done yet) | $0 | Unlimited Actions minutes; branch protection |
+| Media archive | Google Workspace | Club account | TBD | Shared Drive holding the original photography |
 
 **Total: roughly $7/month plus the domain.** Budget ceiling is ~$15/month — see
 [../adr/0001-stack.md](../adr/0001-stack.md) before adding anything paid.
@@ -36,6 +39,41 @@ Do these in order. Later steps depend on earlier ones.
 
 Two people should be present for every account creation, and both should have access
 afterwards. This is not ceremony — it is the entire reason this document exists.
+
+### 0. Make the repository public and protect `main`
+
+**Do this first, and do it now** — before `apps/cms` exists. Auditing a documentation-only
+history for secrets takes minutes; auditing it after the CMS lands, with its environment
+handling and its config files, is real work. The cheapest moment to become public is the one
+where there is nothing in the history yet. That is why this is step 0 and not the last item
+on the list, which is where it would naturally have ended up.
+
+Why public at all: GitHub does not offer branch protection on private repositories without a
+paid plan, and private repositories are capped at 2,000 Actions minutes a month. Public gives
+both, free. The full argument, and its costs, are in
+[../adr/0005-repository-visibility.md](../adr/0005-repository-visibility.md).
+
+In order:
+
+1. **Audit the history for secrets.** `git log -p | grep -iE 'secret|token|password|key='`
+   is a crude first pass; read anything it flags. There should be nothing — secrets live in
+   the Vercel and Render dashboards — but confirm rather than assume.
+2. **Settings → General → Danger Zone → Change visibility → Public.**
+3. **Settings → Advanced Security:** switch on **secret scanning** and **push protection**.
+   Both are free on public repositories, and push protection is the one that stops the
+   mistake rather than reporting it after the fact.
+4. **Settings → Rules → Rulesets → New branch ruleset** targeting `main`: require a pull
+   request with one approving review, require the Tier A and Tier B status checks, and block
+   force pushes. Use a ruleset rather than a legacy branch protection rule — rulesets are
+   visible to contributors without admin rights, which matters when the person hitting the
+   rule is rarely the person who configured it.
+
+The status checks in point 4 cannot be required until they have run at least once, so expect
+to come back and add them after CI exists. Note that down somewhere; it is the step people
+forget, and a ruleset requiring nothing looks identical to one requiring everything.
+
+If a secret ever does land after this, **rotate it, do not delete the commit.** The commit is
+already cloned. Rotation order is under *Rotating credentials* below.
 
 ### 1. Register the domain
 
@@ -74,11 +112,32 @@ In the Cloudflare account:
 2. Bind a **custom domain**: `media.<DOMAIN>`. Do **not** use the default `r2.dev` URL —
    it is rate-limited and explicitly not for production.
 3. Create an R2 API token scoped to that bucket. Save the access key ID and secret.
-4. Enable **object versioning** on the bucket. This protects against an editor
-   overwriting or deleting the wrong asset, which is the likeliest real incident.
 
 Note the account ID; the S3 endpoint is
 `https://<account-id>.r2.cloudflarestorage.com`.
+
+**Do not go looking for object versioning — R2 does not have it.** `GetBucketVersioning`
+and `PutBucketVersioning` are unimplemented and there is no `ListObjectVersions`. R2's
+lifecycle rules expire and transition objects by age, which is a retention policy and the
+opposite of what you would want here. There is no way to recover an asset an editor
+overwrote. That is why the durable copy lives off-provider — see step 3a.
+
+### 3a. Confirm the media archive Shared Drive
+
+This is a five-minute step that carries more of the media design than anything else in this
+document. [../adr/0002-cms.md](../adr/0002-cms.md) decision 6 says media is not backed up by
+this project, and that is only safe because the originals live somewhere else.
+
+In the club Google Workspace account, confirm there is a **Shared Drive** holding the
+original photography, and record its name and owner in [../HANDOVER.md](../HANDOVER.md).
+
+**Shared Drive, not My Drive.** A folder in an individual's My Drive is owned by that
+person's account and goes away when the account is closed — which, on a team with annual
+turnover, is a scheduled event rather than an accident. If what exists today is a personal
+folder, move it into a Shared Drive now, while somebody still has the access to do it.
+
+If there is no such Drive at all, stop and say so. Decision 6 in ADR 0002 is void without
+it, and an off-provider copy of the R2 bucket becomes necessary instead.
 
 ### 4. Deploy Strapi to Render
 
@@ -156,7 +215,34 @@ file must be on `main`. Committing the dumps to `main` would trigger a productio
 on every export, turning the backup into a scheduled site rebuild — which
 [../adr/0001-stack.md](../adr/0001-stack.md) forbids.
 
-After the first scheduled run, confirm a dump landed:
+It runs on two triggers:
+
+- `schedule`, **weekly**. Bounds the worst case at six days of lost editing, and the weekly
+  commit resets GitHub's 60-day scheduled-workflow timer by itself.
+- `workflow_dispatch`, so anyone can run it by hand from the Actions tab. Use it before a
+  content-model migration, a Strapi upgrade, or a heavy editing session. The schedule covers
+  the days nobody is thinking about backups; the manual run is for the day you already know
+  you are about to do something risky.
+
+**Two things must be true before this workflow ever runs, because the repository is
+public** (see [../adr/0005-repository-visibility.md](../adr/0005-repository-visibility.md)):
+
+- **Alumni are excluded from the export entirely** — the whole content type, not just its
+  consent fields. Git history cannot be erased once it is public, so an alumnus asking to be
+  removed could be honoured on the site and not in the backup. Keeping them out of the dump
+  is what makes that request answerable.
+- **The export is restricted to published entries.** An unfiltered Strapi export includes
+  drafts, and a draft committed to a public branch is public permanently — a force-push is
+  not a redaction once anyone has cloned or GitHub has cached it.
+
+Both are argued in [../adr/0002-cms.md](../adr/0002-cms.md), *Known debt: KVKK*. Neither may
+be relaxed to make restores easier; the cost of the first one is recorded there as an
+accepted consequence.
+
+**Trigger the workflow by hand once and open the dump before trusting the schedule.** Search
+it for an alumnus's name and for a known draft. Finding either means the filters are not
+working, and the time to discover that is while the repository is still private. Then confirm
+it landed:
 
 ```bash
 git fetch origin content-snapshots
@@ -190,18 +276,25 @@ it under the repository's Actions tab, then investigate why the repository went 
 
 [../adr/0002-cms.md](../adr/0002-cms.md) decides that **R2 is a CDN, not a system of
 record** — losing the bucket costs re-upload effort, not data. That decision is only valid
-while the original photography genuinely lives somewhere durable.
+while the original photography genuinely lives somewhere durable, and R2 itself offers
+nothing here: it has no object versioning, so it cannot even recover a single overwritten
+file.
 
-So, once a year, answer these three questions in writing in
+The named system of record is the **KUASAR media archive Shared Drive** in the club Google
+Workspace account. Once a year, confirm all four of these in writing in
 [../HANDOVER.md](../HANDOVER.md):
 
-1. Where do the original photographs live?
-2. Who owns that location?
-3. Is it a club-owned archive, or is it one member's laptop or personal Drive?
+1. The Shared Drive still exists and you can open it.
+2. It is a **Shared Drive**, not a folder in some individual's My Drive. Check this every
+   time — it is the one that silently regresses, because moving files is easy and moving
+   them back is nobody's job.
+3. A current member is named as its owner, and a second has access.
+4. Recent launches and events are actually in it. An archive that stopped being filled two
+   years ago is a stale archive, and it will pass questions 1 to 3 while doing so.
 
-**If the answer to 3 is "one member's",** the decision in ADR 0002 is void and you need an
-off-provider copy of the R2 bucket. Do not leave this unresolved; it is the one assumption
-in the whole media design that is not self-verifying.
+**If any answer is no,** the decision in ADR 0002 is void and you need an off-provider copy
+of the R2 bucket. Do not leave it unresolved; it is the one part of the media design that
+does not verify itself.
 
 ### Rotating credentials
 
@@ -225,8 +318,22 @@ Then import into Strapi with its transfer/import tooling, pointing at the chosen
 Verify the Strapi major version matches the one the dump was taken from before importing —
 a dump from a different major is not guaranteed to import cleanly.
 
-**The dumps contain data only, never media.** Media is not in the backup by design; if the
-bucket is also gone, see the annual verification above.
+**The dumps contain data only — never media, never drafts, and never Alumni.**
+
+Two of those will bite you during a restore, so know them before you start:
+
+- **Media** is not in the backup by design. If the bucket is also gone, see the annual
+  verification above.
+- **Alumni will be missing entirely, and no dump anywhere has them.** You will have to
+  re-enter the records by hand from the club's own membership records; the portraits are in
+  the media Shared Drive. This is deliberate and is explained in
+  [../adr/0002-cms.md](../adr/0002-cms.md) — do not "fix" it by adding Alumni to the export.
+
+  **Do not re-publish a portrait you cannot evidence consent for.** The `consentSource` and
+  `consentRecordedAt` fields are lost with everything else, and they are records of a past
+  event rather than facts you can look up. Re-enter the alumnus without the photograph and
+  the LinkedIn URL until consent is obtained again. The content model is designed so the
+  card still renders without them.
 
 ## Troubleshooting
 
@@ -252,6 +359,12 @@ Before the person who set this up leaves:
 - [ ] Two Strapi Super Admins exist, both still active members
 - [ ] A restore from `content-snapshots` has been performed at least once, by someone
       other than the person who set up the export
-- [ ] The media system-of-record questions above are answered in writing
+- [ ] The export filters are verified: a dump has been opened and searched, and it contains
+      **no Alumni record and no draft**
+- [ ] The media system-of-record questions above are answered in writing, and the archive
+      is a Shared Drive rather than an individual's My Drive
+- [ ] `main` is protected by a ruleset, and the repository is still public — the two are
+      the same fact, per [../adr/0005-repository-visibility.md](../adr/0005-repository-visibility.md)
+- [ ] Secret scanning and push protection are on
 - [ ] The successor has read this file and [../HANDOVER.md](../HANDOVER.md) and has
       corrected anything that was wrong

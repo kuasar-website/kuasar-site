@@ -30,9 +30,38 @@ credible, which is the same thing as the above.
 
 ## Wordmark
 
-`ASSUMPTION:` a vector wordmark exists. Commit it to `apps/web/public/brand/` and record
-its source file's location in [../docs/HANDOVER.md](../docs/HANDOVER.md) — a logo that
-exists only in one member's design tool is a logo the club loses.
+The wordmark is committed at **`apps/web/public/brand/kuasar-wordmark.svg`**, so a fresh
+clone has it. Next.js serves `public/` from the root, so its URL is
+`/brand/kuasar-wordmark.svg`. It is the only file under `apps/web/` — the workspace itself
+is not scaffolded yet.
+
+### It inherits colour. Never hardcode a fill.
+
+Every path in the file is `fill="currentColor"` / `stroke="currentColor"`, so the mark takes
+the CSS `color` of whatever contains it. Set that to `--color-ink` on dark and
+`--color-ink-inverted` on light, per the rules below.
+
+**This is load-bearing rather than tidy.** The delivered vector was `fill="black"`, and this
+site's canvas is dark navy through near-black — a black wordmark on it is not "slightly low
+contrast", it is invisible. The failure would have appeared the first time the logo was
+placed in the hero and looked like a broken asset path rather than a colour bug. If anyone
+re-exports from the design tool, **re-apply `currentColor` before committing**; design tools
+export literal colours and will silently reintroduce this.
+
+Only colour attributes were changed. The path geometry is byte-identical to the delivered
+file — this is artwork, and the rule below about not re-typesetting applies to editing it
+too.
+
+### Clear space, in real numbers
+
+The rule below is "clear space equal to the height of the K". In the file's own coordinates
+the K is **86 units tall** in a **311 × 125** viewBox, so:
+
+> **Clear space ≈ 0.28 × the rendered width of the logo, on all four sides.**
+
+At the 120px minimum width that is ~34px of untouched space around it. The viewBox carries
+about 15 units of incidental padding, which is nowhere near enough — clear space has to come
+from layout, not from the asset.
 
 Rules:
 
@@ -62,37 +91,61 @@ sizes and body lengths.
 
 ### The Turkish glyph restriction — a correctness rule, not a style rule
 
-**Orbitron does not cover the full Turkish alphabet.** Its coverage is Basic Latin plus
-Latin-1 Supplement plus only **8** glyphs from Latin Extended-A. That means:
+**Orbitron does not cover the full Turkish alphabet.** Verified 2026-08-16 against Google
+Fonts' coverage metadata for Orbitron v35, not inferred: the family ships **one** subset,
+`latin`, and there is no `latin-ext` variant to request. Five Turkish characters are simply
+absent from the font.
 
-| Characters | Status |
-| --- | --- |
-| `ç Ç ö Ö ü Ü` | **Safe** — Latin-1 Supplement, covered |
-| `ğ Ğ ş Ş ı İ` | **At risk** — Latin Extended-A, likely missing |
+| Characters | Codepoints | Status |
+| --- | --- | --- |
+| `ç Ç ö Ö ü Ü` | U+00E7 U+00C7 U+00F6 U+00D6 U+00FC U+00DC | **Safe** — Latin-1 Supplement |
+| `ı` | U+0131 | **Safe** — explicitly in Orbitron's `latin` subset |
+| `ğ Ğ ş Ş İ` | U+011F U+011E U+015F U+015E U+0130 | **Missing** — not in the font at all |
 
-> **Any heading or label containing `ğ Ğ ş Ş ı İ` is set in Inter, not Orbitron.**
+> **Any heading or label containing `ğ Ğ ş Ş İ` is set in Inter, not Orbitron.**
+
+**Note that `ı` is safe and is deliberately not in that list.** Dotless i is part of the
+standard `latin` subset, so `Bize Katıl` and `Hakkımızda` render correctly in Orbitron. An
+earlier draft of this document listed six at-risk characters; it was wrong about this one,
+and over-applying the rule costs display-face presence for no reason.
 
 A fallback glyph mid-word at 64px is unmissable, and it is **the Turkish half of the site
 that will break while the English half is the half that gets tested.** Record it as a
 rule rather than relying on it being noticed.
 
-`ASSUMPTION:` verify the shipped font file's actual coverage before launch rather than
-trusting the summary above, and if Orbitron turns out to cover all six, delete this
+**How this was checked, and how to re-check it** if the font is ever updated or swapped:
+
+```bash
+curl -s "https://fonts.google.com/metadata/fonts/Orbitron" | head -c 400
+```
+
+The `coverage.latin` list is decimal codepoints. `305` is `ı`; `286/287` (`Ğ ğ`),
+`350/351` (`Ş ş`) and `304` (`İ`) are absent. If a future version adds them, delete this
 section rather than keeping a rule that no longer applies.
 
-### The consequence: navigation is set in Inter, in both locales
+### Navigation is set in Inter, in both locales
 
-The Turkish navigation reads **Görevler, Etkinlikler, Bize Katıl, Mezunlar** — short
-labels, which is exactly what the display face is for, and containing exactly the
-at-risk characters.
+**The reason is legibility, not glyph coverage.** That distinction matters, because the
+glyph argument that used to sit here does not hold.
 
-Applied naively, the rule above would set the English navbar in Orbitron and the Turkish
-navbar in Inter: two navigations in two different typefaces, which reads as a bug.
+Every Turkish navigation label is in fact safe in Orbitron — **Hakkımızda, Takvim,
+Görevler, Etkinlikler, Projeler, Mezunlar, Bize Katıl, Duyurular** contain only `ö`, `ı`
+and ASCII, all of which the font covers. The navbar never trips the restriction above.
 
-`ASSUMPTION:` **navigation is set in Inter in both locales.** The two halves match, the
-restriction cannot be tripped in the component most likely to trip it, and the display
-face is reserved for section headings and the hero — where it has more effect anyway.
-Correct this if you would rather accept the mixed navigation.
+The real argument is the one this document already makes about the display face: Orbitron
+is geometric and **becomes unreadable at body sizes**. Navigation labels sit at 14–16px,
+which is body-size territory, not heading territory. So the navbar is Inter because small
+Orbitron is hard to read, and the display face is reserved for section headings and the
+hero — where it has more effect anyway.
+
+Two consequences worth keeping:
+
+- **Both locales match.** Whatever the reason, setting the navbar per-label would mean the
+  typeface changing when a visitor switches language, which reads as a bug rather than as
+  a design.
+- **The nav is immune to a future label that would trip the rule.** `İletişim` — Connect
+  Us — contains both `İ` and `ş` and would break in Orbitron. Because the navbar is Inter
+  unconditionally, adding it later cannot introduce the failure.
 
 ### Inter is a deliberate override of impeccable's guidance
 

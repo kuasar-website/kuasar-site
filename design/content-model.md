@@ -177,8 +177,15 @@ non-technical member can replace it each season without a pull request. Opening 
 one custom analytics event worth instrumenting
 ([ADR 0001](../docs/adr/0001-stack.md)).
 
-`ASSUMPTION:` "Register / Join the Summit" is disabled while `registrationUrl` is null.
-When enabled it links to a Google Form in the club account — **linked, never embedded**.
+**"Register / Join the Summit" is unavailable while `registrationUrl` is null**, and becomes
+active the moment a URL is set. When active it links to a Google Form in the club account —
+**linked, never embedded** ([ADR 0002](../docs/adr/0002-cms.md), KVKK).
+
+Render it as a **non-interactive label, not a greyed-out button.** "Kayıtlar yakında /
+Registration opens soon" tells a visitor the state of the world; a dead button that does
+nothing when clicked reads as broken, and a disabled control is skipped by some screen
+readers, so the information disappears entirely for the people with the least context. The
+distinction is small and it is the difference between "not yet" and "broken".
 
 ## Schedule Event
 
@@ -239,6 +246,16 @@ A policy in a document nobody reads does not survive turnover. A required field 
 [ADR 0002](../docs/adr/0002-cms.md) records this as the one part of the KVKK position that
 is **not** deferred.
 
+**Alumni are excluded from the content snapshots — the whole entity.** The repository is
+public ([ADR 0005](../docs/adr/0005-repository-visibility.md)) and git history cannot be
+erased, so an alumnus asking to be removed could be honoured on the site and never in the
+backup. Keeping them out of the dump is what makes that request answerable.
+
+Two consequences for anyone changing this entity: **alumni records have no backup**, so a
+lost database means re-entering them by hand; and adding a field here adds nothing to any
+dump, so do not reason about a new field's recoverability from how the other entities
+behave. Both are argued in [ADR 0002](../docs/adr/0002-cms.md).
+
 If consent cannot be obtained, the record still works: name, years, sub-team and role
 render fine without a photo. Design the card so the photo is genuinely optional rather
 than leaving a hole.
@@ -247,26 +264,51 @@ than leaving a hole.
 
 | Field | Type | | Notes |
 | --- | --- | --- | --- |
+**Not built yet — deferred deliberately.** See *Deferred* below before implementing this.
+
+| Field | Type | | Notes |
+| --- | --- | --- | --- |
 | `name` | string | F | |
 | `logo` | media | F | Prefer SVG; logos sit on a dark canvas |
 | `logoLight` | media? | F | For sponsors whose mark is unreadable on dark |
 | `url` | url | F | |
-| `tier` | enum | F | See below |
 | `since` | number? | F | |
 | `isCurrent` | boolean | F | Past sponsors still deserve credit |
 | `blurb` | text? | L | Usually empty |
 
-`ASSUMPTION:` tiers are needed, as `platinum | gold | silver | supporter | in-kind`, driving
-logo size and ordering. Confirm — if the team would rather not rank sponsors publicly,
-replace the enum with a single `isCurrent` grouping and sort alphabetically. **Decide this
-before the first sponsor is added**, because changing it later means renegotiating with
-people who were promised a tier.
+**There are no sponsorship tiers, and this is a decision rather than an omission.** No
+`platinum | gold | silver` enum, no tier-driven logo sizing, no tier-driven ordering.
+KUASAR does not rank its sponsors publicly.
+
+Adding tiers later is not a schema change — it is a **conversation with every existing
+sponsor**, because a tier is a promise about how prominently someone appears. That is why
+the absence is written down here rather than left as a gap someone helpfully fills in.
+
+So the display is flat: **logos only.** Group by `isCurrent`, sort alphabetically within the
+group, render every logo at the same optical weight. Alphabetical is the ordering that
+cannot be read as a ranking — any other default invites the question "why is that one
+first?"
 
 `logoLight` exists because a sponsor logo designed for white backgrounds will disappear on
 `--color-canvas`, and the fix cannot be "ask the sponsor for a new logo."
 
 **Zero:** hide the sponsors section entirely. An empty sponsors section on a site seeking
-sponsors is worse than no section.
+sponsors is worse than no section — and given the deferral below, zero is the expected
+state at launch rather than an edge case.
+
+### Deferred: the sponsor showcase ships later
+
+Displaying a company's logo is using their trademark on a public website, and the sponsors
+have not been asked yet. **Do not ship this section until permission has been collected**
+per sponsor and recorded somewhere durable.
+
+This is the same shape as the Alumni consent rule and for the same reason — the difference
+is only that alumni are people and sponsors are organisations, so the request goes to a
+marketing contact rather than an individual. Neither is a formality that can be assumed
+because a logo is "already public."
+
+The site launches without a sponsors section. Adding it is a later change proposal, gated
+on the permissions existing, not on the components being ready.
 
 ---
 
@@ -278,3 +320,6 @@ sponsors is worse than no section.
 - **No user accounts, no comments, no search index.** This is a promotional and archival
   site, not an application.
 - **No per-year Summit components.** Only the enum fields above.
+- **No sponsorship tiers.** Sponsors are not ranked; logos render at one weight, grouped by
+  `isCurrent` and sorted alphabetically. Adding tiers later means renegotiating with every
+  sponsor already listed, so it is a conversation before it is a schema change.
