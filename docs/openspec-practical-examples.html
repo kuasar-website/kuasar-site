@@ -1,0 +1,2500 @@
+<title>KUASAR Air to Ground</title>
+
+<style>
+  /* ============================================================
+     Palette, type and components are inherited verbatim from
+     docs/workflow.html and docs/agent-skills.html so the three
+     pages read as one set. If you change a token here, change it
+     in both siblings too — or better, don't change it here.
+
+     Orange appears nowhere on this page, for the same reason it
+     appears nowhere on either sibling: per design/tokens.md it is
+     reserved for launch, live, upcoming and the primary CTA.
+
+     Two additions over the siblings, both of which this page
+     needs and neither of which they do:
+
+       .dialogue  a transcript. .turn.you is the developer,
+                  .turn.agent is the agent, .act is something the
+                  agent DID rather than said.
+       .filebox   an artifact excerpt with its path in the header,
+                  so a reader can tell a generated file from a
+                  command.
+
+     A transcript that demonstrates a mistake is marked with a
+     dashed border and a .verdict.fails footer — never with red or
+     green, which are not in the palette and would be the third
+     and fourth semantic colours on a site that has one.
+     ============================================================ */
+
+  :root {
+    /* surfaces — dark (primary) */
+    --canvas:        oklch(0.13 0.025 265);
+    --surface:       oklch(0.17 0.028 265);
+    --raised:        oklch(0.22 0.024 264);
+    --inset:         oklch(0.26 0.020 262);
+    --border:        oklch(0.32 0.018 262);
+    --border-strong: oklch(0.44 0.014 260);
+
+    /* ink */
+    --ink:        oklch(0.97 0.004 260);
+    --ink-body:   oklch(0.88 0.006 260);
+    --ink-muted:  oklch(0.70 0.010 260);
+    --ink-faint:  oklch(0.58 0.012 260);
+
+    /* accents — orbital blue carries structure, nebula marks planning */
+    --accent:      oklch(0.74 0.12 238);
+    --accent-deep: oklch(0.62 0.15 240);
+    --accent-wash: oklch(0.30 0.045 240);
+    --plan:        oklch(0.72 0.14 296);
+    --plan-wash:   oklch(0.28 0.050 296);
+
+    --shadow: 0 1px 2px oklch(0 0 0 / 0.4);
+
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code",
+                 Menlo, Consolas, monospace;
+
+    --measure: 68ch;
+    --rail: 254px;
+
+    color-scheme: dark;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --canvas:        oklch(0.985 0.003 265);
+      --surface:       oklch(0.962 0.005 265);
+      --raised:        oklch(0.932 0.007 264);
+      --inset:         oklch(0.905 0.009 262);
+      --border:        oklch(0.862 0.011 262);
+      --border-strong: oklch(0.735 0.014 260);
+
+      --ink:       oklch(0.21 0.022 265);
+      --ink-body:  oklch(0.33 0.018 264);
+      --ink-muted: oklch(0.49 0.015 262);
+      --ink-faint: oklch(0.60 0.013 261);
+
+      --accent:      oklch(0.48 0.145 243);
+      --accent-deep: oklch(0.40 0.130 244);
+      --accent-wash: oklch(0.94 0.022 240);
+      --plan:        oklch(0.45 0.170 297);
+      --plan-wash:   oklch(0.945 0.024 298);
+
+      --shadow: 0 1px 2px oklch(0.2 0.02 265 / 0.10);
+
+      color-scheme: light;
+    }
+  }
+
+  :root[data-theme="light"] {
+    --canvas:        oklch(0.985 0.003 265);
+    --surface:       oklch(0.962 0.005 265);
+    --raised:        oklch(0.932 0.007 264);
+    --inset:         oklch(0.905 0.009 262);
+    --border:        oklch(0.862 0.011 262);
+    --border-strong: oklch(0.735 0.014 260);
+
+    --ink:       oklch(0.21 0.022 265);
+    --ink-body:  oklch(0.33 0.018 264);
+    --ink-muted: oklch(0.49 0.015 262);
+    --ink-faint: oklch(0.60 0.013 261);
+
+    --accent:      oklch(0.48 0.145 243);
+    --accent-deep: oklch(0.40 0.130 244);
+    --accent-wash: oklch(0.94 0.022 240);
+    --plan:        oklch(0.45 0.170 297);
+    --plan-wash:   oklch(0.945 0.024 298);
+
+    --shadow: 0 1px 2px oklch(0.2 0.02 265 / 0.10);
+
+    color-scheme: light;
+  }
+
+  /* ---------- base ---------- */
+
+  body {
+    margin: 0;
+    background: var(--canvas);
+    color: var(--ink-body);
+    font-family: var(--font-sans);
+    font-size: 16.5px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 1220px;
+    margin: 0 auto;
+    padding: 0 28px 96px;
+    display: grid;
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: 0 56px;
+    align-items: start;
+  }
+
+  /* ---------- masthead ---------- */
+
+  .masthead {
+    grid-column: 1 / -1;
+    padding: 56px 0 34px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 44px;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin: 0 0 14px;
+  }
+
+  h1 {
+    font-size: clamp(2.1rem, 1.5rem + 2.2vw, 3.1rem);
+    line-height: 1.06;
+    letter-spacing: -0.026em;
+    font-weight: 650;
+    color: var(--ink);
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+
+  .standfirst {
+    font-size: 1.14rem;
+    line-height: 1.55;
+    color: var(--ink-body);
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  .masthead-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 26px;
+    margin-top: 26px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+  }
+  .masthead-meta b {
+    color: var(--ink-muted);
+    font-weight: 500;
+  }
+
+  /* ---------- rail ---------- */
+
+  .rail {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    padding-bottom: 24px;
+  }
+
+  .rail-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 14px;
+  }
+
+  .rail ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    counter-reset: rail;
+  }
+
+  .rail a {
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    gap: 8px;
+    padding: 5px 8px 5px 0;
+    color: var(--ink-muted);
+    text-decoration: none;
+    font-size: 13.5px;
+    line-height: 1.35;
+    border-radius: 4px;
+  }
+  .rail li { counter-increment: rail; }
+  .rail a::before {
+    content: counter(rail, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-align: right;
+    padding-top: 2px;
+  }
+  .rail a:hover { color: var(--ink); background: var(--surface); }
+  .rail a:hover::before { color: var(--accent); }
+  .rail a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  /* ---------- main ---------- */
+
+  main { min-width: 0; }
+
+  section { margin: 0 0 60px; scroll-margin-top: 20px; }
+
+  h2 {
+    font-size: 1.62rem;
+    line-height: 1.2;
+    letter-spacing: -0.018em;
+    font-weight: 640;
+    color: var(--ink);
+    margin: 0 0 6px;
+    text-wrap: balance;
+  }
+
+  .sec-num {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 9px;
+  }
+
+  h3 {
+    font-size: 1.06rem;
+    font-weight: 640;
+    color: var(--ink);
+    letter-spacing: -0.008em;
+    margin: 34px 0 8px;
+  }
+
+  h4 {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    font-weight: 500;
+    margin: 26px 0 8px;
+  }
+
+  p { margin: 0 0 14px; max-width: var(--measure); }
+  main > section > p:first-of-type { margin-top: 14px; }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+  strong { color: var(--ink); font-weight: 620; }
+
+  ul, ol { max-width: var(--measure); margin: 0 0 16px; padding-left: 1.15rem; }
+  li { margin-bottom: 7px; }
+  li::marker { color: var(--ink-faint); }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.855em;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.1em 0.34em;
+    color: var(--ink);
+    word-break: break-word;
+  }
+
+  /* a repo path, distinct from a command */
+  .path {
+    font-family: var(--font-mono);
+    font-size: 0.855em;
+    color: var(--ink-muted);
+    background: none;
+    border: none;
+    padding: 0;
+    white-space: nowrap;
+  }
+
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 0 0 18px;
+    line-height: 1.55;
+  }
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 13px;
+    color: var(--ink-body);
+    white-space: pre;
+    word-break: normal;
+  }
+  pre .c { color: var(--ink-faint); }
+
+  /* ---------- tables ---------- */
+
+  .tw { overflow-x: auto; margin: 0 0 20px; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 520px;
+    font-size: 14.5px;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 14px 9px 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    font-weight: 500;
+    border-bottom-color: var(--border-strong);
+    white-space: nowrap;
+  }
+  td { color: var(--ink-body); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  td .sk {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  /* ---------- callouts ---------- */
+
+  .note {
+    border-left: 2px solid var(--border-strong);
+    padding: 2px 0 2px 18px;
+    margin: 0 0 20px;
+    max-width: var(--measure);
+    color: var(--ink-body);
+  }
+  .note > :last-child { margin-bottom: 0; }
+  .note.key { border-left-color: var(--accent); }
+  .note.plan-note { border-left-color: var(--plan); }
+
+  .note-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 5px;
+  }
+  .note.key .note-label { color: var(--accent); }
+  .note.plan-note .note-label { color: var(--plan); }
+
+  /* a rule that is true in THIS repository and nowhere else */
+  .local {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--plan);
+    border-radius: 0 6px 6px 0;
+    padding: 14px 18px;
+    margin: 0 0 20px;
+    max-width: var(--measure);
+  }
+  .local > :last-child { margin-bottom: 0; }
+  .local .note-label { color: var(--plan); }
+
+  .tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 1px solid var(--border-strong);
+    color: var(--ink-muted);
+    vertical-align: 2px;
+    white-space: nowrap;
+  }
+  h3 .tag, h4 .tag { margin-left: 8px; }
+  .tag.proposed { border-style: dashed; }
+
+  /* ---------- transcripts ---------- */
+
+  .dialogue {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    margin: 0 0 20px;
+    max-width: var(--measure);
+    overflow: hidden;
+  }
+  /* a transcript kept as a warning rather than as an example */
+  .dialogue.bad { border-style: dashed; }
+
+  .dlg-h {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    background: var(--raised);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    margin: 0;
+    max-width: none;
+  }
+
+  .turn {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 0 14px;
+    padding: 14px 18px;
+    border-top: 1px solid var(--border);
+  }
+  .dlg-h + .turn, .turn:first-child { border-top: none; }
+  .turn.you { background: var(--raised); }
+
+  .who {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-top: 5px;
+  }
+  .turn.you .who { color: var(--accent); }
+
+  .says > :last-child { margin-bottom: 0; }
+  .says p { max-width: none; margin: 0 0 10px; }
+  .says ul, .says ol { max-width: none; margin: 0 0 10px; }
+  .turn.you .says p { color: var(--ink); }
+
+  /* something the agent DID rather than said */
+  .act {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-muted);
+    margin: 0 0 10px;
+    padding-left: 16px;
+    text-indent: -16px;
+  }
+  .act::before { content: "▸ "; color: var(--accent); }
+  .act code {
+    font-size: 1em;
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--ink-body);
+  }
+
+  .elide {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin: 0 0 10px;
+  }
+
+  .verdict {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 0 14px;
+    padding: 12px 18px;
+    border-top: 1px solid var(--border);
+    background: var(--canvas);
+    font-size: 14px;
+  }
+  .verdict b {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 500;
+    padding-top: 3px;
+    color: var(--accent);
+  }
+  .verdict.fails b { color: var(--ink-faint); }
+  .verdict p { margin: 0; max-width: none; color: var(--ink-body); }
+
+  /* two transcripts side by side, for a before/after */
+  .pair {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+    margin: 0 0 20px;
+  }
+  .pair > * { margin-bottom: 0; max-width: none; }
+
+  /* ---------- artifact excerpts ---------- */
+
+  .filebox {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin: 0 0 18px;
+    overflow: hidden;
+    max-width: var(--measure);
+  }
+  .filebox .fh {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--ink-muted);
+    background: var(--raised);
+    border-bottom: 1px solid var(--border);
+    padding: 7px 14px;
+    margin: 0;
+    max-width: none;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .filebox .fh b { color: var(--ink); font-weight: 500; }
+  .filebox pre { border: none; border-radius: 0; margin: 0; }
+
+  /* ---------- the loop steps ---------- */
+
+  .steps { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+  .steps > li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 0 16px;
+    padding: 0 0 26px;
+    margin: 0;
+    position: relative;
+  }
+  .steps > li::before {
+    content: counter(step);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    margin-top: 1px;
+  }
+  .steps > li::after {
+    content: "";
+    position: absolute;
+    left: 13px;
+    top: 30px;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+  .steps > li:last-child::after { display: none; }
+  .steps > li > div > :last-child { margin-bottom: 0; }
+  .step-h {
+    color: var(--ink);
+    font-weight: 620;
+    margin: 0 0 5px;
+  }
+  .step-h code { font-weight: 500; }
+
+  /* ---------- recipes ---------- */
+
+  .recipe {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 16px 18px;
+    margin: 0 0 16px;
+    max-width: var(--measure);
+  }
+  .recipe > :last-child { margin-bottom: 0; }
+  .recipe-h {
+    color: var(--ink);
+    font-weight: 620;
+    margin: 0 0 10px;
+  }
+  .recipe .why {
+    margin: 12px 0 0;
+    padding-top: 11px;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--ink-muted);
+    max-width: none;
+  }
+  .recipe pre { margin-bottom: 0; background: var(--canvas); }
+
+  /* ---------- figures ---------- */
+
+  figure { margin: 0 0 24px; padding: 0; }
+  .fig-frame {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 18px;
+    overflow-x: auto;
+  }
+  figure svg {
+    display: block;
+    width: 100%;
+    min-width: 620px;
+    max-width: 100%;
+    height: auto;
+    color: var(--ink-muted);
+  }
+  figcaption {
+    font-size: 13.5px;
+    color: var(--ink-muted);
+    margin-top: 10px;
+    max-width: var(--measure);
+  }
+
+  .svg-box { fill: var(--raised); stroke: var(--border-strong); }
+  .svg-box-plan { fill: var(--plan-wash); stroke: var(--plan); }
+  .svg-box-code { fill: var(--accent-wash); stroke: var(--accent-deep); }
+  .svg-box-off { fill: none; stroke: var(--border); stroke-dasharray: 3 4; }
+  .svg-lane { fill: none; stroke: var(--border); stroke-dasharray: 3 4; }
+  .svg-t { fill: var(--ink); font-family: var(--font-sans); font-size: 13px; }
+  .svg-tm { fill: var(--ink); font-family: var(--font-mono); font-size: 12px; }
+  .svg-s { fill: var(--ink-muted); font-family: var(--font-mono); font-size: 11px; }
+  .svg-lbl { fill: var(--ink-faint); font-family: var(--font-mono); font-size: 10.5px;
+             letter-spacing: 0.08em; text-transform: uppercase; }
+  .svg-line { stroke: var(--border-strong); fill: none; }
+  .svg-line-a { stroke: var(--accent); fill: none; }
+
+  /* ---------- misc ---------- */
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0 0 34px;
+  }
+
+  .lede {
+    font-size: 1.03rem;
+    color: var(--ink-body);
+    max-width: var(--measure);
+  }
+
+  .colophon {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+    margin-top: 20px;
+    font-size: 13.5px;
+    color: var(--ink-faint);
+    max-width: var(--measure);
+  }
+  .colophon p { max-width: none; }
+
+  ::selection { background: var(--accent-wash); color: var(--ink); }
+
+  @media (max-width: 940px) {
+    .page { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 20px 72px; }
+    .rail {
+      position: static;
+      max-height: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 16px 12px;
+      margin-bottom: 40px;
+      background: var(--surface);
+    }
+    .rail ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0 12px; }
+    .masthead { padding-top: 40px; }
+    .turn { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+    .who { padding-top: 0; }
+    .verdict { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="page">
+
+  <header class="masthead">
+    <p class="eyebrow">KUASAR site · worked examples</p>
+    <h1>Air to Ground</h1>
+    <p class="standfirst">
+      Every Apollo flight produced an air-to-ground transcript: not a summary of what was
+      decided, but a record of how the two sides actually talked. The value was never in any
+      single exchange. It was in seeing the shape of a conversation that worked. This page is
+      that, for driving an agent through the OpenSpec loop on this site.
+    </p>
+    <div class="masthead-meta">
+      <span><b>Audience</b> anyone driving a coding agent here</span>
+      <span><b>Status</b> living document</span>
+      <span><b>Setting</b> after the scaffold — see §01</span>
+      <span><b>Source</b> <span class="path">docs/openspec-practical-examples.html</span></span>
+    </div>
+  </header>
+
+  <nav class="rail" aria-label="Contents">
+    <p class="rail-title">Contents</p>
+    <ol>
+      <li><a href="#start">Read this first</a></li>
+      <li><a href="#anatomy">Anatomy of a prompt</a></li>
+      <li><a href="#plan">Walkthrough — planning</a></li>
+      <li><a href="#build">Walkthrough — building</a></li>
+      <li><a href="#l1">Walkthrough — the L1 pass</a></li>
+      <li><a href="#wrong">When the plan is wrong</a></li>
+      <li><a href="#pushback">When to push back</a></li>
+      <li><a href="#review">Reviewing someone else's work</a></li>
+      <li><a href="#nonchange">The change that should not be one</a></li>
+      <li><a href="#works">Patterns that work</a></li>
+      <li><a href="#fails">Patterns that don't</a></li>
+      <li><a href="#iterate">Iterating without drifting</a></li>
+      <li><a href="#phrasebook">Phrasebook</a></li>
+      <li><a href="#limits">What this page cannot teach</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- 01 -->
+    <section id="start">
+      <span class="sec-num">01</span>
+      <h2>Read this first</h2>
+
+      <p class="lede">
+        This page decides nothing. It shows what the process in
+        <span class="path">docs/workflow.html</span> looks like when a human and an agent are
+        actually typing at each other.
+      </p>
+
+      <p>
+        Its two siblings are complete without it. <span class="path">docs/workflow.html</span>
+        tells you which command to run and in what order;
+        <span class="path">docs/agent-skills.html</span> tells you which skill owns which
+        question. Both are correct and neither shows you a single sentence anyone said. That
+        gap is the reason this page exists — the failure mode on this project is almost never
+        <em>not knowing the command</em>. It is running the right command with a prompt that
+        gave the agent nothing to work with, reading four generated documents too quickly, and
+        discovering the problem in a diff.
+      </p>
+
+      <div class="note key">
+        <span class="note-label">The setting, stated up front so nothing here misleads you</span>
+        <p>
+          Every transcript below is set <strong>after the scaffold exists</strong> — roughly
+          after changes 1 to 4 of <span class="path">docs/workflow.html</span> §08 have
+          shipped, so <span class="path">apps/web</span> is real, Tier A CI runs, locale
+          routing works and the tokens are actual CSS.
+        </p>
+        <p>
+          <strong>None of that is true today.</strong> There is no
+          <span class="path">package.json</span> in this repository and nothing here runs. Not
+          one command on this page can be pasted into a terminal this afternoon; every one of
+          them is a command that will be correct on the day the scaffold lands. Writing the
+          examples against today's empty repository was the alternative, and it would have
+          made all fourteen sections about npm workspaces.
+        </p>
+      </div>
+
+      <h3>How to read a transcript</h3>
+
+      <p>
+        Three markers, used consistently. A line beginning <code>▸</code> is something the
+        agent <em>did</em> — a command it ran, a file it read — rather than something it said.
+        A box with a dashed border is a transcript kept as a <strong>warning</strong>. And an
+        ellipsis on its own line means output was cut for length, never that something
+        interesting was hidden.
+      </p>
+
+      <div class="dialogue">
+        <p class="dlg-h">The shape of every transcript on this page</p>
+        <div class="turn you">
+          <span class="who">You</span>
+          <div class="says">
+            <p>What you type. Short, specific, and carrying the constraints you already know.</p>
+          </div>
+        </div>
+        <div class="turn agent">
+          <span class="who">Agent</span>
+          <div class="says">
+            <p class="act">runs <code>openspec status --change "timeline-baseline" --json</code></p>
+            <p class="act">reads <code>design/motion.md</code>, <code>design/content-model.md</code></p>
+            <p>What it says back — and, more importantly, what it asks.</p>
+            <p class="elide">…</p>
+          </div>
+        </div>
+        <div class="verdict">
+          <b>Why it works</b>
+          <p>The lesson of that exchange, in one sentence. Every transcript has one.</p>
+        </div>
+      </div>
+
+      <h3>Three things this page assumes you have accepted</h3>
+
+      <ul>
+        <li><strong>The agent cannot see what you know.</strong> It cannot tell whether you have read ADR 0003 or whether you are about to violate it. Saying what you already know is not throat-clearing; it is half the prompt.</li>
+        <li><strong>The artifacts are the memory, not the chat.</strong> A conversation is gone in a week. <span class="path">openspec/changes/&lt;name&gt;/</span> is readable by someone who was not there, which is the entire reason this repository uses OpenSpec at all.</li>
+        <li><strong>Reviewing four short documents is cheaper than reviewing a thousand lines.</strong> If you skip the read-back, you have bought the ceremony and thrown away the thing it bought you.</li>
+      </ul>
+
+      <div class="local">
+        <span class="note-label">In this repo</span>
+        <p>
+          Where anything on this page disagrees with <span class="path">docs/adr/</span> or
+          <span class="path">openspec/config.yaml</span>, <strong>they win and this page has a
+          bug</strong> — fix it, it is a tracked file. The constitution is already injected
+          into every generated artifact, so a transcript that quotes a rule at the agent is
+          demonstrating a waste, not a technique.
+        </p>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section id="anatomy">
+      <span class="sec-num">02</span>
+      <h2>Anatomy of a prompt</h2>
+
+      <p class="lede">
+        Four parts. Drop any one of them and you can predict, in advance, exactly how the
+        answer will be wrong.
+      </p>
+
+      <figure>
+        <div class="fig-frame">
+          <svg viewBox="0 0 900 330" role="img"
+               aria-label="A single message broken into four labelled parts: the command and a kebab-case name; the intent, meaning what is being built and who it serves; the constraints you already know, given as pointers to documents; and the stop condition, saying where the agent should hand back. All four sit inside one dashed outline marked one message, sent once.">
+            <!-- the envelope: all four parts are ONE message -->
+            <rect class="svg-box-off" x="8" y="30" width="884" height="232" rx="8" />
+            <text class="svg-lbl" x="884" y="24" text-anchor="end">one message, sent once</text>
+
+            <!-- part 1 -->
+            <text class="svg-lbl" x="30" y="56">01 · the command + a name</text>
+            <rect class="svg-box" x="26" y="64" width="410" height="64" rx="5" />
+            <text class="svg-tm" x="42" y="90">/opsx:propose timeline-baseline</text>
+            <text class="svg-s" x="42" y="110">routes the work, and names the folder</text>
+
+            <!-- part 2 -->
+            <text class="svg-lbl" x="470" y="56">02 · the intent</text>
+            <rect class="svg-box" x="466" y="64" width="410" height="64" rx="5" />
+            <text class="svg-tm" x="482" y="90">the Timeline route, baseline only</text>
+            <text class="svg-s" x="482" y="110">what it is, and which audience it serves</text>
+
+            <!-- part 3 -->
+            <text class="svg-lbl" x="30" y="166">03 · what you already know</text>
+            <rect class="svg-box-code" x="26" y="174" width="410" height="64" rx="5" />
+            <text class="svg-tm" x="42" y="200">git content · both locales · zero and one</text>
+            <text class="svg-s" x="42" y="220">as pointers to documents, never as quotations</text>
+
+            <!-- part 4 -->
+            <text class="svg-lbl" x="470" y="166">04 · the stop condition</text>
+            <rect class="svg-box-plan" x="466" y="174" width="410" height="64" rx="5" />
+            <text class="svg-tm" x="482" y="200">stop after the artifacts</text>
+            <text class="svg-s" x="482" y="220">where you want it to hand back to you</text>
+
+            <!-- failure modes -->
+            <line class="svg-lane" x1="8" y1="282" x2="892" y2="282" />
+            <text class="svg-lbl" x="8" y="304">drop one and the failure is predictable</text>
+            <text class="svg-s" x="8" y="322">01 nothing routes · 02 it builds the wrong thing well · 03 it rediscovers your constraints, slowly · 04 it keeps going</text>
+          </svg>
+        </div>
+        <figcaption>
+          Part 03 is the one people leave out, and it is the one that pays. The agent has the
+          constitution injected into every artifact it generates — but it cannot tell whether
+          <em>you</em> have read the ADR, so it will either re-derive your constraints from
+          scratch or quietly assume you have not.
+        </figcaption>
+      </figure>
+
+      <h3>The same request, twice</h3>
+
+      <div class="pair">
+        <div class="dialogue bad">
+          <p class="dlg-h">Costs a turn</p>
+          <div class="turn you">
+            <span class="who">You</span>
+            <div class="says"><p>build the timeline</p></div>
+          </div>
+          <div class="turn agent">
+            <span class="who">Agent</span>
+            <div class="says">
+              <p>Which timeline — the section on the home page, or the <code>/timeline</code>
+              route? And should this include the scroll-linked sequence, or the baseline
+              first?</p>
+              <p class="elide">… three more questions …</p>
+            </div>
+          </div>
+          <div class="verdict fails">
+            <b>Why it fails</b>
+            <p>Not because the agent asked. Because you now answer four questions in
+            sequence, and each answer arrives without the others.</p>
+          </div>
+        </div>
+
+        <div class="dialogue">
+          <p class="dlg-h">Costs a sentence more</p>
+          <div class="turn you">
+            <span class="who">You</span>
+            <div class="says">
+              <p><code>/opsx:propose</code> <code>timeline-baseline</code> — the Timeline route
+              at <code>/[locale]/timeline</code>, baseline only: no library, no scroll linking.
+              Git content under <span class="path">content/timeline/</span>, both locales, and
+              it has to read correctly at zero and one entries. Tiers and budgets are in
+              <span class="path">design/motion.md</span> — point at it, don't restate it. Stop
+              after the artifacts.</p>
+            </div>
+          </div>
+          <div class="turn agent">
+            <span class="who">Agent</span>
+            <div class="says">
+              <p class="act">runs <code>openspec new change "timeline-baseline"</code></p>
+              <p>One thing before I write the proposal…</p>
+            </div>
+          </div>
+          <div class="verdict">
+            <b>Why it works</b>
+            <p>It still asks a question — but one, and a real one. Everything answerable from
+            the repository has already been answered.</p>
+          </div>
+        </div>
+      </div>
+
+      <h3>Point at documents. Never paste them.</h3>
+
+      <p>
+        The single highest-leverage habit on this project, and the one most people get
+        backwards. Pasting <span class="path">design/motion.md</span> into a prompt feels
+        helpful and does three bad things: it spends context on something the agent can read
+        in one tool call, it creates a second copy of a rule inside a transcript that nobody
+        will ever update, and it invites the agent to treat your paste as the authority when
+        the file has moved on. <strong>The path is the whole citation.</strong>
+      </p>
+
+      <p>
+        Say <em>"budgets are in <span class="path">design/motion.md</span>"</em>. Do not say
+        <em>"the budget is 120 KB first-load and 45 KB deferred"</em> — you will be wrong about
+        it within a year, and being confidently wrong at the agent is worse than saying nothing,
+        because it will believe you.
+      </p>
+
+      <h3>Say what you already know, and how you know it</h3>
+
+      <p>
+        <em>"I know <span class="path">/timeline</span> is one of the two permitted L1 routes"</em>
+        does two things at once. It saves the round trip where the agent explains ADR 0003 back
+        to you, and it makes your claim checkable — if you are wrong, the agent has a specific
+        sentence to correct rather than a vague direction to nudge. A prompt that states no
+        beliefs cannot be argued with, which sounds safe and is the opposite.
+      </p>
+    </section>
+
+    <!-- 03 -->
+    <section id="plan">
+      <span class="sec-num">03</span>
+      <h2>Walkthrough — planning the Timeline baseline</h2>
+
+      <p class="lede">
+        One change, start to finish, in two sections. This one ends with four documents and no
+        code. §04 is where code appears.
+      </p>
+
+      <p>
+        The Timeline is the right example because it is the hardest thing on this site that is
+        not the hero: git-resident content, both locales, a route with a localized segment, a
+        direction that inverts reading-order expectation, and a motion tier that this change is
+        deliberately <em>not</em> allowed to touch. Almost every trap in the repository shows up
+        somewhere in it.
+      </p>
+
+      <ol class="steps">
+
+        <li>
+          <div>
+            <p class="step-h">Ask whether it is a change at all</p>
+            <p>
+              A new route with new observable behaviour. Yes. The threshold from
+              <span class="path">docs/workflow.html</span> §15 — <em>if it changes observable
+              behaviour or adds a dependency</em> — is not close here, and §09 below covers the
+              cases where it is.
+            </p>
+          </div>
+        </li>
+
+        <li>
+          <div>
+            <p class="step-h">Think first — <code>/opsx:explore</code></p>
+            <p>
+              Optional, and worth it exactly when you cannot yet state what you are building.
+              Here, one thing is genuinely unresolved: the Timeline runs rightward from present
+              to past, and <span class="path">design/motion.md</span> requires that direction to
+              be legible <em>without motion</em> — but does not say how.
+            </p>
+
+            <div class="dialogue">
+              <div class="turn you">
+                <span class="who">You</span>
+                <div class="says">
+                  <p><code>/opsx:explore</code> — I want to build the Timeline route. Before we
+                  propose anything: entries run rightward from present to past, and I don't know
+                  how to make that legible with no animation. What are the options, and what does
+                  the content model already give me to work with?</p>
+                </div>
+              </div>
+              <div class="turn agent">
+                <span class="who">Agent</span>
+                <div class="says">
+                  <p class="act">runs <code>openspec list --json</code> — no active changes</p>
+                  <p class="act">reads <code>openspec/config.yaml</code>, <code>design/motion.md</code>, <code>design/content-model.md</code>, <code>design/i18n.md</code></p>
+                  <p>Three affordances are available, and they are not exclusive:</p>
+                  <pre><code>  now                                          older
+   │
+   ▼
+  ├──●─────────●───────────●──────────●──────▶
+   2026        2025        2024       2022
+   ↑           ↑
+   axis label  "now" anchor        + an initial scroll nudge</code></pre>
+                  <p>Two things the content model already decides for you. Entries carry a
+                  <code>kind</code> and an optional <code>image</code>, and the model says
+                  entries must read well without one — so the affordance cannot be carried by
+                  imagery. And at zero entries the section <em>and its route</em> are hidden.</p>
+                  <p>That last one has a consequence I want to check before we scope this.
+                  <span class="path">design/i18n.md</span> keeps Timeline out of the navbar, so
+                  the only way a visitor reaches the route is the "view more" affordance on the
+                  home page's Timeline section. If zero entries hides the route, that affordance
+                  has to disappear too — which is a change to the home page. Is that in scope
+                  here, or does this change assume at least one entry exists?</p>
+                </div>
+              </div>
+              <div class="turn you">
+                <span class="who">You</span>
+                <div class="says">
+                  <p>In scope. The route hiding without the link hiding is a dead link, and I'd
+                  rather that live in one change than be discovered later.</p>
+                </div>
+              </div>
+              <div class="turn agent">
+                <span class="who">Agent</span>
+                <div class="says">
+                  <p>Then the scope is the route, the direction affordance, and the home
+                  section's link visibility. Want me to capture this as a change?</p>
+                </div>
+              </div>
+              <div class="verdict">
+                <b>Why it works</b>
+                <p>Explore earns its keep when it finds the question you did not know to ask.
+                Two documents, read together, produced a dead-link bug that neither one
+                contains — and it cost four sentences instead of a pull request.</p>
+              </div>
+            </div>
+
+            <p>
+              Explore mode may create artifacts if you ask it to. It may <strong>not</strong>
+              write code, and if you ask it to it will tell you to leave explore mode first.
+            </p>
+          </div>
+        </li>
+
+        <li>
+          <div>
+            <p class="step-h">Branch, then propose</p>
+            <pre><code>git switch -c change/timeline-baseline</code></pre>
+            <p>
+              Branch first so the planning artifacts are versioned with the work from the very
+              first commit. Then the prompt from §02, in full.
+            </p>
+
+            <div class="dialogue">
+              <div class="turn you">
+                <span class="who">You</span>
+                <div class="says">
+                  <p><code>/opsx:propose</code> <code>timeline-baseline</code> — the Timeline
+                  route at <code>/[locale]/timeline</code>, baseline only: no library, no scroll
+                  linking, that is a separate change. Git content under
+                  <span class="path">content/timeline/</span>, both locales, correct at zero and
+                  one entries. Include hiding the home page's "view more" link when there are no
+                  entries. Tiers and budgets are in <span class="path">design/motion.md</span> —
+                  point at it, don't restate it. Stop after the artifacts; I'll read them before
+                  we build anything.</p>
+                </div>
+              </div>
+              <div class="turn agent">
+                <span class="who">Agent</span>
+                <div class="says">
+                  <p class="act">runs <code>openspec new change "timeline-baseline"</code></p>
+                  <p class="act">runs <code>openspec status --change "timeline-baseline" --json</code></p>
+                  <p class="act">runs <code>openspec instructions proposal --change "timeline-baseline" --json</code></p>
+                  <p>Created <code>proposal</code>.</p>
+                  <p class="act">runs <code>openspec instructions specs --change "timeline-baseline" --json</code></p>
+                  <p>Created <code>specs</code> at <span class="path">specs/timeline/spec.md</span>.</p>
+                  <p class="elide">… design, then tasks, re-checking status between each …</p>
+                  <p>All four artifacts are written. The artifacts are ready for review. When
+                  you are ready, run <code>/opsx:apply</code> or ask me to apply this change.</p>
+                </div>
+              </div>
+              <div class="verdict">
+                <b>Note what did not happen</b>
+                <p>It did not start building. <code>propose</code> hard-stops by design — even
+                when your request said "build". Starting implementation takes a new message,
+                and that boundary is the whole product.</p>
+              </div>
+            </div>
+
+            <div class="note">
+              <span class="note-label">If it asks you something here, answer it properly</span>
+              <p>
+                The propose workflow is instructed to ask about anything that would materially
+                change scope, observable behaviour or acceptance criteria, and to assume
+                quietly on everything smaller. So a question at this stage is load-bearing by
+                construction. "Whatever you think" converts a question the agent knew it
+                couldn't answer into an assumption buried in a spec.
+              </p>
+            </div>
+          </div>
+        </li>
+
+        <li>
+          <div>
+            <p class="step-h">Read the four documents — this is the step the method exists for</p>
+            <p>
+              <span class="path">docs/workflow.html</span> §04 has the order to read them in and
+              what each one is for. What it does not tell you is the trick that actually finds
+              defects: <strong>read the specs against the four <code>specs:</code> rules in
+              <span class="path">openspec/config.yaml</span> literally, one rule at a time.</strong>
+              Not "does this look right" — "does every collection requirement cover zero, one and
+              many; is every date requirement split into server-neutral and client-derived".
+            </p>
+
+            <div class="filebox">
+              <p class="fh">openspec/changes/timeline-baseline/<b>proposal.md</b> — excerpt</p>
+              <pre><code>## Audience
+
+Serves credibility only. Neither funnel runs through /timeline: sponsors reach
+the sponsorship PDF from Galactic Summit, prospective members reach Join Us from
+the navbar. Both are unchanged by this change.
+
+## Content storage
+
+Timeline Entry is git-resident — content/timeline/&lt;id&gt;/{index.json, en.mdx,
+tr.mdx}, per design/content-model.md. No entity is split across git and Strapi.
+
+## New runtime dependencies
+
+None. This is the un-animated baseline. The scroll-linked L1 sequence is a
+separate proposal against the same route and carries its own budget argument.</code></pre>
+            </div>
+
+            <p>
+              Three sections, three of the <code>proposal:</code> rules, visibly answered. "Serves
+              credibility only" is a valid and common answer here — it just has to be said out
+              loud rather than left blank.
+            </p>
+
+            <div class="filebox">
+              <p class="fh">openspec/changes/timeline-baseline/specs/timeline/<b>spec.md</b> — excerpt, as generated</p>
+              <pre><code>## ADDED Requirements
+
+### Requirement: Timeline route in both locales
+
+The site SHALL serve the Timeline at `/en/timeline` and `/tr/zaman-cizelgesi`,
+generated statically from `content/timeline/`.
+
+#### Scenario: Entries render in date order
+
+- **WHEN** the route is generated
+- **THEN** entries SHALL be ordered by `date`, most recent first
+
+#### Scenario: Past entries are de-emphasised
+
+- **WHEN** an entry's date is earlier than the current date
+- **THEN** the entry SHALL render with `--color-state-past`
+
+#### Scenario: No entries
+
+- **WHEN** `content/timeline/` is empty
+- **THEN** the route SHALL NOT be generated
+- **AND** the home page's Timeline link SHALL NOT render</code></pre>
+            </div>
+
+            <div class="note key">
+              <span class="note-label">Two defects in that excerpt. Find them before reading on.</span>
+              <p>
+                Both are the kind that survive a quick read: the formatting is right, the
+                vocabulary is right, and each one is individually plausible.
+              </p>
+            </div>
+
+            <p>
+              <strong>Defect one — a date requirement that computes time on the server.</strong>
+              "WHEN an entry's date is earlier than the current date" has to be evaluated
+              somewhere, and on a statically generated page the only "somewhere" is build time.
+              The build's idea of <em>now</em> freezes at deploy. This is the rule the
+              constitution states twice and ADR 0001 devotes rule 3 to, and it slid past because
+              the sentence reads like a styling detail rather than a temporal one.
+            </p>
+            <p>
+              It is also <em>vacuous</em>, which is the tell. The Timeline is backward-looking by
+              definition — <span class="path">design/content-model.md</span> is explicit that it
+              is distinct from Schedule, which is the forward-looking one. Every entry is in the
+              past. The requirement describes a condition that is always true, using a mechanism
+              that is forbidden.
+            </p>
+            <p>
+              <strong>Defect two — the collection covers zero and many, and not one.</strong>
+              There is a "No entries" scenario and an ordering scenario, and nothing for the
+              single-entry case. <span class="path">design/content-model.md</span> calls it out
+              specifically: at one entry the axis label and the "now" marker must still make the
+              direction legible. A single entry is where a scroll-snap container has nothing to
+              scroll and every direction affordance quietly stops working.
+            </p>
+
+            <div class="note">
+              <span class="note-label">Do not type the spec headings from memory</span>
+              <p>
+                <code>ADDED Requirements</code>, <code>Requirement:</code>,
+                <code>Scenario:</code> and the <code>WHEN / THEN</code> bullets come from the
+                schema's template rather than from convention, and the template is what
+                <code>openspec instructions specs --change "&lt;name&gt;" --json</code> prints.
+                The agent reads it there every time. If you are hand-editing a delta and the
+                validator complains about structure, read the template — do not infer the shape
+                from an excerpt on this page.
+              </p>
+            </div>
+          </div>
+        </li>
+
+        <li>
+          <div>
+            <p class="step-h">Fix the plan — <code>/opsx:update</code></p>
+            <p>
+              Name the defects precisely. Do not describe the fix you want unless you actually
+              want that fix — the agent has read the same documents you have.
+            </p>
+
+            <div class="dialogue">
+              <div class="turn you">
+                <span class="who">You</span>
+                <div class="says">
+                  <p><code>/opsx:update</code> <code>timeline-baseline</code> — two problems in
+                  the spec.</p>
+                  <p>The "Past entries are de-emphasised" scenario computes <em>now</em> at build
+                  time, which ADR 0001 rule 3 forbids. It's also vacuous: Timeline is
+                  backward-looking, so every entry is past. Replace it with the direction
+                  affordance requirement that <span class="path">design/motion.md</span> actually
+                  asks for.</p>
+                  <p>And the collection covers zero and many but not one. Add the single-entry
+                  case — content-model.md says the axis and the "now" marker still have to make
+                  the direction legible there.</p>
+                </div>
+              </div>
+              <div class="turn agent">
+                <span class="who">Agent</span>
+                <div class="says">
+                  <p class="act">runs <code>openspec status --change "timeline-baseline" --json</code></p>
+                  <p class="act">reads <code>specs/timeline/spec.md</code>, <code>design.md</code>, <code>tasks.md</code></p>
+                  <p>Agreed on both. Three revisions, one at a time — say yes or no to each.</p>
+                  <p><strong>1 · <span class="path">specs/timeline/spec.md</span></strong> — replace
+                  the de-emphasis scenario:</p>
+                  <pre><code>#### Scenario: Direction is legible without motion
+
+- **WHEN** the route renders with no JavaScript
+- **THEN** an axis label and a "now" anchor SHALL be present at the
+  leading edge
+- **AND** the reading direction SHALL be stated in the page's own
+  locale, not implied by layout alone</code></pre>
+                  <p><strong>2 · <span class="path">specs/timeline/spec.md</span></strong> — add
+                  the single-entry scenario:</p>
+                  <pre><code>#### Scenario: Exactly one entry
+
+- **WHEN** `content/timeline/` holds one entry
+- **THEN** the axis label and the "now" anchor SHALL still render
+- **AND** the layout SHALL NOT depend on the container overflowing</code></pre>
+                  <p><strong>3 · <span class="path">tasks.md</span></strong> — task 2.4 lists
+                  fixtures for zero and fifty entries; add one.</p>
+                  <p>One thing I did not change and want to flag:
+                  <span class="path">design.md</span> still describes the entry card as
+                  image-led. <code>image</code> is optional in the content model. That is a real
+                  gap, but it is a different defect from the two you named — want it in this
+                  pass?</p>
+                </div>
+              </div>
+              <div class="turn you">
+                <span class="who">You</span>
+                <div class="says">
+                  <p>Yes to 1, 2 and 3. Leave the card for now — I want to see it fail in
+                  <code>apply</code> before I decide whether it's a design.md problem or a
+                  content-model one.</p>
+                </div>
+              </div>
+              <div class="verdict">
+                <b>Why it works</b>
+                <p>Three edits, three confirmations, and one deliberate refusal. The agent
+                surfaced a fourth problem instead of quietly folding it in — and declining it
+                is a legitimate answer, not a missed opportunity.</p>
+              </div>
+            </div>
+
+            <div class="note">
+              <span class="note-label">Confirm each edit rather than approving in bulk</span>
+              <p>
+                <code>update</code> shows every revision and writes only after you say yes,
+                which is only a safeguard if you read them. "All of them, go ahead" is the same
+                move as not reading the plan, one step later and with less excuse.
+              </p>
+            </div>
+          </div>
+        </li>
+
+      </ol>
+    </section>
+
+    <!-- 04 -->
+    <section id="build">
+      <span class="sec-num">04</span>
+      <h2>Walkthrough — building it</h2>
+
+      <p class="lede">
+        <code>/opsx:apply</code> is the only workflow that writes code, and the only one whose
+        transcript is mostly the agent stopping to ask you things.
+      </p>
+
+      <div class="dialogue">
+        <div class="turn you">
+          <span class="who">You</span>
+          <div class="says">
+            <p><code>/opsx:apply</code> <code>timeline-baseline</code></p>
+          </div>
+        </div>
+        <div class="turn agent">
+          <span class="who">Agent</span>
+          <div class="says">
+            <p class="act">runs <code>openspec instructions apply --change "timeline-baseline" --json</code></p>
+            <p class="act">reads proposal, specs, design, tasks from <code>contextFiles</code></p>
+            <p>Using change: <strong>timeline-baseline</strong>. Schema: spec-driven. Progress:
+            0/9 tasks.</p>
+            <p>Working on task 1/9: loader for
+            <span class="path">content/timeline/&lt;id&gt;/</span>.</p>
+            <p class="act">runs <code>npx ctx7@latest library "Next.js" "reading MDX from the filesystem in App Router"</code></p>
+            <p class="act">runs <code>npx ctx7@latest docs /vercel/next.js "generateStaticParams with a filesystem content source"</code></p>
+            <p class="elide">… builds the loader, ticks 1.1 …</p>
+          </div>
+        </div>
+        <div class="verdict">
+          <b>Note the lookup</b>
+          <p>context7 fired before the first line of App Router code, not after the first bug.
+          On this project that is a rule, not a preference — the failure it prevents is silent
+          and surfaces in production.</p>
+        </div>
+      </div>
+
+      <h3>The pause that matters most</h3>
+
+      <p>
+        Four tasks in, the agent hits something the plan did not cover. What it does next is the
+        difference between a useful agent and an expensive one.
+      </p>
+
+      <div class="dialogue">
+        <div class="turn agent">
+          <span class="who">Agent</span>
+          <div class="says">
+            <p>Paused at task 4/9. Progress: 3/9.</p>
+            <p>Task 4 says "both locales for the three seed entries".
+            <span class="path">content/timeline/first-launch/</span> has
+            <code>en.mdx</code> and no <code>tr.mdx</code>. Three ways forward and I do not want
+            to pick:</p>
+            <ol>
+              <li>Translate the English body into Turkish myself.</li>
+              <li>Create <code>tr.mdx</code> with a Turkish slug and
+              <code>status: incomplete</code>, minimal body — which triggers the visible notice
+              in <span class="path">design/i18n.md</span>.</li>
+              <li>Stop; the entry is not ready to ship.</li>
+            </ol>
+            <p>I'll note that (1) is ruled out by the constitution — do not machine-translate and
+            publish — but I'd rather say that than assume which of (2) or (3) you want.</p>
+          </div>
+        </div>
+        <div class="turn you">
+          <span class="who">You</span>
+          <div class="says">
+            <p>(2). That's exactly what <code>status: incomplete</code> is for — CI needs both
+            files and both slugs to exist, and the notice tells a Turkish visitor the truth. I'll
+            get a real translation before we merge; if it doesn't arrive, the notice ships and
+            that's fine.</p>
+          </div>
+        </div>
+        <div class="turn agent">
+          <span class="who">Agent</span>
+          <div class="says">
+            <p class="act">writes <code>content/timeline/first-launch/tr.mdx</code> with <code>slug: ilk-ucus</code>, <code>status: incomplete</code></p>
+            <p>Resuming task 4/9.</p>
+          </div>
+        </div>
+        <div class="verdict">
+          <b>Why it works</b>
+          <p>The agent found a fork the plan did not anticipate, ruled out the forbidden branch
+          itself, and refused to guess between the two legitimate ones. Answering "continue"
+          here would have picked one at random and written it into the repository.</p>
+        </div>
+      </div>
+
+      <div class="note key">
+        <span class="note-label">A pause is a question. Answer it with a decision.</span>
+        <p>
+          "Continue", "you decide" and "whatever's simplest" are all the same instruction: pick
+          one and don't tell me which. The apply workflow is specifically instructed to surface
+          added scope rather than absorbing it — waving that through converts a visible decision
+          into an invisible one, which is the exact trade the whole process exists to prevent.
+        </p>
+      </div>
+
+      <h3>The second pause — and why it goes back to the plan</h3>
+
+      <p>
+        Later, the card gap from §03 surfaces exactly where you left it.
+      </p>
+
+      <div class="dialogue">
+        <div class="turn agent">
+          <span class="who">Agent</span>
+          <div class="says">
+            <p>Paused at task 6/9. <span class="path">design.md</span> describes the entry card
+            as image-led — image on top, caption beneath. <code>image</code> is optional in
+            <span class="path">design/content-model.md</span>, and two of the three seed entries
+            have none. Rendering them in the described card leaves a hole.</p>
+            <p>I can build a no-image variant now, but that is a layout decision the design
+            document does not make, and adding an image-less record would then require reading
+            the component to know what happens. That looks like the design defect the apply
+            guidance says to report rather than absorb.</p>
+          </div>
+        </div>
+        <div class="turn you">
+          <span class="who">You</span>
+          <div class="says">
+            <p>Agreed, report it. Stop here — I'll run <code>/opsx:update</code> on design.md so
+            the decision lands in the plan, then you resume from task 6.</p>
+          </div>
+        </div>
+        <div class="verdict">
+          <b>Why it works</b>
+          <p>The fix is four sentences in <span class="path">design.md</span> either way. Making
+          it there means the reviewer sees a decision; making it in the component means they see
+          a component and have to reverse-engineer the decision from it.</p>
+        </div>
+      </div>
+
+      <h3>Validating what you built</h3>
+
+      <p>
+        Three layers, and they check genuinely different things. Only the third one is
+        interesting.
+      </p>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Layer</th><th>How</th><th>What it actually proves</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>The artifacts are well-formed</strong></td>
+              <td><code>npx openspec validate --all --strict</code></td>
+              <td>Structure only. It does not read your requirements for sense, and a spec can be perfectly valid and describe the wrong system.</td>
+            </tr>
+            <tr>
+              <td><strong>The code obeys the budgets</strong></td>
+              <td>Tier A on push; Tier B on the PR</td>
+              <td>Typecheck, lint, the import-graph rule, first-load JS, the four static motion checks, locale parity. All mechanical, all worth having, none of them opinions.</td>
+            </tr>
+            <tr>
+              <td><strong>The thing does what the spec said</strong></td>
+              <td>You, reading the delta beside the diff</td>
+              <td>The only layer that can catch "built beautifully, specified wrongly". No gate on this project attempts it and none ever will.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        For this change specifically, there is a fourth check that no tool performs and that
+        takes about ninety seconds: <strong>show the page to somebody who has never seen it and
+        time how long they take to say which end is older.</strong>
+        <span class="path">design/motion.md</span> sets the bar at one second. If they cannot,
+        the baseline is wrong, and no amount of scroll-linked polish in the next change will fix
+        it.
+      </p>
+
+      <h4>Asking the agent to check its own work</h4>
+
+      <div class="dialogue">
+        <div class="turn you">
+          <span class="who">You</span>
+          <div class="says">
+            <p>Before I open the PR: read
+            <span class="path">openspec/changes/timeline-baseline/specs/timeline/spec.md</span>
+            and the diff on this branch, and tell me which scenarios are <em>not</em> demonstrably
+            satisfied by the code. Don't fix anything — just list them and say what evidence is
+            missing for each.</p>
+          </div>
+        </div>
+        <div class="turn agent">
+          <span class="who">Agent</span>
+          <div class="says">
+            <p class="elide">… reads both, walks the scenarios in order …</p>
+            <p>Seven of nine are satisfiable by reading the code. Two are not:</p>
+            <ul>
+              <li><strong>"Exactly one entry"</strong> — the fixture exists but nothing renders
+              it. There is no test and no route that exercises the one-entry case, so the
+              scenario is asserted, not demonstrated.</li>
+              <li><strong>"Direction is legible without motion"</strong> — the axis label and
+              anchor are present in both locales. Whether they make direction legible is not a
+              property of the code.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="verdict">
+          <b>Why it works</b>
+          <p>"List what is not demonstrated, fix nothing" is a much better question than "is this
+          done". It asks for evidence rather than for a verdict, and an agent asked for a verdict
+          will almost always supply one.</p>
+        </div>
+      </div>
+
+      <p>
+        Then the pull request. <span class="path">.github/PULL_REQUEST_TEMPLATE.md</span> asks
+        for both locales, no new dependency, nothing computing <em>now</em> on the server, and —
+        because a route changed — <code>hreflang</code>, the language switcher preserving the
+        route, an <code>/impeccable critique</code> run, and the first-load number. Fill it in
+        honestly; delete a section only when it genuinely does not apply.
+      </p>
+
+      <p>
+        After the merge, on <code>main</code>: <code>/opsx:archive</code>. Say yes to the spec
+        sync. Skipping it leaves <span class="path">openspec/specs/</span> describing a site that
+        no longer exists, which is worse than having no permanent specs at all — a stale spec is
+        read as current by exactly the person this repository is written for.
+      </p>
+    </section>
+
+    <!-- 05 -->
+    <section id="l1">
+      <span class="sec-num">05</span>
+      <h2>Walkthrough — the L1 pass</h2>
+
+      <p class="lede">
+        Same route, second change, and almost none of the previous section applies. Motion work
+        has its own failure modes, and the first one happens before you type anything.
+      </p>
+
+      <p>
+        The baseline shipped. Now the scroll-linked sequence — the reason this site is
+        animation-forward at all. This is one of exactly two routes site-wide where an animation
+        library is permitted, and that fact belongs in the first sentence of the prompt rather
+        than being rediscovered by the agent halfway through a proposal.
+      </p>
+
+      <div class="pair">
+        <div class="dialogue bad">
+          <p class="dlg-h">The prompt that produces a good answer to the wrong question</p>
+          <div class="turn you">
+            <span class="who">You</span>
+            <div class="says"><p>make the timeline animate nicely on scroll</p></div>
+          </div>
+          <div class="turn agent">
+            <span class="who">Agent</span>
+            <div class="says">
+              <p class="elide">… no skill matched "nicely" …</p>
+              <p>Proposes a smooth-scroll wrapper, a spring on the card hover, and a parallax on
+              the entry images.</p>
+            </div>
+          </div>
+          <div class="verdict fails">
+            <b>Why it fails</b>
+            <p>Three separate policy violations, all plausible, none flagged: a second scroll
+            system, a spring at L3 where CSS-only is absolute, and motion attached to an image
+            the content model marks optional.</p>
+          </div>
+        </div>
+
+        <div class="dialogue">
+          <p class="dlg-h">The prompt that spends its first sentence on the budget</p>
+          <div class="turn you">
+            <span class="who">You</span>
+            <div class="says">
+              <p><code>/opsx:propose</code> <code>timeline-scroll-sequence</code> — the L1
+              scroll-linked pass over <span class="path">/[locale]/timeline</span>, which is one
+              of the two permitted L1 routes.</p>
+              <p>Budgets are in <span class="path">design/motion.md</span>; the library is
+              dynamically imported and must stay out of first-load. The baseline from
+              <code>timeline-baseline</code> keeps working with JavaScript off — it is the
+              product, this is enhancement over it. Reduced motion and mobile are part of the
+              proposal, not a follow-up; mobile always gets the native baseline.</p>
+              <p>Load <code>gsap-core</code>, <code>gsap-scrolltrigger</code> and
+              <code>gsap-react</code> — not the rest of the suite — and check the current APIs
+              with context7 before writing any of it into design.md.</p>
+            </div>
+          </div>
+          <div class="turn agent">
+            <span class="who">Agent</span>
+            <div class="says">
+              <p class="act">runs <code>npx ctx7@latest library "GSAP" "ScrollTrigger scrub and pin"</code></p>
+              <p class="act">runs <code>npx ctx7@latest docs &lt;resolved id&gt; "gsap.matchMedia with a reduced-motion branch"</code></p>
+              <p class="act">runs <code>openspec new change "timeline-scroll-sequence"</code></p>
+              <p class="elide">… four artifacts …</p>
+            </div>
+          </div>
+          <div class="verdict">
+            <b>Why it works</b>
+            <p>Every constraint that could have been violated is named before the agent has a
+            chance to violate it — and the three skills that apply are named, so the other five
+            stay unloaded.</p>
+          </div>
+        </div>
+      </div>
+
+      <h3>What design.md has to say, and what to check that it said</h3>
+
+      <p>
+        The <code>design:</code> rules in the constitution are injected automatically, so you do
+        not have to remember them — but you do have to check they were honoured. For a motion
+        change, four specific things:
+      </p>
+
+      <div class="filebox">
+        <p class="fh">openspec/changes/timeline-scroll-sequence/<b>design.md</b> — excerpt</p>
+        <pre><code>## Motion tier
+
+L1, on /[locale]/timeline only. This is the second of the two L1 routes
+permitted by docs/adr/0003-motion-stack.md; no third is introduced.
+
+## Weight
+
+gsap core + ScrollTrigger + @gsap/react, dynamically imported from the route
+segment, in the deferred chunk only. First-load JS for the route is unchanged
+by this change — if it moves, something was imported statically and the
+import-graph rule in Tier A will fail before the budget check does.
+
+## Reduced motion and mobile
+
+Both branches live in a single gsap.matchMedia() call built in the same pass as
+the animation, never added afterwards. Under prefers-reduced-motion the result
+is the baseline itself — not the sequence played faster. Below md (48rem) the
+route serves the native scroll-snap baseline; scroll-linked pinning loses to
+address-bar resize on mobile browsers.</code></pre>
+      </div>
+
+      <p>
+        The tell of a design document that has not thought about reduced motion is the phrase
+        "a shortened version". At L1 the correct reduced-motion result is usually the static
+        baseline you already shipped — which is one more reason the baseline ships first.
+      </p>
+
+      <h3>The suggestion to decline</h3>
+
+      <div class="dialogue">
+        <div class="turn agent">
+          <span class="who">Agent</span>
+          <div class="says">
+            <p>One option worth raising: ScrollSmoother would make the scrubbing feel
+            considerably better on desktop, and it is a GSAP plugin rather than a new vendor —
+            about 8 KB gzipped, comfortably inside the deferred chunk.</p>
+          </div>
+        </div>
+        <div class="turn you">
+          <span class="who">You</span>
+          <div class="says">
+            <p>No. It is a second scroll system, which is a new runtime dependency under the
+            proposal rules regardless of who ships it, and
+            <span class="path">design/motion.md</span> requires smooth-scroll to be fully
+            disabled under reduced motion — so it buys feel on one branch and complexity on
+            both. Take it out of the proposal; if someone wants it later it needs its own ADR.</p>
+          </div>
+        </div>
+        <div class="turn agent">
+          <span class="who">Agent</span>
+          <div class="says">
+            <p class="act">removes the ScrollSmoother option from <code>design.md</code></p>
+            <p>Removed. Scrubbing stays on native scroll.</p>
+          </div>
+        </div>
+        <div class="verdict">
+          <b>Why it works</b>
+          <p>Two sentences, one pointer, one instruction. No argument, no re-litigating, and
+          nothing quoted at the agent that it could have read itself.</p>
+        </div>
+      </div>
+
+      <h3>Before the pull request</h3>
+
+      <ul>
+        <li><strong><code>/review-animations</code> on the diff.</strong> It is manual-only — it will never fire on its own, by design, because it is a deliberately hostile reviewer and firing it uninvited turns every motion edit into a fight. Invite it anyway. It is cheaper than the reviewer doing it.</li>
+        <li><strong>The three declarations</strong> — tier and route, what a reduced-motion visitor sees instead, what a phone gets. An animation that cannot answer all three is not finished, and the PR template asks for all three.</li>
+        <li><strong>The screen recording.</strong> Required, and not a formality: visual regression was deliberately dropped from CI, so the recording <em>is</em> the compensating control. A motion PR without one is not reviewable, and the right reviewer response is to say so and stop.</li>
+      </ul>
+
+      <div class="local">
+        <span class="note-label">Do not automate the part that cannot be automated</span>
+        <p>
+          The temptation at this point is to have the agent screenshot the animation at
+          intervals and tell you whether it feels right. Do not build that.
+          <span class="path">docs/adr/0004-verification.md</span> says it plainly: it produces
+          confident output about a question it cannot answer, and the confidence is worse than
+          the silence. Motion determinism in CI asserts <em>computed values</em> at fixed
+          progress points, which is a different question and an answerable one.
+        </p>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section id="wrong">
+      <span class="sec-num">06</span>
+      <h2>When the plan is wrong</h2>
+
+      <p class="lede">
+        There are five places a correction can live, they cost wildly different amounts, and
+        the common mistake is reaching for the cheapest one when it cannot hold what you are
+        putting on it.
+      </p>
+
+      <figure>
+        <div class="fig-frame">
+          <svg viewBox="0 0 900 350" role="img"
+               aria-label="A five-step staircase of correction methods, rising left to right by durability. Step one: say it in the next message, lives for this session, used for yes go on. Step two: edit the file yourself, lives to the pull request, used for a wording fix. Step three: slash opsx update, lives to the pull request and review, used for a requirement or a task order. Step four: a new change, lives in the archive, used when the intent moved. Step five: a new ADR, lives until superseded, used when the decision itself was wrong.">
+            <!-- axes -->
+            <line class="svg-line" x1="14" y1="336" x2="886" y2="336" />
+            <text class="svg-lbl" x="0" y="0" transform="translate(18,180) rotate(-90)" text-anchor="middle">how long it survives</text>
+
+            <!-- step 1 -->
+            <rect class="svg-box" x="34" y="240" width="164" height="44" rx="5" />
+            <text class="svg-tm" x="116" y="267" text-anchor="middle">say it in chat</text>
+            <text class="svg-s" x="116" y="302" text-anchor="middle">lives: this session</text>
+            <text class="svg-s" x="116" y="318" text-anchor="middle">for: "yes, go on"</text>
+
+            <!-- step 2 -->
+            <rect class="svg-box" x="206" y="196" width="164" height="44" rx="5" />
+            <text class="svg-tm" x="288" y="223" text-anchor="middle">edit it yourself</text>
+            <text class="svg-s" x="288" y="258" text-anchor="middle">lives: the PR</text>
+            <text class="svg-s" x="288" y="274" text-anchor="middle">for: a wording fix</text>
+
+            <!-- step 3 -->
+            <rect class="svg-box-plan" x="378" y="152" width="164" height="44" rx="5" />
+            <text class="svg-tm" x="460" y="179" text-anchor="middle">/opsx:update</text>
+            <text class="svg-s" x="460" y="214" text-anchor="middle">lives: PR + review</text>
+            <text class="svg-s" x="460" y="230" text-anchor="middle">for: a requirement</text>
+
+            <!-- step 4 -->
+            <rect class="svg-box-plan" x="550" y="108" width="164" height="44" rx="5" />
+            <text class="svg-tm" x="632" y="135" text-anchor="middle">a new change</text>
+            <text class="svg-s" x="632" y="170" text-anchor="middle">lives: the archive</text>
+            <text class="svg-s" x="632" y="186" text-anchor="middle">for: the intent moved</text>
+
+            <!-- step 5 -->
+            <rect class="svg-box-code" x="722" y="64" width="164" height="44" rx="5" />
+            <text class="svg-tm" x="804" y="91" text-anchor="middle">a new ADR</text>
+            <text class="svg-s" x="804" y="126" text-anchor="middle">lives: until superseded</text>
+            <text class="svg-s" x="804" y="142" text-anchor="middle">for: a wrong decision</text>
+
+            <!-- riser lines -->
+            <path class="svg-line-a" d="M198 262 L206 262 L206 218" marker-end="url(#mk-lad)" />
+            <path class="svg-line-a" d="M370 218 L378 218 L378 174" marker-end="url(#mk-lad)" />
+            <path class="svg-line-a" d="M542 174 L550 174 L550 130" marker-end="url(#mk-lad)" />
+            <path class="svg-line-a" d="M714 130 L722 130 L722 86" marker-end="url(#mk-lad)" />
+
+            <text class="svg-lbl" x="34" y="40">take the lowest rung that actually holds</text>
+            <text class="svg-s" x="34" y="60">— and never put a decision on rung one, where it dies with the tab</text>
+
+            <defs>
+              <marker id="mk-lad" viewBox="0 0 10 10" refX="9" refY="5"
+                      markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)" />
+              </marker>
+            </defs>
+          </svg>
+        </div>
+        <figcaption>
+          Rung two surprises people: editing the artifact yourself is completely legitimate and
+          often the fastest path. The workflows re-read artifacts from disk rather than from
+          conversation memory, precisely because you may have edited them.
+        </figcaption>
+      </figure>
+
+      <h3>Rung three is not for a changed intent</h3>
+
+      <p>
+        <code>update</code> revises a plan that is still the plan. When the <em>intent</em> has
+        moved, bending the old change into the new shape produces a folder whose proposal argues
+        for one thing and whose specs describe another — and it archives in that state, forever.
+      </p>
+
+      <div class="dialogue">
+        <div class="turn you">
+          <span class="who">You</span>
+          <div class="says">
+            <p><code>/opsx:update</code> <code>timeline-baseline</code> — actually, forget the
+            route. Put the whole thing on the home page as a section and drop
+            <span class="path">/timeline</span> entirely.</p>
+          </div>
+        </div>
+        <div class="turn agent">
+          <span class="who">Agent</span>
+          <div class="says">
+            <p>That is not a revision of this change, it is a different change. The proposal's
+            reason for existing is that the Timeline gets its own route — dropping the route
+            invalidates the proposal, all four spec requirements, and six of the nine tasks.
+            There would be nothing left of <code>timeline-baseline</code> except its name.</p>
+            <p>It also reverses an IA consequence recorded in
+            <span class="path">docs/adr/0003-motion-stack.md</span>: the route is <em>why</em>
+            Timeline moved into the view-more list. Reversing it is an ADR-level move, not a
+            planning one.</p>
+            <p>I'd start fresh — <code>openspec new change "timeline-home-section"</code> — and
+            delete this folder if the route idea is genuinely dead. Do you want that, or do you
+            want to talk through why the route stopped making sense first?</p>
+          </div>
+        </div>
+        <div class="verdict">
+          <b>Why it works</b>
+          <p>It refused the tool and named the right one, twice: a new change for the plan, and
+          an ADR for the decision underneath the plan. An agent that had obliged would have
+          produced something that looked fine and was internally incoherent.</p>
+        </div>
+      </div>
+
+      <p>
+        An abandoned change is not worth archiving — delete the folder and close the branch. The
+        archive is for work that shipped.
+      </p>
+    </section>
+
+    <!-- 07 -->
+    <section id="pushback">
+      <span class="sec-num">07</span>
+      <h2>When to push back</h2>
+
+      <p class="lede">
+        Every skill installed here is generic, competent and confident. Your project's decisions
+        are specific and were made with information the skill does not have. When they collide,
+        the recorded decision wins — and the way you say so matters more than you would expect.
+      </p>
+
+      <div class="note key">
+        <span class="note-label">The form of a good pushback</span>
+        <p>
+          <strong>Name the document. Quote nothing. Say what you want instead.</strong> Three
+          sentences is generous. Quoting the ADR at the agent puts a second copy of the rule in
+          a transcript nobody will maintain, and the agent will read the file anyway — so the
+          quotation adds drift and subtracts nothing.
+        </p>
+      </div>
+
+      <h3>Three collisions that will actually happen</h3>
+
+      <div class="recipe">
+        <p class="recipe-h">"A scroll reveal on the missions archive would really lift it"</p>
+        <p><strong>What it is:</strong> a third L1 route, proposed as a nice touch.</p>
+        <p><strong>Say:</strong> <em>"L1 is capped at two routes by
+        <span class="path">docs/adr/0003-motion-stack.md</span> and both are taken. If this is
+        section-entry motion it is L2 and uses no library — propose that. If it genuinely needs
+        to be L1, that is an ADR before it is a proposal."</em></p>
+        <p class="why">The agent may draft the ADR. It may not accept one — an ADR is a team
+        decision, and an agent writing and ratifying its own justification is the failure mode
+        the whole authority chain exists to prevent.</p>
+      </div>
+
+      <div class="recipe">
+        <p class="recipe-h">"This drawer wants a spring — shall I add a motion library?"</p>
+        <p><strong>What it is:</strong> the single most likely place for the policy to be argued
+        with, and <span class="path">design/motion.md</span> says so in those words.</p>
+        <p><strong>Say:</strong> <em>"Interface motion is CSS only here, no exceptions —
+        <span class="path">design/motion.md</span>. When the decision procedure arrives at 'reach
+        for a spring', the answer on this project is a simpler interaction. Give me the CSS
+        version."</em></p>
+        <p class="why">A gesture that genuinely requires spring physics is a signal that the
+        interaction is too ambitious for a promotional site, not a signal that the policy should
+        bend. The skill is not wrong in general; it is overridden here, deliberately, in a
+        document.</p>
+      </div>
+
+      <div class="recipe">
+        <p class="recipe-h">"The sequence comes to 52 KB — can we raise the cap to 60?"</p>
+        <p><strong>What it is:</strong> a budget exception, requested as an implementation
+        detail.</p>
+        <p><strong>Say:</strong> <em>"No. The cap is the constraint the technique has to fit,
+        not a number we tune to the technique. Fit it, or propose a different technique. If you
+        think the cap is genuinely wrong, that argument goes in a change proposal that raises
+        its own route's cap explicitly and ships the static fallback first."</em></p>
+        <p class="why">This is exactly the shape <span class="path">design/motion.md</span>
+        anticipates for a 3D hero: the budget does not quietly accommodate a technique, which is
+        the entire reason the number was written down before the technique was chosen.</p>
+      </div>
+
+      <h3>The one you will get every single session</h3>
+
+      <p>
+        If the impeccable hook is installed, its font guidance will flag Inter. That is a
+        deliberate override — Orbitron lacks <strong>ğ Ğ ş Ş İ</strong>, so any heading
+        containing them uses Inter — and it is recorded in
+        <span class="path">design/brand.md</span>. Dismiss it with a pointer to that file and
+        move on. Do not re-litigate it, do not explain the reasoning again, and above all do not
+        "fix" it by editing the skill: an edit under a <span class="path">skills/</span>
+        directory diverges from the recorded hash and vanishes at the next sync, leaving you
+        debugging behaviour that is no longer on disk.
+      </p>
+
+      <div class="local">
+        <span class="note-label">What an agent may not decide alone</span>
+        <ul>
+          <li>The stack. Settled in ADR 0001 and 0002; not open for renegotiation.</li>
+          <li>A third L1 motion route, or a second animation library. Both need their own ADR first.</li>
+          <li>Any budget exception. A cap is not raised because it would be convenient.</li>
+          <li>Anything an ADR decided. If an ADR is wrong, supersede it with a new one — never quietly diverge, and never edit an accepted one to match new reality.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 08 -->
+    <section id="review">
+      <span class="sec-num">08</span>
+      <h2>Reviewing someone else's work</h2>
+
+      <p class="lede">
+        Agents are good at the half of review that is mechanical and bad at the half that
+        matters. Use them for the first half so you have attention left for the second.
+      </p>
+
+      <h3>Read the spec delta before the diff</h3>
+
+      <p>
+        This is the whole reason the planning artifacts and the code travel in the same pull
+        request. Reading the diff first anchors you to <em>how</em> it was built, and you will
+        then evaluate the implementation against itself. Reading the delta first gives you the
+        only question a reviewer can ask that a machine cannot: <strong>is this what we said we
+        would build?</strong>
+      </p>
+
+      <div class="dialogue">
+        <div class="turn you">
+          <span class="who">You</span>
+          <div class="says">
+            <p>Read
+            <span class="path">openspec/changes/timeline-baseline/specs/timeline/spec.md</span>
+            on this branch, then the diff. For each requirement, tell me whether the code
+            satisfies it, contradicts it, or is silent on it. Do not fix anything and do not
+            comment on style.</p>
+          </div>
+        </div>
+        <div class="turn agent">
+          <span class="who">Agent</span>
+          <div class="says">
+            <p class="elide">… reads the delta, then the diff …</p>
+            <p>Four requirements, eleven scenarios. Nine satisfied, one contradicted, one silent:</p>
+            <ul>
+              <li><strong>Contradicted</strong> — "no past/live/upcoming state in the generated
+              HTML". The entry component adds a <code>data-era</code> attribute computed from
+              <code>date</code> in a server component. It is invisible, and it freezes at build
+              time exactly like a visible one would.</li>
+              <li><strong>Silent</strong> — "exactly one entry". Fixture present, nothing renders
+              it.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="verdict">
+          <b>Why it works</b>
+          <p>Three verdicts, not two. "Silent" is the category that finds missing work — a
+          binary pass/fail question would have marked the one-entry scenario as passing, because
+          nothing about it fails.</p>
+        </div>
+      </div>
+
+      <h3>The mechanical half</h3>
+
+      <ul>
+        <li><strong><code>/impeccable audit</code>, scoped to the changed files.</strong> Accessibility, performance, responsive, theming, scored P0–P3. Scoping is not a nicety: run across the whole repository it returns a wall of findings nobody reads; scoped to a diff it returns a review.</li>
+        <li><strong><code>/review-animations</code> if the diff contains motion.</strong> Manual-only — it will not fire on its own, so if you do not invoke it, nobody does.</li>
+        <li><strong>Check the three motion declarations and the recording.</strong> If the recording is missing, stop reviewing and say so. That is not pedantry; it is the compensating control for a gate this project deliberately dropped.</li>
+      </ul>
+
+      <h3>The test no gate performs, and it takes two minutes</h3>
+
+      <p>
+        Adding a mission, talk, event, alumnus or sponsor must be a <strong>data</strong>
+        operation. Nothing in CI checks this, and it is the rule most likely to be quietly broken
+        by a component that looks fine with the three records it was built against.
+      </p>
+
+      <div class="dialogue">
+        <div class="turn you">
+          <span class="who">You</span>
+          <div class="says">
+            <p>On this branch, add a fourth timeline entry: no image, a one-line body, Turkish
+            marked <code>status: incomplete</code>. Then tell me every file you had to touch
+            other than the three content files — and if the answer is none, say so plainly.</p>
+          </div>
+        </div>
+        <div class="turn agent">
+          <span class="who">Agent</span>
+          <div class="says">
+            <p class="act">creates <code>content/timeline/static-fire-2/</code> with three files</p>
+            <p>None. The entry renders, the no-image variant applies, and the incomplete notice
+            shows on the Turkish route.</p>
+            <p>One thing outside what you asked: at four entries the axis label overlaps the
+            second card below <code>sm</code>. That is a layout bug, not a data one, and it is
+            not covered by any scenario in the spec.</p>
+          </div>
+        </div>
+        <div class="verdict">
+          <b>Why it works</b>
+          <p>Asking for the file list rather than for a verdict makes the answer checkable. And
+          the request said "if the answer is none, say so plainly", which is how you get a clean
+          negative instead of a paragraph that hedges toward finding something.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 -->
+    <section id="nonchange">
+      <span class="sec-num">09</span>
+      <h2>The change that should not be one</h2>
+
+      <p class="lede">
+        The process has a floor. Below it, the ceremony costs more than the work — and running
+        it anyway teaches everyone that the ceremony is theatre.
+      </p>
+
+      <p>
+        The proposed threshold in <span class="path">docs/workflow.html</span> §15
+        <span class="tag proposed">proposed</span> is: <strong>if it changes observable behaviour
+        or adds a dependency, it needs a change proposal.</strong> Typos, copy edits, a single
+        content record, dependency bumps and broken links do not.
+      </p>
+
+      <h3>Adding a Stellar Talk is not a repository operation at all</h3>
+
+      <div class="dialogue">
+        <div class="turn you">
+          <span class="who">You</span>
+          <div class="says">
+            <p>Add a Stellar Talk for the propulsion lecture on the 12th — speaker, title,
+            insight, and the YouTube link.</p>
+          </div>
+        </div>
+        <div class="turn agent">
+          <span class="who">Agent</span>
+          <div class="says">
+            <p>That one is not mine to do. Stellar Talk is Strapi-resident per
+            <span class="path">design/content-model.md</span> — it is a form in the admin panel,
+            not a file in this repository. No branch, no proposal, and nothing for me to write.</p>
+            <p>If the form is missing a field you need, <em>that</em> is a change: a CMS schema
+            addition, which needs a proposal because it alters what editors can publish.</p>
+          </div>
+        </div>
+        <div class="verdict">
+          <b>Why it works</b>
+          <p>The correct agent response to a content request is to tell you where the form is.
+          An agent that helpfully wrote a JSON file would have split an entity across git and
+          Strapi — the one boundary this project draws at entity level and never at field
+          level.</p>
+        </div>
+      </div>
+
+      <h3>Two more that look bigger than they are</h3>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Task</th><th>Route</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>A typo in <span class="path">content/missions/apogee-1/tr.mdx</span></td>
+              <td>Just fix it. <code>fix/</code> branch, one commit.</td>
+              <td>No observable behaviour changes. Locale parity still holds — both files still exist and still declare slugs — so a fix in one locale does not drag the other along.</td>
+            </tr>
+            <tr>
+              <td>Bumping a patch dependency</td>
+              <td>Just do it. CI is the review.</td>
+              <td>Not a new dependency. Tier A either passes or it does not, and that is a better answer than a proposal about it.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>And one that looks like data and is not</h3>
+
+      <p>
+        "Add our first sponsor's logo" is a five-minute CMS task and it is
+        <strong>blocked</strong>. <span class="path">design/content-model.md</span> defers the
+        sponsor showcase entirely: displaying a company's logo is using their trademark on a
+        public website, and the sponsors have not been asked. The gate is permission collected
+        and recorded somewhere durable — not components being ready.
+      </p>
+
+      <div class="note key">
+        <span class="note-label">The generalisation worth keeping</span>
+        <p>
+          <em>"Is this a change?"</em> and <em>"is this code?"</em> are different questions. The
+          things that most need a written decision on this project — sponsor permissions, alumni
+          consent, sponsorship tiers — involve no code at all, and the things that involve the
+          most code are often routine. Sort by consequence, never by diff size.
+        </p>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section id="works">
+      <span class="sec-num">10</span>
+      <h2>Patterns that work</h2>
+
+      <p class="lede">
+        Nine habits, each demonstrated somewhere above. None of them is about being polite to
+        the agent and all of them are about making an answer checkable.
+      </p>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Pattern</th><th>What it buys</th><th>Sounds like</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Name the artifact you want back</b></td>
+              <td>The agent optimises for producing that thing rather than for sounding finished.</td>
+              <td>"…and stop after the artifacts."</td>
+            </tr>
+            <tr>
+              <td><b>Point at documents, never paste them</b></td>
+              <td>No second copy to drift, no context spent on something one tool call retrieves.</td>
+              <td>"Budgets are in <span class="path">design/motion.md</span>."</td>
+            </tr>
+            <tr>
+              <td><b>Say what you already know</b></td>
+              <td>Saves the round trip, and makes your belief correctable if it is wrong.</td>
+              <td>"I know <span class="path">/timeline</span> is one of the two L1 routes."</td>
+            </tr>
+            <tr>
+              <td><b>Ask for the traps by name</b></td>
+              <td>Zero, one, many; both locales; reduced motion; mobile. Cheaper to request than to catch.</td>
+              <td>"It has to read correctly at zero and one entries."</td>
+            </tr>
+            <tr>
+              <td><b>One axis per iteration</b></td>
+              <td>You can tell which of your instructions caused which part of the change.</td>
+              <td>"Only the spec this round. Leave tasks alone."</td>
+            </tr>
+            <tr>
+              <td><b>Give it the output, not your description of the output</b></td>
+              <td>Your paraphrase of an error is a lossy summary of the thing that already exists in your terminal.</td>
+              <td>Paste the failing Tier A log.</td>
+            </tr>
+            <tr>
+              <td><b>Ask for evidence, not for a verdict</b></td>
+              <td>An agent asked "is this done?" will supply an answer. Asked "what is not demonstrated?" it supplies a list.</td>
+              <td>"List the scenarios the code is silent on."</td>
+            </tr>
+            <tr>
+              <td><b>Answer a pause with a decision</b></td>
+              <td>Keeps the choice visible. "Continue" makes it invisible and permanent.</td>
+              <td>"(2) — that's what <code>status: incomplete</code> is for."</td>
+            </tr>
+            <tr>
+              <td><b>Prefer "propose it" to "build it"</b></td>
+              <td>For anything you would have to review anyway, four documents is a cheaper review than a diff.</td>
+              <td>"Propose it; I'll read it before we build."</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section id="fails">
+      <span class="sec-num">11</span>
+      <h2>Patterns that don't</h2>
+
+      <p class="lede">
+        These are about collaboration, not economy.
+        <span class="path">docs/agent-skills.html</span> §12 covers the money — loading suites
+        "to be safe", vague prompts that route nowhere, hand-editing vendored skills. This list
+        is what goes wrong when the right skill loaded and the conversation still failed.
+      </p>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Anti-pattern</th><th>What it costs</th><th>Instead</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>"Just build it" into <code>/opsx:propose</code></b></td>
+              <td>It hard-stops regardless, so you have spent a turn and received a plan you were not in the mood to read. You then read it badly.</td>
+              <td>Decide which you want before typing. If you want code now, you want <code>/opsx:apply</code> against a change that already exists.</td>
+            </tr>
+            <tr>
+              <td><b>Arguing with the plan in chat</b></td>
+              <td>You reach agreement, the artifact still says the old thing, and the reviewer reads the artifact.</td>
+              <td>Take it up the ladder in §06. A correction that is not in a file did not happen.</td>
+            </tr>
+            <tr>
+              <td><b>Answering a pause with "continue"</b></td>
+              <td>The agent picks one branch and writes it into the repository. The decision is now invisible and nobody knows it was made.</td>
+              <td>Pick a branch and say why in half a sentence. The why is what makes it reviewable.</td>
+            </tr>
+            <tr>
+              <td><b>Approving artifacts without reading them</b></td>
+              <td>You bought the ceremony and threw away what it bought. You now review a thousand lines instead of four documents, later, with more sunk cost.</td>
+              <td>Read them in order and stop at the first thing that is wrong — everything downstream was built on it.</td>
+            </tr>
+            <tr>
+              <td><b>Pasting an ADR into the prompt</b></td>
+              <td>A second copy of a rule inside a transcript nobody maintains, plus the agent treating your paste as authority when the file has moved on.</td>
+              <td>The path is the citation. It will read the file.</td>
+            </tr>
+            <tr>
+              <td><b>"Mark the rest of the tasks done"</b></td>
+              <td><span class="path">tasks.md</span> now lies. <code>archive</code> folds a lie into the permanent specs, where it is read as current by someone in 2029.</td>
+              <td>Leave them unticked. An interrupted change resumes exactly where it stopped — that is what the checkboxes are for.</td>
+            </tr>
+            <tr>
+              <td><b>Accepting a machine translation</b></td>
+              <td>Forbidden outright: both locales are first-class, and a visibly machine-translated Turkish page is worse than an honest notice.</td>
+              <td><code>status: incomplete</code> with a placeholder body. The visible notice is the supported way to ship a translation backlog.</td>
+            </tr>
+            <tr>
+              <td><b>Asking for a screenshot loop to judge motion</b></td>
+              <td>Confident output about a question it cannot answer — and the confidence is worse than silence, because it displaces the human who could have answered.</td>
+              <td>Record the screen. Watch it. Watch it again the next day.</td>
+            </tr>
+            <tr>
+              <td><b>Letting the agent write <em>and</em> accept an ADR</b></td>
+              <td>The authority chain collapses: the thing that was supposed to constrain the agent is now written by it.</td>
+              <td>An agent may draft one. A person accepts it, and the acceptance is the part that matters.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note key">
+        <span class="note-label">The one-sentence version</span>
+        <p>
+          Every anti-pattern above is the same mistake in a different costume: <strong>a decision
+          made somewhere it will not survive.</strong>
+        </p>
+      </div>
+    </section>
+
+    <!-- 12 -->
+    <section id="iterate">
+      <span class="sec-num">12</span>
+      <h2>Iterating without drifting</h2>
+
+      <p class="lede">
+        Long sessions decay. Not because the agent gets worse, but because the wrong turns stay
+        in the context and start outweighing the right ones.
+      </p>
+
+      <h3>The loop that keeps its footing</h3>
+
+      <ol>
+        <li><strong>Read the artifact on disk</strong> — not the summary in the chat. They diverge, and the file is the one that ships.</li>
+        <li><strong>Name one thing</strong> that is wrong with it, as specifically as you can.</li>
+        <li><strong>Confirm the edit</strong> the agent proposes, or reject it. One at a time.</li>
+        <li><strong>Re-read</strong>. Then decide whether to go round again.</li>
+      </ol>
+
+      <p>
+        The temptation is to batch: five corrections in one message, because typing them
+        individually feels slow. Batching costs you the ability to tell which instruction
+        produced which result, and when one of the five was misunderstood you cannot tell which
+        one from the output. Two rounds of three is not slower than one round of five once you
+        count the round that untangles it.
+      </p>
+
+      <h3>When to abandon the session entirely</h3>
+
+      <p>
+        After a long wrong turn — an approach explored for twenty minutes and discarded, a
+        misunderstanding corrected three times — the context is now mostly a record of things
+        that are not true. Start a fresh session.
+      </p>
+
+      <p>
+        This costs almost nothing here, and that is not an accident. <strong>The change folder is
+        the save file.</strong> A new session reads
+        <span class="path">openspec/changes/&lt;name&gt;/</span> and
+        <span class="path">tasks.md</span> tells it exactly which task was in progress. That
+        property is most of the argument for spec-driven development on a team with annual
+        turnover — the same mechanism that survives a graduating contributor survives a poisoned
+        context window.
+      </p>
+
+      <div class="dialogue">
+        <div class="turn you">
+          <span class="who">You</span>
+          <div class="says">
+            <p><code>/opsx:apply</code> <code>timeline-baseline</code> — fresh session. Read the
+            artifacts and the branch before you do anything, and tell me where you think we are
+            before you resume.</p>
+          </div>
+        </div>
+        <div class="turn agent">
+          <span class="who">Agent</span>
+          <div class="says">
+            <p class="act">runs <code>openspec instructions apply --change "timeline-baseline" --json</code></p>
+            <p>5/9 complete. Task 6 — the entry card — is unticked, and
+            <span class="path">design.md</span> was revised at 14:20 to add the no-image variant,
+            after the last tick. So the plan moved and the code has not caught up yet. Resuming
+            at 6.</p>
+          </div>
+        </div>
+        <div class="verdict">
+          <b>Why it works</b>
+          <p>"Tell me where you think we are before you resume" costs one sentence and catches
+          the case where the fresh session has misread the state — before it writes anything.</p>
+        </div>
+      </div>
+
+      <h3>Handing off to a person</h3>
+
+      <p>
+        The handoff is the branch and the change folder. It is not the conversation, and it is
+        not a summary you write into a chat message. If something matters and lives only in a
+        transcript, move it up the ladder in §06 before you hand over — because you are the last
+        person who will ever be able to.
+      </p>
+
+      <div class="note plan-note">
+        <span class="note-label">Motion is the exception to iterating fast</span>
+        <p>
+          Everything above assumes you can evaluate the result immediately. For motion you
+          cannot: the fifth viewing of an animation tells you nothing the first four did not, and
+          your judgement of timing degrades as you get used to it. Play it at 2–5× duration, step
+          it in the animation inspector, test it on a real device, and look again tomorrow. That
+          is slower than a loop and it is the only method that works.
+        </p>
+      </div>
+    </section>
+
+    <!-- 13 -->
+    <section id="phrasebook">
+      <span class="sec-num">13</span>
+      <h2>Phrasebook</h2>
+
+      <p class="lede">
+        Openers to fill in and send. They are shaped, not scripted — the point is that each one
+        carries all four parts from §02.
+      </p>
+
+      <div class="recipe">
+        <p class="recipe-h">Thinking, before you know what you want</p>
+        <pre><code>/opsx:explore — I want to build &lt;thing&gt;. Before we propose anything:
+&lt;the specific thing you can't resolve&gt;. What are the options, and what
+do the design documents already decide for me?</code></pre>
+        <p class="why">The second sentence is what separates explore from chat. Without it you
+        get a survey; with it you get the consequence you had not spotted.</p>
+      </div>
+
+      <div class="recipe">
+        <p class="recipe-h">Proposing</p>
+        <pre><code>/opsx:propose &lt;kebab-case-name&gt; — &lt;what it is, in one line&gt;.
+&lt;Scope boundary: what this change is deliberately NOT.&gt;
+&lt;Storage: git or Strapi. Locales. Zero/one/many. Motion tier if any.&gt;
+Constraints are in &lt;path&gt; — point at it, don't restate it.
+Stop after the artifacts; I'll read them before we build.</code></pre>
+        <p class="why">Line two is the one people skip and the one that prevents the most rework.
+        Saying what a change is <em>not</em> is how the scope survives contact with a helpful
+        agent.</p>
+      </div>
+
+      <div class="recipe">
+        <p class="recipe-h">Reading the plan back</p>
+        <pre><code>Before I read this properly — walk the specs against the four `specs:`
+rules in openspec/config.yaml, one rule at a time, and tell me where
+they don't hold. Don't fix anything.</code></pre>
+        <p class="why">Makes the agent do the mechanical pass so your attention goes to intent.
+        It is also a fair test of the artifacts it just wrote, and it does sometimes find its own
+        omissions.</p>
+      </div>
+
+      <div class="recipe">
+        <p class="recipe-h">Correcting the plan</p>
+        <pre><code>/opsx:update &lt;name&gt; — &lt;defect one, named precisely, with the document
+that makes it a defect&gt;. &lt;defect two&gt;. Show me each edit before you
+write it.</code></pre>
+        <p class="why">"With the document that makes it a defect" is doing real work: it turns
+        your objection from a preference into something the agent can verify and, occasionally,
+        correct you on.</p>
+      </div>
+
+      <div class="recipe">
+        <p class="recipe-h">Building</p>
+        <pre><code>/opsx:apply &lt;name&gt;
+
+<span class="c"># and when it pauses — a decision, plus half a sentence of why</span>
+(2) — that's what &lt;mechanism&gt; is for, and &lt;the reason&gt;.</code></pre>
+        <p class="why">Nothing more is needed at the start. The plan is the prompt; adding
+        instructions here means they exist outside <span class="path">tasks.md</span>, which is
+        where they will be lost.</p>
+      </div>
+
+      <div class="recipe">
+        <p class="recipe-h">Checking before the pull request</p>
+        <pre><code>Read the spec delta on this branch, then the diff. For each requirement,
+say whether the code satisfies it, contradicts it, or is silent on it.
+Don't fix anything and don't comment on style.</code></pre>
+        <p class="why">Three verdicts rather than two. "Silent" is the category that finds
+        missing work, and a pass/fail question cannot express it.</p>
+      </div>
+
+      <div class="recipe">
+        <p class="recipe-h">Declining something</p>
+        <pre><code>No — &lt;document&gt; decides that. If you think it's wrong, that's an ADR,
+not a proposal. Give me &lt;the version that fits&gt; instead.</code></pre>
+        <p class="why">Name, route, redirect. Every additional sentence is you re-litigating a
+        decision that is already written down.</p>
+      </div>
+    </section>
+
+    <!-- 14 -->
+    <section id="limits">
+      <span class="sec-num">14</span>
+      <h2>What this page cannot teach you</h2>
+
+      <p class="lede">
+        Stated plainly, so nobody mistakes a fluent transcript for a solved problem.
+      </p>
+
+      <ul>
+        <li><strong>Whether the result is any good.</strong> Every transcript here ends with an artifact or a diff. None of them ends with taste. Whether the Timeline reads as intentional, whether the hero earns its weight, whether a sponsor is impressed — no prompt produces those and no gate measures them.</li>
+        <li><strong>Whether the content is true.</strong> No CI gate checks that a stated apogee is correct, and an agent will format a wrong number beautifully. Missions are in git under review for exactly this reason.</li>
+        <li><strong>What the agent will actually say.</strong> These are composites, written against the skills installed on 2026-08-17. Wording changes with every model and every skill sync. <strong>The shape survives longer than the words</strong> — if a transcript here stops matching reality, the lesson underneath it probably still holds, and it is the lesson that was worth writing down.</li>
+        <li><strong>How to work without the tooling.</strong> A fresh clone has none of it, deliberately. Someone with no skills installed can still read every document, make every change and open every pull request. The agents make the work faster; they are not a dependency of it, and if they ever become one, something has gone wrong that no skill will fix.</li>
+      </ul>
+
+      <h3>If something here is wrong</h3>
+
+      <p>
+        Fix it. It is a tracked file — <span class="path">docs/openspec-practical-examples.html</span>
+        — and it goes through the same review as anything else. If it disagrees with
+        <span class="path">docs/workflow.html</span> or
+        <span class="path">docs/agent-skills.html</span>, all three are worth checking and one of
+        them has a bug; say which when you report it. If it disagrees with an ADR, this page is
+        the one that is wrong.
+      </p>
+    </section>
+
+  </main>
+
+  <footer class="colophon">
+    <p>
+      <strong>KUASAR Air to Ground</strong> — worked examples only. It decides nothing and
+      deliberately restates nothing: <span class="path">docs/workflow.html</span> owns the
+      process, <span class="path">docs/agent-skills.html</span> owns skill routing, and every
+      decision either of them refers to lives in <span class="path">docs/adr/</span> and
+      <span class="path">design/</span>.
+    </p>
+    <p>
+      Every transcript is set after the scaffold exists and none of these commands runs against
+      the repository as it stands today — see §01. Palette and type derive from
+      <span class="path">design/tokens.md</span>, and there is no orange anywhere on this page:
+      it is reserved for launch, live, upcoming and the primary call to action, and a page of
+      worked examples is none of those.
+    </p>
+  </footer>
+
+</div>
