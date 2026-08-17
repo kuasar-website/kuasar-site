@@ -562,7 +562,6 @@ table.zones tr:hover td { background: oklch(1 0 0 / 0.022); }
 .console__grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 26px 34px; }
 @media (max-width: 1020px) { .console__grid { grid-template-columns: 1fr; gap: 22px; } }
 
-.block { }
 .block h4 {
   font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.11em; text-transform: uppercase;
   color: var(--cc); margin-bottom: 10px; font-weight: 700;
@@ -717,7 +716,7 @@ html[data-filter="d3"] [data-link~="d3"]:not([data-crew~="d3"]) .linkflag,
 html[data-filter="d4"] [data-link~="d4"]:not([data-crew~="d4"]) .linkflag,
 html[data-filter="d5"] [data-link~="d5"]:not([data-crew~="d5"]) .linkflag { display: inline-flex; }
 
-html:not([data-filter="all"]) .hide-when-filtered { display: none; }
+html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; }
 
 .linkflag { align-items: center; gap: 5px; font-family: var(--mono); font-size: 10px;
   letter-spacing: 0.08em; text-transform: uppercase; color: var(--caution);
