@@ -11,9 +11,9 @@ site being credible.
 
 ## Status
 
-**Documentation only.** The architecture is decided and written down; no application code has
-been committed yet. Everything under *Running it locally* below describes the intended shape
-of the repository and **will not work until `apps/web` and `apps/cms` exist.**
+`apps/web` is scaffolded and buildable. `apps/cms` does not exist yet. Do not treat this
+section as an inventory of what runs — check `apps/web/package.json` (and, once it exists,
+`apps/cms/package.json`) for what actually works today.
 
 ## Stack
 
@@ -25,7 +25,8 @@ workspaces, Node 24 LTS.
 
 ## Running it locally
 
-*Aspirational — there is no `package.json` yet.*
+`apps/web`'s commands below are real. `apps/cms` does not exist yet, so its command will not
+work until that workspace is scaffolded.
 
 Requires Node 24 LTS; npm comes with it.
 
@@ -42,7 +43,7 @@ repository.
 ## Layout
 
 ```
-apps/web/            Next.js site → Vercel                (planned)
+apps/web/            Next.js site → Vercel                (scaffolded)
   └ public/brand/    Wordmark SVG                         (committed)
 apps/cms/            Strapi CMS → Render                  (planned)
 content/missions/    Mission content, in git              (planned)
