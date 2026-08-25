@@ -32,21 +32,19 @@ Never create `openspec/project.md`. The constitution lives in `openspec/config.y
 
 ## Repository state
 
-There is **no application code**. No `package.json`, no build, lint or test toolchain. Do
-not invent commands — nothing in this repository runs.
-
-`apps/web/public/brand/kuasar-wordmark.svg` is the sole exception: the wordmark is committed
-ahead of the scaffold so it is under version control, and it sits at the path
-[design/brand.md](design/brand.md) documents. `apps/web/` is otherwise empty — its presence
-is not a partial scaffold, and the workspace change still creates everything else.
+Runnable application code exists. `apps/web` is the current frontend workspace, an npm
+workspace member with its own `package.json`. Do not assume which workspaces exist or what
+commands they expose — read the actual `package.json` files (root and per-workspace) rather
+than trusting a description here; they change independently of this file.
 
 The stack is settled and is not open for renegotiation. It is recorded in the `context:` key
 of `openspec/config.yaml` and argued in [docs/adr/0001-stack.md](docs/adr/0001-stack.md) and
 [docs/adr/0002-cms.md](docs/adr/0002-cms.md). Read those before proposing a change to it.
 
-`openspec/changes/` (with `archive/`) and `openspec/specs/` exist on disk but are empty. Git
-does not track empty directories, so a fresh clone has only `config.yaml` until the CLI
-recreates them on the first proposal.
+`openspec/changes/`, `openspec/changes/archive/` and `openspec/specs/` hold whatever work is
+currently active or already archived — do not assume any of them are empty. Run
+`npx @fission-ai/openspec@1.9.0 list` or `npx @fission-ai/openspec@1.9.0 list --specs` to see
+the current state directly rather than relying on a snapshot written here.
 
 ## The documents
 
