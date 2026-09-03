@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import {
   runBudgetCheck,
   formatReport,
+  matchRouteBudgetKey,
   PINNED_NEXT_VERSION,
   CompatibilityError,
   measureDeferred,
@@ -60,6 +61,33 @@ function routeEntry(route, firstLoadChunkPaths) {
 function kbString(bytes) {
   return `${(bytes / 1024).toFixed(1)} KB`;
 }
+
+// --- Route -> budget-key matching -----------------------------------------
+//
+// Regression coverage for a real bug: matchRouteBudgetKey() used to
+// classify ANY single-segment route not starting with "_" as "home",
+// which misclassified non-locale single-segment routes — e.g.
+// "/robots.txt", "/sitemap.xml", "/manifest.webmanifest" (all named or
+// implied by design/i18n.md as real, planned routes) — as the stricter
+// home budget instead of default. Fixed by matching against an explicit
+// locale-root allowlist (design/i18n.md: only "en" and "tr", plus the
+// unresolved "[locale]" placeholder) rather than merely excluding "_".
+
+test("route matching: /robots.txt (non-locale single segment) is default, not home", () => {
+  assert.equal(matchRouteBudgetKey("/robots.txt"), "default");
+});
+
+test("route matching: /manifest.webmanifest (non-locale single segment) is default, not home", () => {
+  assert.equal(matchRouteBudgetKey("/manifest.webmanifest"), "default");
+});
+
+test("route matching: /tr is home", () => {
+  assert.equal(matchRouteBudgetKey("/tr"), "home");
+});
+
+test("route matching: /[locale] (unresolved dynamic segment placeholder) is home", () => {
+  assert.equal(matchRouteBudgetKey("/[locale]"), "home");
+});
 
 test("first-load: below budget passes", () => {
   const chunksBaseDir = makeChunksBaseDir();

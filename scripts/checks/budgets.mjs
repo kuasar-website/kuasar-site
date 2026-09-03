@@ -110,15 +110,24 @@ export function checkNextVersionPin(installedVersion) {
 
 // --- Route -> budget-entry matching (tasks.md 7.1, 7.7) ----------------
 
+// design/i18n.md: the only two locale codes are "en" and "tr". Next.js may
+// report either a resolved instance ("/en", "/tr") or, for an unresolved
+// dynamic segment, the literal placeholder ("/[locale]").
+const LOCALE_ROOT_SEGMENTS = new Set(["en", "tr", "[locale]"]);
+
 /**
  * "home" matches the future /[locale] route (a single path segment, not
  * yet built — Next.js reports either the literal dynamic segment
  * "/[locale]" or a resolved instance like "/en"); "timeline" matches
- * /[locale]/timeline. Everything else, INCLUDING today's bare "/" and
- * Next's own "/_not-found", falls through to "default" — matching
- * design.md's explicit "today's single scaffolded route is checked under
- * the default budget" scenario, and never mistaking a Next-internal route
- * (an "_"-prefixed segment) for the home route.
+ * /[locale]/timeline. Everything else — today's bare "/", Next's own
+ * "/_not-found", and any other single-segment route that isn't an actual
+ * locale root (e.g. "/robots.txt", "/sitemap.xml") — falls through to
+ * "default". Matching against an explicit locale-code allowlist rather
+ * than merely excluding an "_" prefix: a single-segment root-level route
+ * that is neither a locale root nor Next-internal (a Metadata Route like
+ * robots.txt/sitemap.ts, both named in design/i18n.md, or any future one)
+ * must not be mistaken for the home route just because it also happens to
+ * be one path segment.
  */
 export function matchRouteBudgetKey(route) {
   if (route === "/[locale]/timeline" || /^\/[^/]+\/timeline$/.test(route)) {
@@ -127,7 +136,7 @@ export function matchRouteBudgetKey(route) {
 
   const homeMatch = /^\/([^/]+)$/.exec(route);
 
-  if (homeMatch && !homeMatch[1].startsWith("_")) {
+  if (homeMatch && LOCALE_ROOT_SEGMENTS.has(homeMatch[1])) {
     return "home";
   }
 
