@@ -396,12 +396,21 @@
       failure names which gate tripped and the budget check is never silently skipped
       or run against stale output. Lint also covers `local/gsap-reduced-motion`
       (task 5.4). YAML syntax verified (`yaml.safe_load`).
-- [ ] 9.2 Push a commit and confirm the workflow runs automatically and reports a result
+- [x] 9.2 Push a commit and confirm the workflow runs automatically and reports a result
       against it — the workflow itself is what's being verified here, so this is a real
-      run, not a fixture.
-- [ ] 9.3 Time the run; confirm it completes in under two minutes. If it does not,
+      run, not a fixture. Pushed `deb40df` to `change/verification-gates`; Tier A
+      triggered automatically (run 33743821412). Every step passed — Checkout, Node
+      setup, install, Typecheck, Lint, Stylelint, reduced-motion CSS, locale-parity,
+      the budget-checker fixture suite, and the build — **except** the final
+      Weight-budget check step, which failed exactly as expected given the 7.9
+      blocker: CI reproduced the identical numbers found locally (136.0 KB / 130.3 KB
+      against the 120.0 KB budget). This confirms the workflow mechanism itself is
+      correct end-to-end on real GitHub Actions infrastructure — the one non-green
+      step is the real, already-documented blocker, not a workflow defect.
+- [x] 9.3 Time the run; confirm it completes in under two minutes. If it does not,
       identify the slowest step before considering scope cuts — do not silently drop a
-      gate to hit the number.
+      gate to hit the number. **32 seconds** (job); well under the two-minute target,
+      no slow step to investigate.
 
 ## 10. PR template verification
 
@@ -446,7 +455,16 @@
       stray untracked files anywhere but the intended deliverables) and a direct check
       that `content/` doesn't exist and `apps/web/app/` holds only the four original
       scaffold files.
-- [ ] 11.3 Once Tier A has run at least once on a pushed branch and gone green, tell GC
-      (Dev 4) so the required-status-check ruleset can be configured — per
-      `docs/task-assignments.html`, that ruleset cannot require a check that has never
-      run, and configuring it is explicitly out of scope for this change.
+- [ ] 11.3 **Blocked, not done.** Once Tier A has run at least once on a pushed branch
+      and gone green, tell GC (Dev 4) so the required-status-check ruleset can be
+      configured — per `docs/task-assignments.html`, that ruleset cannot require a
+      check that has never run, and configuring it is explicitly out of scope for
+      this change. Tier A **has** now run on a pushed branch (9.2: run
+      [33743821412](https://github.com/kuasar-website/kuasar-site/actions/runs/33743821412),
+      commit `deb40df` on `change/verification-gates`) — every gate passed except the
+      Weight-budget check, which failed on the real, documented 7.9 blocker (the bare
+      scaffold's baseline exceeds the default budget). Tier A is therefore **not
+      green**, and per explicit direction this task stays unchecked rather than
+      telling GC prematurely: the ruleset hand-off waits for the budget/baseline
+      decision (see design.md's "Blocker found during implementation") to be made and
+      for a subsequent Tier A run to go fully green.
