@@ -235,9 +235,12 @@
 
 - [x] 7.1 Add `apps/web/budgets.json` matching `design/motion.md`'s table exactly,
       including a `default` entry with `deferredAnimationKb: 0` (the table's own
-      documented figure for every non-L1 route) and named `home` (110 KB / 45 KB) and
-      `timeline` (120 KB / 45 KB) entries, matched by route pattern rather than a
-      literal path frozen before locale routing exists. `budgets.json` is JSON and
+      documented figure for every non-L1 route) and named `home` and `timeline`
+      entries, matched by route pattern rather than a literal path frozen before
+      locale routing exists. (The file originally shipped the 110 / 120 KB first-load
+      figures `design/motion.md` then published; those were raised to 160 / 175 KB
+      on 2026-09-03 after 7.9 measured the scaffold above that floor — see 7.9.)
+      `budgets.json` is JSON and
       carries no comments; the explanation of what `default.deferredAnimationKb: 0`
       means belongs in the budget-checker source (7.6) and in design.md, not in this
       file: it records parity with `design/motion.md`'s table, it is not read as a
@@ -306,25 +309,16 @@
       missing chunk in 7.5/7.6) visibly distinctly from a budget-exceeded failure —
       different label/heading in the log, not just different wording — so a
       contributor cannot mistake one for the other. `formatReport()`.
-- [ ] 7.9 **Blocked — real finding, not yet resolved; see design.md's "Blocker found
-      during implementation, unresolved: the bare scaffold already exceeds the default
-      first-load budget."** Run a fresh `npm run build -w apps/web` (per 7.2) against
-      the current real scaffold (today's single `/` route), then run the checker
-      against that build's output, and confirm it measures that route under the
-      `default` budget and passes, with no L1 routes to check yet.
-      **It does not pass.** The unmodified scaffold measures 136.0 KB gzipped
-      first-load JS on `/` (130.3 KB on `/_not-found`) against the 120 KB default
-      budget — React 19.2.8 + Next.js 16.3.1's own client-runtime floor, confirmed not
-      to be a measurement bug (build is genuinely minified/production, methodology
-      matches the accepted Decision exactly). This is a real gap between
-      `design/motion.md`'s accepted budget and the settled stack's actual baseline
-      cost, first surfaced here because this change is what made the budget
-      mechanically real. Per explicit direction: `design/motion.md`, the ADRs, and
-      `apps/web/budgets.json` are not edited to make this pass, and this task is not
-      marked done to paper over it — resolving the budget-vs-baseline gap is a
-      team/captain decision (`docs/adr/0003-motion-stack.md` / `design/motion.md`'s
-      owner), out of scope for this change. Tier A cannot be pushed to green, and
-      task 11.3's hand-off to GC is blocked, until that decision is made.
+- [ ] 7.9 **Waiting on a re-run against the raised floor** (see design.md's "Blocker
+      found during implementation, resolved 2026-09-03"). The unmodified scaffold
+      measured 136.0 KB gzipped first-load JS on `/` (130.3 KB on `/_not-found`)
+      against the original 120 KB default — React 19.2.8 + Next.js 16.3.1's own
+      client-runtime floor, confirmed not to be a measurement bug. The captain
+      decision was to raise the floor: `design/motion.md` and `apps/web/budgets.json`
+      now cap first-load at 160 KB (home) / 175 KB (default and timeline). Re-run a
+      fresh `npm run build -w apps/web` (per 7.2) and the checker against that output
+      to confirm `/` now passes under `default`. Do not mark this done until that
+      re-run is on the record.
 
 ## 8. Fixture-based checker verification (Node's built-in test runner, no browser stack)
 
@@ -462,9 +456,7 @@
       this change. Tier A **has** now run on a pushed branch (9.2: run
       [33743821412](https://github.com/kuasar-website/kuasar-site/actions/runs/33743821412),
       commit `deb40df` on `change/verification-gates`) — every gate passed except the
-      Weight-budget check, which failed on the real, documented 7.9 blocker (the bare
-      scaffold's baseline exceeds the default budget). Tier A is therefore **not
-      green**, and per explicit direction this task stays unchecked rather than
-      telling GC prematurely: the ruleset hand-off waits for the budget/baseline
-      decision (see design.md's "Blocker found during implementation") to be made and
-      for a subsequent Tier A run to go fully green.
+      Weight-budget check, which failed on the original 7.9 finding (the bare
+      scaffold's baseline exceeded the then-120 KB default). The floor has since been
+      raised (160 / 175 KB; see design.md's resolved blocker). This task stays
+      unchecked until a subsequent Tier A run is fully green against those numbers.

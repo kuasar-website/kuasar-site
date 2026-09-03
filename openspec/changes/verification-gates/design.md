@@ -426,10 +426,10 @@ test-only path, never under real `content/`, which does not exist yet.
 
 ```json
 {
-  "default": { "firstLoadKb": 120, "deferredAnimationKb": 0 },
+  "default": { "firstLoadKb": 175, "deferredAnimationKb": 0 },
   "routes": {
-    "home": { "firstLoadKb": 110, "deferredAnimationKb": 45 },
-    "timeline": { "firstLoadKb": 120, "deferredAnimationKb": 45 }
+    "home": { "firstLoadKb": 160, "deferredAnimationKb": 45 },
+    "timeline": { "firstLoadKb": 175, "deferredAnimationKb": 45 }
   }
 }
 ```
@@ -441,8 +441,8 @@ falls through to `default` — exercising the same fallback path a genuinely new
 un-budgeted route will use later (per the spec's "route with no explicit budget entry"
 scenario).
 
-## Blocker found during implementation, unresolved: the bare scaffold already exceeds
-## the default first-load budget
+## Blocker found during implementation, resolved 2026-09-03: the bare scaffold
+## exceeded the original default first-load budget
 
 Confirmed against a fresh `npm run build -w apps/web` on the unmodified scaffold, with
 the checker described above, on 2026-09-03:
@@ -474,21 +474,14 @@ and `spec.md` specify: resolve every `firstLoadChunkPaths` entry to its emitted 
 gzip the actual contents, and sum — not a looser or stricter methodology substituted to
 make a number come out differently.
 
-**This is a real, unresolved gap between `design/motion.md`'s accepted 120 KB default /
-110 KB home budget and what the settled stack (ADR 0001) actually costs at the
-framework floor, discovered here because this change is what first made the budget
-mechanically real.** It is not this change's job to resolve — no ADR is amended, no
-budget number is adjusted, and `apps/web/budgets.json` is not touched to make this
-pass — a static-site verification gate does not get to unilaterally redefine the
-performance budget it was built to enforce. `tasks.md`'s 7.9 stays unchecked as a
-result: **the accepted task is "confirm it measures that route under the default
-budget and passes," and against the real repository right now it does not.** Tier A
-therefore cannot be pushed to green until the team (or whoever owns `docs/adr/0003-
-motion-stack.md` / `design/motion.md`) makes a call — raise the default/home budgets to
-reflect React 19 + Next 16's real floor, or treat it as a problem for whichever change
-first adds real application code to solve (route-level code-splitting, trimming
-`next.config.ts` defaults, etc.). Either way, that decision — and the ADR/design-doc
-edit it requires — belongs to that person, not to this change implementing the gate.
+**Resolution (2026-09-03):** the captain decision this writeup asked for was to raise
+the floor, not to leave the overage for a later application-code change. First-load
+caps in `design/motion.md` and `apps/web/budgets.json` are now 160 KB (home) and 175 KB
+(default and timeline), sitting above the measured 136 KB framework floor with ~24 KB /
+~39 KB of headroom for this project's own client JS. The deferred-animation cap is
+unchanged at 45 KB. ADR 0003's policy is unchanged; its 2026-09-03 amendment records
+why the numbers moved. The original 110 / 120 KB table could not function as a budget
+because it sat below the settled stack's own runtime.
 
 ## Risks / Trade-offs
 
