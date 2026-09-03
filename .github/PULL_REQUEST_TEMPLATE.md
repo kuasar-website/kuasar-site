@@ -37,7 +37,8 @@ inconvenient.
 - [ ] **Screen recording attached.** The reviewer watches it — feel is not automatable
 - [ ] Motion tier stated: L1 / L2 / L3, and the route it lives on
 - [ ] L3 and L2 use **no** animation library
-- [ ] A genuine non-animated `prefers-reduced-motion` path exists — not a faster version
+- [ ] Reduced motion stated: what a reduced-motion user sees instead — a genuine
+      non-animated `prefers-reduced-motion` path, not a faster version
 - [ ] Mobile fallback stated
 - [ ] The un-animated baseline works on its own and shipped first
 - [ ] GSAP only: `useGSAP` with a `scope`, `contextSafe` for post-mount handlers, cleanup
