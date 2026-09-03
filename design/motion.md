@@ -5,7 +5,7 @@ motion and narrative motion answer to different authorities, different durations
 different limits. Merging them is how a marketing site ends up with a 600ms dropdown, or a
 hero sequence built out of button transitions.
 
-- **Last updated:** 2026-08-15
+- **Last updated:** 2026-09-03
 - **Related:** [../docs/adr/0003-motion-stack.md](../docs/adr/0003-motion-stack.md),
   [../docs/adr/0004-verification.md](../docs/adr/0004-verification.md),
   [tokens.md](tokens.md)
@@ -178,12 +178,31 @@ disagree, the JSON is right and this file needs updating.
 
 | Route | First-load JS (gzipped) | Deferred animation chunk |
 | --- | --- | --- |
-| `/[locale]` (home) | **≤ 110 KB** | ≤ 45 KB |
-| `/[locale]/timeline` | ≤ 120 KB | ≤ 45 KB |
-| Every other route | ≤ 120 KB | **0 KB** |
+| `/[locale]` (home) | **≤ 160 KB** | ≤ 45 KB |
+| `/[locale]/timeline` | ≤ 175 KB | ≤ 45 KB |
+| Every other route | ≤ 175 KB | **0 KB** |
 
-**The home page gets the stricter line.** It carries every section plus the signature, and
-it is where sponsors land. It has the least room to spare, not the most.
+These numbers were calibrated on 2026-09-03 against the unmodified Next.js 16.3.1 +
+React 19.2.8 scaffold. That scaffold's `/` route measured **136.0 KB** gzipped first-load
+JS (130.3 KB on `/_not-found`) — React DOM's Fiber reconciler and Next's client runtime,
+with no application code. The original 110 / 120 KB figures sat below that floor, so they
+could not function as a budget. A later 16.x bump that grows the client runtime is a
+reason to re-measure and, if needed, re-calibrate; it is not a reason to treat the gate
+as broken.
+
+**The home page still gets the stricter line**, but not because it "carries every
+section." Extra sections rendered as Server Components do not add first-load JavaScript.
+Home is stricter because sponsors land there, and because the shared layout's client JS
+is paid on every route — the home cap is the tripwire for that shared cost plus anything
+client-side on the landing page. The 15 KB gap (160 vs 175) is room for an inner route to
+have a small page-specific island that home should not.
+
+Headroom above the 136 KB floor is therefore the actual budget this project's code gets:
+roughly **24 KB on home, 39 KB elsewhere**. That is enough for a locale switcher, a
+mobile nav, and the client bits locale-routing will need. It is not enough for a
+client-side UI kit, a browser CMS SDK, or GSAP imported statically. If locale-routing
+trips the home cap, that is a real conversation for that change — do not pre-raise these
+numbers to make a future change comfortable.
 
 Two things make these numbers work:
 
@@ -192,7 +211,9 @@ Two things make these numbers work:
   larger first load than any other. If an L1 route's first-load number rises, something
   was imported statically that should not have been.
 - **The 45 KB deferred chunk** fits GSAP core (~23 KB gz) plus ScrollTrigger (~7 KB gz)
-  plus `@gsap/react`, leaving roughly 14 KB for the sequence's own code.
+  plus `@gsap/react`, leaving roughly 14 KB for the sequence's own code. It is unchanged:
+  the first-load floor moved because the framework's own runtime was larger than the
+  original table assumed; the animation-library cap did not.
 
 If the signature turns out to be 3D, three.js is roughly 150 KB gzipped and **does not
 fit**. That change proposal must argue explicitly for raising its own route's cap and ship

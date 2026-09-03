@@ -1,0 +1,68 @@
+# Tier A — docs/adr/0004-verification.md, amended by
+# docs/adr/0005-repository-visibility.md. Fast, no-browser checks that run
+# on every push to every branch, target under two minutes, and are the
+# load-bearing gate for the required-status-check ruleset once configured
+# (see tasks.md 11.3 in openspec/changes/verification-gates — that
+# configuration is a separate, later hand-off, not part of this workflow).
+#
+# Deliberately NOT path-filtered, unlike a Tier B this workflow does not
+# define: ADR 0004 requires Tier A on every push to every branch, and
+# narrowing that with a path filter is a budget decision this project no
+# longer needs to make now that the repository is public (0005).
+#
+# Each check is its own step so a failure names exactly which gate tripped
+# in the GitHub Actions UI, rather than one opaque "verify" step.
+name: Tier A
+
+on:
+  push:
+
+jobs:
+  tier-a:
+    name: Tier A
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Typecheck and lint discover workspaces from the repo's actual npm
+      # workspace configuration (--workspaces --if-present) rather than a
+      # hardcoded list — see design.md's "Workspace discovery" decision.
+      # Lint includes the import-graph rule and the two local GSAP rules
+      # (cleanup, reduced-motion).
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Stylelint (motion property allow-list, duration tokens)
+        run: npm run stylelint
+
+      - name: Reduced-motion CSS check
+        run: npm run check:reduced-motion-css
+
+      - name: Locale-parity check
+        run: npm run check:locale-parity
+
+      - name: Budget-checker fixture suite
+        run: npm run test:budgets
+
+      # The budget-enforcement step below inspects apps/web/.next/ — it
+      # does not build anything itself (design.md's "Workflow" decision).
+      # A fresh build must succeed here, immediately before it runs, so a
+      # failure is never measured against stale output.
+      - name: Build apps/web
+        run: npm run build -w apps/web
+
+      - name: Weight-budget check
+        run: npm run check:budgets
