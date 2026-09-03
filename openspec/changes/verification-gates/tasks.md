@@ -309,16 +309,13 @@
       missing chunk in 7.5/7.6) visibly distinctly from a budget-exceeded failure —
       different label/heading in the log, not just different wording — so a
       contributor cannot mistake one for the other. `formatReport()`.
-- [ ] 7.9 **Waiting on a re-run against the raised floor** (see design.md's "Blocker
-      found during implementation, resolved 2026-09-03"). The unmodified scaffold
-      measured 136.0 KB gzipped first-load JS on `/` (130.3 KB on `/_not-found`)
-      against the original 120 KB default — React 19.2.8 + Next.js 16.3.1's own
-      client-runtime floor, confirmed not to be a measurement bug. The captain
-      decision was to raise the floor: `design/motion.md` and `apps/web/budgets.json`
-      now cap first-load at 160 KB (home) / 175 KB (default and timeline). Re-run a
-      fresh `npm run build -w apps/web` (per 7.2) and the checker against that output
-      to confirm `/` now passes under `default`. Do not mark this done until that
-      re-run is on the record.
+- [x] 7.9 **Passed after the floor raise.** The unmodified scaffold measured 136.0 KB
+      gzipped first-load JS on `/` (130.3 KB on `/_not-found`) against the original
+      120 KB default — React 19.2.8 + Next.js 16.3.1's own client-runtime floor,
+      confirmed not to be a measurement bug. After `design/motion.md` and
+      `apps/web/budgets.json` were raised to 160 KB (home) / 175 KB (default and
+      timeline), Tier A went green on commit `3c5ca3f`: run
+      [33759373312](https://github.com/kuasar-website/kuasar-site/actions/runs/33759373312).
 
 ## 8. Fixture-based checker verification (Node's built-in test runner, no browser stack)
 
@@ -449,14 +446,13 @@
       stray untracked files anywhere but the intended deliverables) and a direct check
       that `content/` doesn't exist and `apps/web/app/` holds only the four original
       scaffold files.
-- [ ] 11.3 **Blocked, not done.** Once Tier A has run at least once on a pushed branch
-      and gone green, tell GC (Dev 4) so the required-status-check ruleset can be
-      configured — per `docs/task-assignments.html`, that ruleset cannot require a
-      check that has never run, and configuring it is explicitly out of scope for
-      this change. Tier A **has** now run on a pushed branch (9.2: run
-      [33743821412](https://github.com/kuasar-website/kuasar-site/actions/runs/33743821412),
-      commit `deb40df` on `change/verification-gates`) — every gate passed except the
-      Weight-budget check, which failed on the original 7.9 finding (the bare
-      scaffold's baseline exceeded the then-120 KB default). The floor has since been
-      raised (160 / 175 KB; see design.md's resolved blocker). This task stays
-      unchecked until a subsequent Tier A run is fully green against those numbers.
+- [ ] 11.3 **Ready for the GC hand-off, not done.** Once Tier A has run at least once
+      on a pushed branch and gone green, tell GC (Dev 4) so the required-status-check
+      ruleset can be configured — per `docs/task-assignments.html`, that ruleset
+      cannot require a check that has never run, and configuring it is explicitly out
+      of scope for this change. First run (9.2:
+      [33743821412](https://github.com/kuasar-website/kuasar-site/actions/runs/33743821412)
+      on `deb40df`) failed only the Weight-budget step against the old 120 KB default.
+      After the floor raise, Tier A is green on `3c5ca3f`:
+      [33759373312](https://github.com/kuasar-website/kuasar-site/actions/runs/33759373312).
+      This task stays unchecked until someone actually tells GC.
