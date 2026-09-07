@@ -28,6 +28,7 @@ next-env.d.ts
 apps/cms/build/
 apps/cms/dist/
 apps/cms/exports/
+apps/cms/types/generated/
 apps/cms/*.db
 apps/cms/public/uploads/*
 !apps/cms/public/uploads/.gitkeep

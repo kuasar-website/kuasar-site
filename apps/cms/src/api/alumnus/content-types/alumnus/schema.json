@@ -1,0 +1,63 @@
+{
+  "kind": "collectionType",
+  "collectionName": "alumni",
+  "info": {
+    "singularName": "alumnus",
+    "pluralName": "alumni",
+    "displayName": "Alumni",
+    "description": "Former members. consentRecordedAt and consentSource are required at publish — an editor physically cannot publish a portrait without recording where consent came from."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "yearJoined": {
+      "type": "integer",
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "yearLeft": {
+      "type": "integer",
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "subTeam": {
+      "type": "enumeration",
+      "enum": ["propulsion", "avionics", "structures", "software"],
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "roleHeld": {
+      "type": "string",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "photo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"],
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "linkedinUrl": {
+      "type": "string",
+      "regex": "^https?://",
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "consentRecordedAt": {
+      "type": "date",
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "consentSource": {
+      "type": "string",
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": false } }
+    }
+  }
+}

@@ -141,8 +141,22 @@ it, and an off-provider copy of the R2 bucket becomes necessary instead.
 
 ### 4. Deploy Strapi to Render
 
-Create a Render **Starter** web service pointing at this repository, root directory
-`apps/cms`.
+Create a Render **Starter** service of type **Docker** (not a Node/Nixpacks build). It does
+**not** build from source — it pulls a prebuilt image:
+
+- **Image:** `ghcr.io/kuasar-website/kuasar-site/cms:latest`, published to GHCR by
+  `.github/workflows/cms-deploy.yml` on every push to `main` that touches `apps/cms/**`,
+  and on manual dispatch. The admin panel is compiled in that workflow, never on the
+  Starter instance — this is the fix for the 512 MB OOM below, applied ahead of time
+  rather than after a failed deploy.
+- **GHCR package:** `kuasar-site/cms`, owned by the `kuasar-website` GitHub org. Make it
+  visible to Render (public package, or a pull token in Render's registry credentials).
+- **Deploy trigger:** add the Render service's **Deploy Hook URL** to the repository as the
+  `RENDER_DEPLOY_HOOK_URL` Actions secret. The workflow's `deploy` job POSTs it after the
+  image is pushed. Without it the workflow still builds and pushes; only the automatic
+  redeploy is skipped.
+- **Do not** create the service as a Node build "to try Starter first" — the first deploy
+  then OOMs before the Docker service exists. Docker from the start.
 
 Environment variables:
 
@@ -153,31 +167,34 @@ Environment variables:
 | `R2_ACCESS_SECRET` | From step 3 |
 | `R2_BUCKET` | Bucket name |
 | `R2_ENDPOINT` | `https://<account-id>.r2.cloudflarestorage.com` |
+| `R2_PUBLIC_URL` | `https://media.<DOMAIN>` — the bound custom domain (step 3). Omit until it is bound; uploads still work, URLs just point at the endpoint |
 | `CLIENT_URL` | `https://<DOMAIN>` |
 | `PREVIEW_SECRET` | Generate a long random string; also set it in Vercel |
 | `REVALIDATE_SECRET` | Generate a long random string; also set it in Vercel |
 | `APP_KEYS`, `API_TOKEN_SALT`, `ADMIN_JWT_SECRET`, `JWT_SECRET`, `TRANSFER_TOKEN_SALT` | Strapi secrets — generate fresh, never reuse across environments |
 
-**Watch the first build.** Strapi's admin-panel build is memory-hungry and out-of-memory
-during build is the single most common Strapi deployment failure. If it fails on Starter's
-512 MB:
+**The admin OOM is already handled.** Strapi's admin-panel build is memory-hungry and
+out-of-memory during build is the single most common Strapi deployment failure. Because the
+Render service runs a prebuilt image (step 4) and only ever calls `strapi start`, that
+build never runs on the 512 MB instance. If you ever see an OOM on Render, something has
+reverted the service to a source build — fix that, do **not** upsize the instance. The
+spike is at build time, not run time.
 
-- **Do not** immediately upgrade the instance. The spike is at build time, not run time —
-  a bigger instance would be paid for year-round to solve a problem that exists for two
-  minutes.
-- Build the admin panel in GitHub Actions and deploy the artifact instead.
-
-Create the first admin user through the Render URL as soon as the service is live, before
-anyone else finds it.
+Create the first admin user by hand through the Render URL (`/admin`) as soon as the
+service is live, before anyone else finds it. No Super Admin is created in code.
 
 ### 5. Configure the upload provider
 
-In `apps/cms/config/plugins.js`, the `aws-s3` provider with R2 settings. Two details that
-cause the usual failed first attempt:
+`apps/cms/config/plugins.ts` already wires the `aws-s3` provider for R2. In production it
+throws on startup if the `R2_*` variables are missing, so there is no silent fall back to
+local disk. Two details that cause the usual failed first attempt are already applied:
 
-- **Omit `ACL` entirely.** R2 does not support ACLs. Nearly every S3 example on the
+- **`ACL` is omitted entirely.** R2 does not support ACLs. Nearly every S3 example on the
   internet sets it, and it fails.
 - `region: 'auto'`.
+
+Your job here is just to set the `R2_*` variables (step 4 table) and, once
+`media.<DOMAIN>` is bound, `R2_PUBLIC_URL`.
 
 Upload a test image through the Strapi Media Library and confirm it appears at
 `https://media.<DOMAIN>/...`. If the URL works but the image is missing from the admin
@@ -339,7 +356,8 @@ Two of those will bite you during a restore, so know them before you start:
 
 | Symptom | Most likely cause |
 | --- | --- |
-| Strapi build fails on Render | Admin-panel build OOM in 512 MB. Build the admin in CI; do not upsize first |
+| Strapi build fails on Render | The service is doing a source build. It must be a Docker service running the GHCR image from `cms-deploy.yml` (step 4) — the admin is built in CI. Do not upsize |
+| `cms-deploy.yml` builds but Render does not redeploy | `RENDER_DEPLOY_HOOK_URL` secret missing or stale. Re-copy the Deploy Hook URL from the Render service settings |
 | Upload fails with an ACL error | `ACL` is set in the provider config. R2 does not support it — remove it |
 | Images 404 at `media.<DOMAIN>` | Custom domain not bound to the bucket, or DNS not propagated |
 | Every image suddenly unoptimised | Transformation allowance exceeded. Check Cloudflare usage; 5,000 unique/mo are free |

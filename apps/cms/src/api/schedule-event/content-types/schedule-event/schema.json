@@ -1,0 +1,53 @@
+{
+  "kind": "collectionType",
+  "collectionName": "schedule_events",
+  "info": {
+    "singularName": "schedule-event",
+    "pluralName": "schedule-events",
+    "displayName": "Schedule Event",
+    "description": "Forward-looking calendar. Raw ISO times only — past/live/upcoming is derived client-side."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "startsAt": {
+      "type": "datetime",
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "endsAt": {
+      "type": "datetime",
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": ["talk", "screening", "summit", "workshop", "other"],
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "location": {
+      "type": "string",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "title": {
+      "type": "string",
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "description": {
+      "type": "text",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "url": {
+      "type": "string",
+      "regex": "^https?://",
+      "pluginOptions": { "i18n": { "localized": false } }
+    }
+  }
+}

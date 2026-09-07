@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_summit_programme_items",
+  "info": {
+    "displayName": "Programme item",
+    "description": "One row of a Galactic Summit programme: time, title, description."
+  },
+  "options": {},
+  "attributes": {
+    "time": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}
