@@ -1,0 +1,65 @@
+{
+  "kind": "collectionType",
+  "collectionName": "stellar_talks",
+  "info": {
+    "singularName": "stellar-talk",
+    "pluralName": "stellar-talks",
+    "displayName": "Stellar Talk",
+    "description": "Speaker series. Brand name stays English in both locales."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "speakerName": {
+      "type": "string",
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "speakerPortrait": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"],
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "eventNumber": {
+      "type": "integer",
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "date": {
+      "type": "datetime",
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "title": {
+      "type": "string",
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "insight": {
+      "type": "text",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "watchUrl": {
+      "type": "string",
+      "regex": "^https?://",
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "readUrl": {
+      "type": "string",
+      "regex": "^https?://",
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "hoverVideo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["videos"],
+      "pluginOptions": { "i18n": { "localized": false } }
+    }
+  }
+}

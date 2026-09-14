@@ -1,0 +1,24 @@
+# Build context for apps/cms/Dockerfile is the repo root. Keep it small and keep
+# host-built artefacts and secrets out of the image.
+**/node_modules
+**/dist
+**/build
+**/.next
+**/out
+**/.tmp
+**/.cache
+**/.strapi
+**/.env
+**/.env.*
+!**/.env.example
+.git
+.github
+apps/web/**
+!apps/web/package.json
+content
+design
+docs
+openspec
+**/*.log
+**/coverage
+**/.turbo

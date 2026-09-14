@@ -1,0 +1,63 @@
+{
+  "kind": "collectionType",
+  "collectionName": "sponsors",
+  "info": {
+    "singularName": "sponsor",
+    "pluralName": "sponsors",
+    "displayName": "Sponsor",
+    "description": "No tier, rank, or metal-level field — KUASAR does not rank its sponsors publicly (design/content-model.md)."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "logo": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["images"],
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "logoLight": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"],
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "regex": "^https?://",
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "since": {
+      "type": "integer",
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "isCurrent": {
+      "type": "boolean",
+      "default": true,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "blurb": {
+      "type": "text",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "summits": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::galactic-summit.galactic-summit",
+      "mappedBy": "sponsors"
+    }
+  }
+}

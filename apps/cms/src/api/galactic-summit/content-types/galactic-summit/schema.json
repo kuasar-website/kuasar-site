@@ -1,0 +1,100 @@
+{
+  "kind": "collectionType",
+  "collectionName": "galactic_summits",
+  "info": {
+    "singularName": "galactic-summit",
+    "pluralName": "galactic-summits",
+    "displayName": "Galactic Summit",
+    "description": "One entry per year. A new year is a data operation — never a layout edit."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "year": {
+      "type": "integer",
+      "required": true,
+      "unique": true,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "date": {
+      "type": "datetime",
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "location": {
+      "type": "string",
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "isCurrent": {
+      "type": "boolean",
+      "default": false,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "purpose": {
+      "type": "text",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "programme": {
+      "type": "component",
+      "repeatable": true,
+      "component": "summit.programme-item",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "speakers": {
+      "type": "component",
+      "repeatable": true,
+      "component": "summit.speaker",
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "sponsors": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::sponsor.sponsor",
+      "inversedBy": "summits"
+    },
+    "photos": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": ["images"],
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "contactAddress": {
+      "type": "text",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "sponsorshipPdf": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["files"],
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "registrationUrl": {
+      "type": "string",
+      "regex": "^https?://",
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "accentToken": {
+      "type": "enumeration",
+      "enum": ["aurora", "ion", "violet", "ember"],
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "heroTreatment": {
+      "type": "enumeration",
+      "enum": ["still", "wash", "gradient"],
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "backgroundImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"],
+      "pluginOptions": { "i18n": { "localized": false } }
+    }
+  }
+}
