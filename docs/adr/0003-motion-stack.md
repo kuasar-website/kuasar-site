@@ -1,9 +1,18 @@
 # 0003 — Tiered animation-dependency policy
 
-- **Status:** Accepted
+- **Status:** Accepted, amended 2026-09-03
 - **Date:** 2026-08-15
 - **Related:** [0001-stack.md](0001-stack.md), [0004-verification.md](0004-verification.md),
   [../../design/motion.md](../../design/motion.md)
+
+> **Amended 2026-09-03.** [../../design/motion.md](../../design/motion.md)'s first-load
+> numbers were raised after `verification-gates` measured the unmodified Next.js 16.3.1 +
+> React 19.2.8 scaffold at 136.0 KB gzipped first-load JS — above the original 110 / 120 KB
+> figures, which therefore could not function as a budget. Home is now 160 KB, the
+> site-wide default and the Timeline 175 KB. **The policy in this ADR is unchanged:** home
+> stays the stricter line, the deferred animation chunk stays 45 KB, three.js still does
+> not fit, and the numeric table still lives in motion.md rather than here. This amendment
+> records why the numbers moved.
 
 ## Context
 

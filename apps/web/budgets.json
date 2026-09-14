@@ -1,0 +1,7 @@
+{
+  "default": { "firstLoadKb": 175, "deferredAnimationKb": 0 },
+  "routes": {
+    "home": { "firstLoadKb": 160, "deferredAnimationKb": 45 },
+    "timeline": { "firstLoadKb": 175, "deferredAnimationKb": 45 }
+  }
+}

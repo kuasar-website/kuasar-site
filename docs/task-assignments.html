@@ -988,7 +988,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
           <h4>Must do</h4>
           <ul>
             <li><b>The import-graph rule is the load-bearing one.</b> ESLint <code>no-restricted-imports</code> with path zones: <code>gsap</code>, <code>@gsap/react</code> and plugins only from the two L1 route segments, only via dynamic import — so it reports in the editor too.</li>
-            <li><code>apps/web/budgets.json</code> as the machine-readable source of truth: home ≤&nbsp;110&nbsp;KB, timeline ≤&nbsp;120&nbsp;KB, every other route ≤&nbsp;120&nbsp;KB first-load; deferred animation chunk ≤&nbsp;45&nbsp;KB on L1 routes and <b>0&nbsp;KB everywhere else</b>.</li>
+            <li><code>apps/web/budgets.json</code> as the machine-readable source of truth: home ≤&nbsp;160&nbsp;KB, timeline ≤&nbsp;175&nbsp;KB, every other route ≤&nbsp;175&nbsp;KB first-load; deferred animation chunk ≤&nbsp;45&nbsp;KB on L1 routes and <b>0&nbsp;KB everywhere else</b>.</li>
             <li>Four static motion checks: a reduced-motion block exists beside every <code>animation</code>/<code>transition</code>; GSAP cleanup via <code>useGSAP</code> or <code>gsap.context(…).revert()</code>; no layout-property animation (Stylelint allowlist); durations resolve to <code>var(--duration-*)</code>, never literals.</li>
             <li>Locale parity: every git content directory has both locale files <b>and</b> a slug declared in each.</li>
             <li><code>.github/PULL_REQUEST_TEMPLATE.md</code> — including the screen recording and the three motion declarations.</li>
@@ -1906,7 +1906,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
         <span class="cat__meta">
           <span class="linkflag"><svg class="ico ico--sm" aria-hidden="true"><use href="#i-link"/></svg>upstream</span>
           <span class="tag tag--none">no content</span>
-          <span class="tag tag--gate">budget 110kb</span>
+          <span class="tag tag--gate">budget 160kb</span>
           <span class="chip chip--d5">Dev 5</span>
         </span>
       </summary>
@@ -1922,7 +1922,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
         <div class="cat__col">
           <h4>Acceptance</h4>
           <ul>
-            <li>Home first-load JS stays <b>≤ 110 KB</b> — the strictest line on the site, because home carries every section and is where sponsors land.</li>
+            <li>Home first-load JS stays <b>≤ 160 KB</b> — the strictest line on the site, because sponsors land there and the shared layout's client JS is paid on every route. Extra Server Component sections do not consume this budget.</li>
             <li>LCP &lt; 2.5s on a real phone, not just on a runner.</li>
             <li>Nothing in this change imports an animation library. The import-graph rule proves it.</li>
           </ul>
@@ -1992,7 +1992,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
         <span class="cat__meta">
           <span class="linkflag"><svg class="ico ico--sm" aria-hidden="true"><use href="#i-link"/></svg>downstream</span>
           <span class="tag tag--none">assembly</span>
-          <span class="tag tag--gate">budget 110kb</span>
+          <span class="tag tag--gate">budget 160kb</span>
           <span class="chip chip--d2">Dev 2</span>
         </span>
       </summary>
@@ -2009,7 +2009,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
         <div class="cat__col">
           <h4>Acceptance</h4>
           <ul>
-            <li>Home first-load JS <b>≤ 110 KB</b> with every section present. If it rises, something was imported statically that should not have been.</li>
+            <li>Home first-load JS <b>≤ 160 KB</b> with every section present. Extra Server Component sections do not consume this budget; if it rises, something was imported statically that should not have been.</li>
             <li>Every collection on the page survives zero, one and many — including all-zero, which is the launch state.</li>
             <li>One primary CTA per viewport by default, with any exception argued in the PR.</li>
           </ul>
@@ -2279,7 +2279,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
       <p>
         Every section is a normal trip round the loop and they are genuinely parallel — the
         boundaries below are drawn so two people are rarely in the same file. The constraint that
-        actually bites here is not merge conflicts but the <b>110&nbsp;KB home budget</b>, which
+        actually bites here is not merge conflicts but the <b>160&nbsp;KB home budget</b>, which
         nobody owns until assembly and everybody spends before then.
       </p>
       <div class="phase__crit">
@@ -2663,7 +2663,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
               <ul>
                 <li><b>Phase 1 —</b> every token in <code>design/tokens.md</code> as a CSS custom property, and a Turkish heading containing <code>ş</code> proven to render in Inter at display size.</li>
                 <li><b>Phase 2 —</b> the shell, the three interaction types, and the archive that makes "adding a mission is three files" true.</li>
-                <li><b>Phase 3 —</b> compose the home page and defend 110&nbsp;KB.</li>
+                <li><b>Phase 3 —</b> compose the home page and defend 160&nbsp;KB.</li>
               </ul>
             </div>
           </div>

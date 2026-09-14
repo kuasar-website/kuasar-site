@@ -4,7 +4,22 @@
   "workspaces": [
     "apps/*"
   ],
+  "scripts": {
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "stylelint": "stylelint \"**/*.css\"",
+    "check:reduced-motion-css": "node scripts/checks/reduced-motion-css.mjs",
+    "check:locale-parity": "node scripts/checks/locale-parity.mjs",
+    "check:budgets": "node scripts/checks/budgets.mjs",
+    "test:budgets": "node --test scripts/checks/budgets.test.mjs"
+  },
   "engines": {
     "node": "24.x"
+  },
+  "devDependencies": {
+    "postcss": "^8.5.26",
+    "postcss-value-parser": "^4.2.0",
+    "stylelint": "^17.14.1",
+    "stylelint-config-standard": "^40.0.0"
   }
 }
