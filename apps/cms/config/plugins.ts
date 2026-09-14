@@ -32,10 +32,14 @@ const deniedTypes = [
  *     on the internet sets it.
  *
  * R2 is REQUIRED in production: Render's disk is ephemeral, so a local-disk upload
- * vanishes on the next deploy and takes every photograph with it. When the `R2_*`
- * variables are absent in production, startup fails here rather than silently writing to
- * disk. Local `develop` without R2 credentials falls back to Strapi's local provider —
- * a documented develop-only path, never committed as production config.
+ * vanishes on the next deploy and takes every photograph with it. That requirement is
+ * enforced in `src/index.ts`'s `register()` lifecycle hook, not here — this file is a
+ * Strapi config module, and Strapi evaluates config modules while building the admin
+ * panel (`strapi build`) as well as while starting the app, so a throw here would abort
+ * the CI build too, which never touches the upload provider at all. `register()` runs
+ * only when the app actually starts. Local `develop` without R2 credentials falls back
+ * to Strapi's local provider — a documented develop-only path, never committed as
+ * production config.
  */
 const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin => {
   const r2 = {
@@ -47,14 +51,6 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin =>
   };
 
   const hasR2 = Boolean(r2.endpoint && r2.bucket && r2.accessKeyId && r2.accessSecret);
-
-  if (env('NODE_ENV') === 'production' && !hasR2) {
-    throw new Error(
-      'Media storage is not configured. Set R2_ENDPOINT, R2_BUCKET, R2_ACCESS_KEY_ID and ' +
-        'R2_ACCESS_SECRET (Cloudflare R2). Production must not write uploads to local disk — ' +
-        'see docs/adr/0002-cms.md decision 5 and docs/ops/cms-runbook.md step 5.'
-    );
-  }
 
   const uploadConfig = hasR2
     ? {
