@@ -159,6 +159,8 @@ code, kbd, pre { font-family: var(--mono); }
 .tag--gate   { color: var(--ion); border-color: oklch(0.825 0.135 202 / 0.3); background: var(--ion-wash); }
 .tag--l1     { color: var(--c-d5); border-color: oklch(0.755 0.185 350 / 0.35); background: oklch(0.755 0.185 350 / 0.1); }
 .tag--block  { color: var(--nogo); border-color: oklch(0.685 0.215 25 / 0.4); background: oklch(0.685 0.215 25 / 0.1); }
+.tag--done    { color: var(--go); border-color: oklch(0.845 0.180 142 / 0.4); background: oklch(0.845 0.180 142 / 0.1); }
+.tag--partial { color: var(--caution); border-color: oklch(0.86 0.155 86 / 0.4); background: oklch(0.86 0.155 86 / 0.1); }
 
 .chip {
   display: inline-flex; align-items: center; gap: 6px;
@@ -769,12 +771,13 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
 <div class="statusbar">
   <div class="wrap statusbar__in">
     <span class="sfield">repo <b>kuasar-website/kuasar-site</b></span>
-    <span class="sfield sfield--alert">visibility <b>private — flip pending</b></span>
-    <span class="sfield sfield--alert">app code <b>none</b></span>
+    <span class="sfield">visibility <b>public</b></span>
+    <span class="sfield">app code <b>apps/web · apps/cms</b></span>
     <span class="sfield">openspec <b>v1.9.0</b></span>
-    <span class="sfield">changes active <b>0</b></span>
+    <span class="sfield">changes active <b>1</b></span>
     <span class="sfield">crew <b>5</b></span>
     <span class="sfield">compiled <b>2026-08-17</b></span>
+    <span class="sfield">facts checked <b>2026-09-19</b></span>
   </div>
 </div>
 
@@ -783,8 +786,17 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
   <p class="masthead__lead">
     Five console positions, three phases, one critical path. Every domain below is a
     <strong>capability</strong> that becomes a delta spec under <code class="mono">openspec/changes/</code>
-    before it becomes code — nothing here is built, and that is the point of reading it now.
-    Ownership is drawn to keep five people out of each other's files, not to rank the work.
+    before it becomes code. Ownership is drawn to keep five people out of each other's files,
+    not to rank the work.
+  </p>
+  <p class="masthead__lead">
+    <b>Compiled 2026-08-17, when nothing was built; facts re-checked 2026-09-19.</b> Three Phase&nbsp;1
+    capabilities have since shipped — <code class="mono">platform-foundation</code> and
+    <code class="mono">verification-gates</code> are merged and archived,
+    <code class="mono">cms-platform</code> is merged but <b>not archived</b> (7 live-verification tasks
+    still open, all needing a reachable database). The remaining 25 are unstarted, and
+    <code class="mono">apps/web/app/</code> is still the stock Next.js scaffold page.
+    <b>The plan below is unchanged; only the status facts were corrected.</b>
   </p>
   <div class="masthead__meta">
     <span>source <b>docs/task-assignments.html</b></span>
@@ -814,7 +826,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
     </div>
     <p class="readout" id="readout" aria-live="polite">
       <span><b id="rd-lanes">5</b> consoles</span>
-      <span><b id="rd-caps">24</b> capabilities</span>
+      <span><b id="rd-caps">28</b> capabilities</span>
       <span class="hide-when-filtered">keys <kbd>1</kbd>–<kbd>5</kbd>, <kbd>0</kbd> all</span>
     </p>
   </div>
@@ -829,18 +841,19 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
       <h2>Launch readiness poll</h2>
     </div>
     <p class="section__note">
-      Nine stations, polled the way a flight director polls a room. Three are NO&#8209;GO today and
-      two of those are ten-minute jobs that get harder every month. Nothing in Phase&nbsp;1 waits
-      on a decision — it waits on these.
+      Nine stations, polled the way a flight director polls a room. <b>Two</b> are NO&#8209;GO today —
+      both on Dev&nbsp;4, both accounts work, and both get harder every month. Nothing in
+      Phase&nbsp;1 waits on a decision — it waits on these. The <b>ruleset on <code class="mono">main</code></b>
+      is now the cheapest item on the board: Tier&nbsp;A is green, so it can finally be required.
     </p>
   </div>
 
   <div class="panel poll">
     <div class="poll__row" data-crew="d4" data-link="d1 d2 d3 d5">
-      <i class="lamp lamp--nogo" style="--i:0" aria-hidden="true"></i>
+      <i class="lamp lamp--caution" style="--i:0" aria-hidden="true"></i>
       <span class="poll__station">REPO&nbsp;VIS</span>
-      <span class="poll__item"><b class="poll__call poll__call--nogo">no-go</b>Repository is still private; no ruleset on <code class="mono">main</code>. Runbook <b>step 0</b>, unstarted.</span>
-      <span class="poll__blocks">Blocks <b>branch protection, required checks, unlimited Actions minutes</b>. Cheapest to do while the history is documentation only.</span>
+      <span class="poll__item"><b class="poll__call poll__call--caution">caution</b>Repository is <b>public</b> — runbook <b>step 0</b> half done. <b>No ruleset on <code class="mono">main</code>:</b> <code class="mono">rulesets</code> returns <code class="mono">[]</code>.</span>
+      <span class="poll__blocks">Actions minutes and branch protection are now <b>available but unconfigured</b>. Tier A has been green since 2026-09-03, so the required check can finally be added — see CI&nbsp;GATES.</span>
       <span class="poll__owner"><span class="chip chip--d4">Dev 4 · GC</span></span>
     </div>
     <div class="poll__row" data-crew="d4" data-link="d1 d3">
@@ -858,17 +871,17 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
       <span class="poll__owner"><span class="chip chip--d4">Dev 4 · GC</span></span>
     </div>
     <div class="poll__row" data-crew="d1" data-link="d2 d3 d4 d5">
-      <i class="lamp lamp--hold" style="--i:3" aria-hidden="true"></i>
+      <i class="lamp lamp--go" style="--i:3" aria-hidden="true"></i>
       <span class="poll__station">WORKSPACE</span>
-      <span class="poll__item"><b class="poll__call poll__call--hold">standby</b>No <code class="mono">package.json</code>, no build, no lint, no test. <code class="mono">apps/web/</code> holds the wordmark and nothing else.</span>
-      <span class="poll__blocks">Blocks <b>every other lane's code</b>, not their specs. First change of Phase 1 and the only one that must land alone.</span>
+      <span class="poll__item"><b class="poll__call poll__call--go">go</b><b>Shipped</b> — <code class="mono">platform-foundation</code> merged in PR&nbsp;#1 and archived. npm workspace, Node pinned, Next 16.3.1, the Strapi fetch wrapper.</span>
+      <span class="poll__blocks">No longer blocks anyone. <code class="mono">apps/web/app/</code> is still the stock scaffold page — the shell builds, but no route has been written.</span>
       <span class="poll__owner"><span class="chip chip--d1">Dev 1 · BOOSTER</span></span>
     </div>
     <div class="poll__row" data-crew="d1" data-link="d4">
-      <i class="lamp lamp--hold" style="--i:4" aria-hidden="true"></i>
+      <i class="lamp lamp--caution" style="--i:4" aria-hidden="true"></i>
       <span class="poll__station">CI&nbsp;GATES</span>
-      <span class="poll__item"><b class="poll__call poll__call--hold">standby</b>No workflows exist, so the ruleset cannot require status checks yet.</span>
-      <span class="poll__blocks">A ruleset requiring nothing looks identical to one requiring everything. <b>Dev 4 returns to add the checks once Tier A has run once.</b></span>
+      <span class="poll__item"><b class="poll__call poll__call--caution">caution</b>Tier A <b>exists and is green</b> (<code class="mono">.github/workflows/tier-a.yml</code>, ~1–2&nbsp;min). <code class="mono">cms-deploy.yml</code> <b>fails on every push to main</b> — no <code class="mono">RENDER_DEPLOY_HOOK_URL</code>.</span>
+      <span class="poll__blocks">The handoff is now <b>due</b>: Tier A has run many times, so Dev 4 can require it in the ruleset. <b>This is the step people forget</b> — it is still unforgotten only because nobody has done it.</span>
       <span class="poll__owner"><span class="chip chip--d1">Dev 1 · BOOSTER</span></span>
     </div>
     <div class="poll__row" data-crew="d2" data-link="d5">
@@ -909,7 +922,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
       <h2>Spec catalog</h2>
     </div>
     <p class="section__note">
-      Thirty capabilities synthesised from <code class="mono">docs/adr/</code>, <code class="mono">design/</code> and
+      Twenty-eight capabilities synthesised from <code class="mono">docs/adr/</code>, <code class="mono">design/</code> and
       <code class="mono">openspec/config.yaml</code>. Each row is one trip round the loop: a change folder, a delta
       spec under that capability name, and one pull request carrying both the spec and the code.
       Acceptance criteria are written to the four <code class="mono">specs:</code> rules in the constitution.
@@ -934,6 +947,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
           <span class="linkflag"><svg class="ico ico--sm" aria-hidden="true"><use href="#i-link"/></svg>upstream</span>
           <span class="tag tag--none">no content</span>
           <span class="tag tag--gate">tier a</span>
+          <span class="tag tag--done">shipped · PR&nbsp;#1 · archived</span>
           <span class="chip chip--d1">Dev 1</span>
         </span>
       </summary>
@@ -980,6 +994,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
           <span class="linkflag"><svg class="ico ico--sm" aria-hidden="true"><use href="#i-link"/></svg>upstream</span>
           <span class="tag tag--none">no content</span>
           <span class="tag tag--gate">is the gate</span>
+          <span class="tag tag--done">shipped · PR&nbsp;#4/#6 · archived</span>
           <span class="chip chip--d1">Dev 1</span>
         </span>
       </summary>
@@ -1211,6 +1226,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
           <span class="linkflag"><svg class="ico ico--sm" aria-hidden="true"><use href="#i-link"/></svg>upstream</span>
           <span class="tag tag--strapi">strapi</span>
           <span class="tag tag--gate">no gate</span>
+          <span class="tag tag--partial">merged PR&nbsp;#7/#8 · not archived</span>
           <span class="chip chip--d4">Dev 4</span>
         </span>
       </summary>
@@ -1240,6 +1256,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
             <li>Blocked by <b>accounts</b> (Neon, Render) and by <b>platform-foundation</b> for the workspace root.</li>
             <li>Blocks every Strapi-backed section — <b>five of the site's routes</b>.</li>
             <li>Strapi cannot run on Vercel. This is a recurring suggestion and the answer is always no.</li>
+            <li><b>Status 2026-09-19 — merged, not archived.</b> All seven content types, i18n, roles and the R2 provider are in <code>apps/cms</code>. The <b>7 open tasks are all live verification</b> and every one needs a reachable database: the real <code>strapi develop</code> boot, the bilingual admin walkthrough, the Alumni consent rejection, and Editor&nbsp;vs&nbsp;Super&nbsp;Admin. Verified statically only so far. <b>Do not archive until they are run.</b></li>
           </ul>
         </div>
       </div>
@@ -1256,7 +1273,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
         <span class="cat__meta">
           <span class="linkflag"><svg class="ico ico--sm" aria-hidden="true"><use href="#i-link"/></svg>upstream</span>
           <span class="tag tag--none">ops · no spec</span>
-          <span class="tag tag--block">3 no-go</span>
+          <span class="tag tag--block">2 no-go</span>
           <span class="chip chip--d4">Dev 4</span>
         </span>
       </summary>
@@ -1264,7 +1281,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
         <div class="cat__col">
           <h4>Must do</h4>
           <ul>
-            <li><b>Step 0, today:</b> audit history for secrets, flip to public, switch on secret scanning <b>and push protection</b>, then a <b>ruleset</b> on <code>main</code> — not a legacy branch protection rule, because rulesets are visible to contributors without admin rights.</li>
+            <li><b>Step 0, partly done:</b> the repository is <b>public</b>. Still owed: confirm secret scanning <b>and push protection</b> are on, and add the <b>ruleset</b> on <code>main</code> — not a legacy branch protection rule, because rulesets are visible to contributors without admin rights. Tier A is green, so it can be required now.</li>
             <li>Step 1: register the domain at <b>Cloudflare Registrar</b> — R2's custom domain binding requires the zone on Cloudflare anyway. Auto-renew on. Then replace <code>&lt;DOMAIN&gt;</code> everywhere.</li>
             <li>Step 2–3: Neon project (pooled endpoint), R2 bucket, <code>media.&lt;DOMAIN&gt;</code> bound, API token scoped to the bucket.</li>
             <li>Step 3a: confirm the media archive is a <b>Shared Drive</b>, not somebody's My Drive. If it does not exist, ADR 0002 decision 6 is void and an off-provider bucket copy becomes necessary.</li>
@@ -1285,7 +1302,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
           <ul>
             <li>Archive with <code>--skip-specs</code>: no observable site behaviour changes, so there is no delta to fold in.</li>
             <li><b>Return visit required:</b> required status checks cannot be added until Dev 1's Tier A has run once.</li>
-            <li>Do this before <code>apps/cms</code> exists — auditing a documentation-only history takes minutes.</li>
+            <li><b>Overtaken:</b> this said to flip to public before <code>apps/cms</code> existed, so the secret audit stayed a minutes-long job. The CMS landed first (PR&nbsp;#7). Run the audit over the CMS commits before treating step 0 as closed.</li>
           </ul>
         </div>
       </div>
@@ -1791,7 +1808,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
         <div class="cat__col">
           <h4>Acceptance</h4>
           <ul>
-            <li><b>Run it by hand once and open the dump.</b> Search it for an alumnus's name and for a known draft. Finding either means the filters do not work — and the time to discover that is while the repository is still private.</li>
+            <li><b>Run it by hand once and open the dump.</b> Search it for an alumnus's name and for a known draft. Finding either means the filters do not work. <b>The repository is public as of 2026-09-14</b>, so this check no longer has a private grace period — a snapshot with unfiltered personal data must never reach a commit.</li>
             <li>A restore has been performed at least once, by <b>someone other than the person who set the export up</b>.</li>
             <li>HANDOVER and the runbook both say where the backups are; a backup nobody can find is not a backup.</li>
           </ul>
