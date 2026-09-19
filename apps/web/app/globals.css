@@ -1,26 +1,118 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* stylelint-disable custom-property-pattern, custom-property-empty-line-before, lightness-notation, hue-degree-notation -- Tailwind v4 namespace resets/compound type tokens and the approved design/tokens.md oklch notation are intentional. */
+@theme static {
+  /* KUASAR does not expose Tailwind's generic colours or shadow scales. */
+  --color-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+  --ease-*: initial;
+
+  --color-space-950: oklch(0.13 0.025 265);
+  --color-space-900: oklch(0.17 0.028 265);
+  --color-space-800: oklch(0.22 0.024 264);
+  --color-space-700: oklch(0.28 0.02 262);
+  --color-space-600: oklch(0.36 0.016 262);
+  --color-space-500: oklch(0.48 0.012 260);
+
+  --color-ink: oklch(0.97 0.004 260);
+  --color-ink-body: oklch(0.9 0.006 260);
+  --color-ink-muted: oklch(0.7 0.01 260);
+  --color-ink-faint: oklch(0.55 0.012 260);
+  --color-ink-inverted: oklch(0.15 0.02 265);
+
+  --color-nebula-400: oklch(0.68 0.16 296);
+  --color-nebula-500: oklch(0.55 0.19 295);
+  --color-nebula-600: oklch(0.43 0.17 296);
+
+  --color-orbit-400: oklch(0.72 0.13 238);
+  --color-orbit-500: oklch(0.62 0.15 240);
+  --color-orbit-600: oklch(0.5 0.14 242);
+
+  --color-state-live: oklch(0.7 0.19 45);
+  --color-state-upcoming: oklch(0.75 0.15 58);
+  --color-cta: oklch(0.7 0.19 45);
+  --color-cta-hover: oklch(0.75 0.19 45);
+
+  --color-summit-aurora: oklch(0.68 0.15 175);
+  --color-summit-ion: oklch(0.7 0.14 225);
+  --color-summit-violet: oklch(0.62 0.18 305);
+  --color-summit-ember: oklch(0.66 0.16 30);
+
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1rem;
+  --text-base--line-height: 1.65;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.6;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.4;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 1.3;
+  --text-3xl: 2.25rem;
+  --text-3xl--line-height: 1.2;
+  --text-4xl: 3rem;
+  --text-4xl--line-height: 1.1;
+  --text-5xl: 4rem;
+  --text-5xl--line-height: 1.05;
+  --text-6xl: 5.5rem;
+  --text-6xl--line-height: 1;
+
+  --container-prose: 68ch;
+  --spacing: 0.25rem;
+  --space-section: 6rem;
+  --space-section-lg: 10rem;
+  --space-section-tight: 4rem;
+
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+
+  --duration-instant: 100ms;
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --duration-reveal: 450ms;
+  --duration-narrative: 800ms;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@theme static inline {
+  --color-canvas: var(--color-space-950);
+  --color-surface: var(--color-space-900);
+  --color-surface-raised: var(--color-space-800);
+  --color-surface-inset: var(--color-space-700);
+  --color-border: var(--color-space-600);
+  --color-border-strong: var(--color-space-500);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-state-past: var(--color-ink-muted);
+  --color-cta-ink: var(--color-ink-inverted);
+
+  --color-event-talk: var(--color-orbit-400);
+  --color-event-screening: var(--color-nebula-400);
+  --color-event-summit: var(--color-summit-aurora);
+  --color-event-workshop: var(--color-ink-body);
+  --color-event-other: var(--color-ink-muted);
+
+  --font-display: var(--font-orbitron), var(--font-inter), ui-sans-serif,
+    system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink-body);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
 }
+/* stylelint-enable custom-property-pattern, custom-property-empty-line-before, lightness-notation, hue-degree-notation */
