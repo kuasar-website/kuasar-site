@@ -1,0 +1,27 @@
+name: Tier B timeline baseline
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "tests/timeline/**"
+      - "package*.json"
+      - ".nvmrc"
+      - ".github/workflows/tier-b-timeline.yml"
+permissions:
+  contents: read
+jobs:
+  timeline-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm ci --prefix tests/timeline
+      - run: node --test tests/timeline/baseline.test.mjs
+      - run: npm exec --prefix tests/timeline -- playwright install --with-deps chromium firefox
+      - run: npm --prefix tests/timeline test

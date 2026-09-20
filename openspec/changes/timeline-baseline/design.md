@@ -22,7 +22,7 @@ Non-goals: implementing upstream loaders, locale router, site shell, home compos
 ## Risks / Trade-offs
 
 - Upstream contracts absent → retain integration tasks, do not publish mock content or create competing loaders/routes.
-- CSS cannot be verified by server snapshots → browser checks must cover overflow, keyboard, mobile and reduced motion separately; Tier A alone does not cover these.
+- CSS cannot be verified by server snapshots → the dedicated Tier B timeline baseline workflow covers overflow, keyboard, touch gestures and reduced motion separately; Tier A alone does not cover these.
 - Turkish control copy → submit for native-speaking review; no translated historical records are invented.
 - Optional image accessibility → require caller-provided alt text and intrinsic dimensions in the presentation shape; decorative imagery uses empty alt.
 

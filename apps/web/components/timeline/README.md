@@ -44,9 +44,20 @@ not prove visual layout or keyboard scrolling. They use the existing TypeScript
 compiler and the web workspace's React version, so the CMS React version cannot
 contaminate rendering.
 
-No dedicated timeline browser CI gate is added in this preparation. Before this
-change is ready, test both locales with JavaScript disabled: tab to the scroll
-region and every card/link, scroll with arrow keys without trapping focus, check
-320px/768px/desktop widths, touch swiping, and reduced-motion (no snap or smooth
-scroll). Test empty routes after integration. Measure real route budgets then;
-passing SSR tests does not establish first-load performance.
+The `Tier B timeline baseline` workflow runs the SSR tests and isolated browser
+fixture against the actual component and production token stylesheet. Run it locally:
+
+```
+npm ci --prefix tests/timeline
+npm exec --prefix tests/timeline -- playwright install chromium firefox
+npm --prefix tests/timeline test
+```
+
+Browser scenarios cover both locales with JavaScript disabled, zero/one/fifty
+entries, arrow-key scrolling, tab access to every card/link and escape from the
+region, 320px/768px/1280px widths, and reduced-motion (no snap or smooth scroll).
+Chromium additionally checks a native touch gesture; that CDP-only case is skipped
+in Firefox. Fixture content is synthetic and is never used by production routes.
+Test empty production routes after integration. Measure real route budgets then;
+passing fixture tests does not establish route performance or complete integration.
+A real-device visual/copy review remains required.
