@@ -19,6 +19,6 @@
 
 - [x] 4.1 Build the web workspace and inspect its generated CSS to confirm every documented token is emitted even when unused, semantic utilities resolve, and the default orange and shadow namespaces are absent.
 - [x] 4.2 Run a focused source audit for raw colour literals outside `globals.css` and raw transition/animation time values; record that Tier A automates the time-value rule but currently has no repository-wide raw-colour gate.
-- [ ] 4.3 In a local browser, verify computed font families for an Inter body specimen, an eligible Orbitron display specimen containing `ı`, and a `--text-5xl` Turkish specimen containing `İ` or `ş`; attach the Inter specimen screenshot to the PR. Record that font selection is a manual review because no existing CI gate proves the rendered family.
+- [x] 4.3 In a local browser, verify computed font families for an Inter body specimen, an eligible Orbitron display specimen containing `ı`, and a `--text-5xl` Turkish specimen containing `İ` or `ş`; attach the Inter specimen screenshot to the PR. Record that font selection is a manual review because no existing CI gate proves the rendered family.
 - [x] 4.4 Run Tier A checks relevant to this change: typecheck, lint, Stylelint, reduced-motion CSS, locale parity, budget fixtures, production build, and weight budgets; confirm no route first-load JavaScript regression.
 - [x] 4.5 Run strict OpenSpec validation for `design-tokens` and review the final diff against `design/tokens.md`, `design/brand.md`, ADR 0004, and the Dev 2 assignment before requesting review.
