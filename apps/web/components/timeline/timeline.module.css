@@ -1,0 +1,115 @@
+.timeline {
+  min-width: 0;
+  max-width: 100%;
+  color: var(--color-ink-body);
+  font-family: var(--font-sans);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: calc(4 * var(--spacing));
+}
+
+.timeline h2,
+.timeline h3 {
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+.timeline h2 {
+  font-size: var(--text-3xl);
+}
+
+.timeline h3 {
+  margin-block: calc(4 * var(--spacing));
+  font-size: var(--text-xl);
+}
+
+.timeline a {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  overflow-wrap: anywhere;
+}
+
+.direction {
+  margin-block: calc(6 * var(--spacing)) calc(2 * var(--spacing));
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.instruction,
+.meta {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.scroller {
+  overflow-x: auto;
+  max-width: 100%;
+  padding: calc(2 * var(--spacing));
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: calc(2 * var(--spacing));
+  scroll-behavior: auto;
+}
+
+.entries {
+  display: flex;
+  gap: calc(6 * var(--spacing));
+  margin: 0;
+  padding: calc(4 * var(--spacing)) 0;
+  list-style: none;
+}
+
+.entry {
+  box-sizing: border-box;
+  flex: 0 0 min(85%, 26rem);
+  min-width: 0;
+  border-block-start: 2px solid var(--color-border-strong);
+  padding: calc(6 * var(--spacing));
+  background: var(--color-surface);
+  scroll-snap-align: start;
+  overflow-wrap: anywhere;
+}
+
+.entry img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-block: calc(4 * var(--spacing));
+}
+
+.body,
+.notice {
+  /* stylelint-disable-next-line custom-property-pattern -- Approved Tailwind typography token. */
+  line-height: var(--text-base--line-height);
+}
+
+.notice {
+  border-inline-start: 2px solid var(--color-border-strong);
+  padding-inline-start: calc(3 * var(--spacing));
+}
+
+.timeline :focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroller {
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+  }
+}
