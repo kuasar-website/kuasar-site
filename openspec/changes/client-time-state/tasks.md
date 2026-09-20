@@ -13,4 +13,8 @@
 
 - [x] 3.1 Add controlled-clock Chromium/Firefox tests for both locales, no-JS, hydration, boundaries, invalid input and zero/one/fifty records.
 - [x] 3.2 Add focused Tier B time-state CI gate; existing Tier A cannot prove browser time behavior.
-- [ ] 3.3 Run OpenSpec strict validation, browser tests and applicable Tier A checks; record results and limitations for PR review.
+- [x] 3.3 Run OpenSpec strict validation, browser tests and applicable Tier A checks; record results and limitations for PR review.
+
+Verification: Tier A and all 12 Chromium/Firefox time-state tests passed on commit
+`30a59f48b2fe8472dda6c6f1ea5b86ef95e8878d`. The same gates rerun on every subsequent
+relevant change; the PR checks are authoritative for the current revision.

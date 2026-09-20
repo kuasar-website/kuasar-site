@@ -22,9 +22,9 @@ Non-goals: production routes, calendar UI, content fetching, CMS changes or moti
   no end becomes past at start; a date-only record spans its UTC day; ends are exclusive.
   Invalid/missing/reversed dates stay neutral. No invented event duration.
 - A collection hook preserves the source array until mount, then returns a filtered,
-  stable sorted copy; invalid dates sort last. DateTime applies only semantic tokens,
-  with documented fallback values from design/tokens.md because scaffold CSS has not
-  installed the full token system yet.
+  stable sorted copy; invalid dates sort last. DateTime directly references the
+  --color-state-live, --color-state-upcoming and --color-state-past tokens provided
+  by the global theme merged through design-tokens; no component-local fallback colors.
 - Test an actual server-rendered React fixture hydrated in Chromium and Firefox using
   Playwright clocks. The fixture is outside production routes; esbuild bundles only
   the test harness. Keep these tools in tests/time/package.json with a separate

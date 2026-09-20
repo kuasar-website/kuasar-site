@@ -161,6 +161,26 @@ renders — it does not introduce a colour token of its own; it decides whether 
 used where it could be mistaken for a live state or a primary CTA. If that proves
 confusing in practice, delete it rather than adding a rule about it.
 
+### Schedule Event type aliases
+
+The Schedule Event `type` enum (`talk` | `screening` | `summit` | `workshop` | `other`)
+drives the calendar legend. The calendar consumes these semantic aliases rather than
+choosing palette values or inventing hexes in a component:
+
+```css
+@theme {
+  --color-event-talk:      var(--color-orbit-400);
+  --color-event-screening: var(--color-nebula-400);
+  --color-event-summit:    var(--color-summit-aurora);
+  --color-event-workshop:  var(--color-ink-body);
+  --color-event-other:     var(--color-ink-muted);
+}
+```
+
+These tokens describe **category**, not time-relative state. None aliases
+`--color-state-live`, `--color-state-upcoming` or the CTA tokens. Labels and the legend
+remain the source of meaning; colour is not the only distinction.
+
 ## Typography
 
 Two tiers. Full usage rules — including the Turkish glyph restriction, which is a

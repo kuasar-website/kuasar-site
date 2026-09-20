@@ -3,11 +3,10 @@
 import { formatDate, parseISO, type TimeLocale, type TimeRange } from "../../lib/time/date";
 import { useTimeState } from "../../lib/time/use-time";
 
-// Fallbacks match design/tokens.md until the foundation installs the full theme.
 const colors = {
-  live: "var(--color-state-live, oklch(0.70 0.19 45))",
-  upcoming: "var(--color-state-upcoming, oklch(0.75 0.15 58))",
-  past: "var(--color-state-past, var(--color-ink-muted, oklch(0.70 0.010 260)))",
+  live: "var(--color-state-live)",
+  upcoming: "var(--color-state-upcoming)",
+  past: "var(--color-state-past)",
 };
 
 export function DateTime({ startsAt, endsAt, locale, timeZone = "UTC" }: TimeRange & {
