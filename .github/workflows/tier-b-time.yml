@@ -1,0 +1,26 @@
+name: Tier B time-state
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "tests/time/**"
+      - "package*.json"
+      - ".nvmrc"
+      - ".github/workflows/tier-b-time.yml"
+permissions:
+  contents: read
+jobs:
+  time-state:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm ci --prefix tests/time
+      - run: npm exec --prefix tests/time -- playwright install --with-deps chromium firefox
+      - run: npm run test:time
