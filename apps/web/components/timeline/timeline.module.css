@@ -65,6 +65,7 @@
 }
 
 .entry {
+  position: relative;
   box-sizing: border-box;
   flex: 0 0 min(85%, 26rem);
   min-width: 0;

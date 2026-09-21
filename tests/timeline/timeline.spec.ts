@@ -20,7 +20,7 @@ for (const locale of ["en", "tr"] as const) {
 
   test(`${locale}: all fifty entries reachable by keyboard with no trap`, async ({ page }) => {
     await page.goto(`/${locale}?count=50`);
-    const region = page.getByRole('region');
+    const region = page.getByRole('region').and(page.locator('[tabindex="0"]'));
     await region.focus();
     await expect(region).toBeFocused();
     await page.keyboard.press('ArrowRight');
@@ -46,7 +46,7 @@ for (const locale of ["en", "tr"] as const) {
     test(`${locale}: ${width}px confines overflow to the native region`, async ({ page }) => {
       await page.setViewportSize({ width, height: 800 });
       await page.goto(`/${locale}?count=50`);
-      const region = page.getByRole('region');
+      const region = page.getByRole('region').and(page.locator('[tabindex="0"]'));
       await expect(page.getByRole('listitem')).toHaveCount(50);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       expect(await region.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
@@ -60,8 +60,8 @@ for (const locale of ["en", "tr"] as const) {
   test(`${locale}: reduced motion has no snap, smooth scroll or animation`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(`/${locale}?count=50`);
-    await expect(page.getByRole('region')).toHaveCSS('scroll-snap-type', 'none');
-    await expect(page.getByRole('region')).toHaveCSS('scroll-behavior', 'auto');
+    await expect(page.getByRole('region').and(page.locator('[tabindex="0"]'))).toHaveCSS('scroll-snap-type', 'none');
+    await expect(page.getByRole('region').and(page.locator('[tabindex="0"]'))).toHaveCSS('scroll-behavior', 'auto');
     const animated = await page.locator('section, section *').evaluateAll((els) => els.some((el) => getComputedStyle(el).animationName !== 'none'));
     expect(animated).toBe(false);
   });
@@ -72,7 +72,7 @@ test('native touch swipe moves the timeline on a phone', async ({ browser, brows
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, javaScriptEnabled: false });
   const page = await context.newPage();
   await page.goto('http://127.0.0.1:4174/tr?count=50');
-  const region = page.getByRole('region');
+  const region = page.getByRole('region').and(page.locator('[tabindex="0"]'));
   const box = await region.boundingBox();
   expect(box).not.toBeNull();
   const cdp = await context.newCDPSession(page);
