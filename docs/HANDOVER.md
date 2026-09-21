@@ -70,10 +70,10 @@ the rule, recorded in [adr/0002-cms.md](adr/0002-cms.md) decision 9.
 | Service | What it is for | Owner | Backup owner | Renewal | Cost |
 | --- | --- | --- | --- | --- | --- |
 | Cloudflare | Domain, DNS, R2 media, image resizing | TBD | TBD | TBD | ~$10/yr domain |
-| Render | Runs Strapi | TBD | TBD | TBD | ~$7/mo |
+| Render | Runs Strapi (Docker service, pulls the GHCR image) | TBD | TBD | TBD | ~$7/mo |
 | Neon | Postgres behind Strapi | TBD | TBD | n/a | $0 |
 | Vercel | Runs the website | TBD | TBD | n/a | $0 (Hobby) |
-| GitHub (`kuasar-website` org) | Code, CI, backups. Repository is **public** | TBD | TBD | n/a | $0 |
+| GitHub (`kuasar-website` org) | Code, CI, backups, and the GHCR container image for the CMS (`cms` package). Repository is **public** | TBD | TBD | n/a | $0 |
 | Google Workspace | Media archive Shared Drive **and** the Join Us / Connect Us forms | TBD | TBD | TBD | TBD |
 
 Two of these carry more weight than their row suggests:
@@ -141,7 +141,12 @@ not in this repository and must never be committed.
 **You do not deploy by hand.** Both targets deploy from git.
 
 - Push to `main` → Vercel builds and deploys the website.
-- Push to `main` → Render builds and deploys Strapi.
+- Push to `main` touching `apps/cms/**` → the **CMS deploy** GitHub Action builds the
+  Strapi admin panel, pushes a Docker image to GHCR
+  (`ghcr.io/kuasar-website/kuasar-site/cms`), and pings Render's deploy hook. Render runs
+  the image; it never builds Strapi itself. Why: Strapi's admin build OOMs Render Starter's
+  512 MB — see [adr/0002-cms.md](adr/0002-cms.md) decision 4. The workflow also has a
+  **Run workflow** button for manual redeploys.
 
 Pull requests get a Vercel preview URL. Use it; that is what it is for.
 

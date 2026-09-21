@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_summit_speakers",
+  "info": {
+    "displayName": "Speaker",
+    "description": "A Galactic Summit speaker. Not necessarily an alumnus, so this is a component rather than a relation."
+  },
+  "options": {},
+  "attributes": {
+    "speakerName": {
+      "type": "string",
+      "required": true
+    },
+    "portrait": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "role": {
+      "type": "string"
+    }
+  }
+}

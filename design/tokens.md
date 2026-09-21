@@ -137,9 +137,16 @@ are what the page ships with and what a no-JS visitor keeps.
 
 ### Galactic Summit accent set
 
-[ADR 0002](../docs/adr/0002-cms.md) permits per-year Summit theming through a **constrained
-enum** on the Strapi entity. This is the fixed set those enum values map to. Editors
-choose among them; adding a new one is a code change.
+[ADR 0002](../docs/adr/0002-cms.md) permits per-year Summit theming through **two
+constrained enums** on the Strapi entity: `accentToken` and `heroTreatment` (see
+[content-model.md](content-model.md)). Editors choose among existing values; adding a new
+value to either is a code change.
+
+`accentToken` is the fixed colour set those enum values map to, below. `heroTreatment`
+(`still` \| `wash` \| `gradient`) selects which of the Summit hero's existing treatments
+renders — it does not introduce a colour token of its own; it decides whether and how
+`accentToken` is applied to the hero (a static image, an accent wash over
+`backgroundImage`, or an accent gradient with an optional image).
 
 ```css
 @theme {
@@ -153,6 +160,26 @@ choose among them; adding a new one is a code change.
 `--color-summit-ember` is close to the fire hue and is the one to watch: it must never be
 used where it could be mistaken for a live state or a primary CTA. If that proves
 confusing in practice, delete it rather than adding a rule about it.
+
+### Schedule Event type aliases
+
+The Schedule Event `type` enum (`talk` | `screening` | `summit` | `workshop` | `other`)
+drives the calendar legend. The calendar consumes these semantic aliases rather than
+choosing palette values or inventing hexes in a component:
+
+```css
+@theme {
+  --color-event-talk:      var(--color-orbit-400);
+  --color-event-screening: var(--color-nebula-400);
+  --color-event-summit:    var(--color-summit-aurora);
+  --color-event-workshop:  var(--color-ink-body);
+  --color-event-other:     var(--color-ink-muted);
+}
+```
+
+These tokens describe **category**, not time-relative state. None aliases
+`--color-state-live`, `--color-state-upcoming` or the CTA tokens. Labels and the legend
+remain the source of meaning; colour is not the only distinction.
 
 ## Typography
 

@@ -163,7 +163,7 @@ One entry per year. **A new year must be addable without touching layout.**
 | `sponsorshipPdf` | media | F | The "Become a Partner" target |
 | `registrationUrl` | url? | F | Null disables the Register CTA |
 | `accentToken` | **enum** | F | `aurora` \| `ion` \| `violet` \| `ember` |
-| `heroTreatment` | **enum** | F | Fixed set, defined in code |
+| `heroTreatment` | **enum** | F | `still` \| `wash` \| `gradient` — treatments of the one Summit hero layout: a static image, an accent wash over `backgroundImage`, or an accent gradient with an optional image. Never a new layout. |
 | `backgroundImage` | media? | F | |
 
 The last three are the **only** place in this project where a CMS field selects a design
@@ -195,7 +195,7 @@ Google-Calendar-style month view. **Forward-looking**, and distinct from Timelin
 | --- | --- | --- | --- |
 | `startsAt` | datetime | F | |
 | `endsAt` | datetime? | F | |
-| `type` | enum | F | Drives colour; the legend sits beside the calendar |
+| `type` | enum | F | `talk` \| `screening` \| `summit` \| `workshop` \| `other`. Drives colour; the legend sits beside the calendar. Frontend colour mapping is a later change. |
 | `location` | string? | L | |
 | `title` | string | L | |
 | `description` | text? | L | |
