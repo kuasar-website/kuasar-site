@@ -20,7 +20,7 @@
 ## 4. Verify behavior and gates
 
 - [x] 4.1 Create a temporary local proof route with realistic Turkish and English labels and enough vertical space to exercise initially visible and initially off-screen reveal instances; do not commit the route or its copy.
-- [ ] 4.2 Manually verify all three action types with keyboard focus, fine-pointer hover, touch/mobile emulation, and reduced motion; verify native view-timeline and forced observer paths, and attach the required short motion recording to the PR because Tier A cannot judge motion feel.
+- [x] 4.2 Manually verify all three action types with keyboard focus, fine-pointer hover, touch/mobile emulation, and reduced motion; verify native view-timeline and forced observer paths, and attach the required short motion recording to the PR because Tier A cannot judge motion feel.
 - [x] 4.3 Run typecheck, ESLint, Stylelint, reduced-motion CSS, locale parity, budget fixtures, the production build, and route budgets; record that Tier A covers imports/properties/durations/reduced-motion presence but browser behavior and motion feel remain manual review.
 - [x] 4.4 Inspect the production/client graph to confirm `ActionLink` stays server-renderable, reveal code appears only where imported, no animation library is reachable, and route first-load JS remains within budget.
 - [x] 4.5 Remove the temporary proof route, run strict OpenSpec validation for `interaction-primitives`, and review the final diff against ADR 0003, ADR 0004, `design/motion.md`, `design/tokens.md`, and the Dev 2 assignment before requesting review.
