@@ -12,7 +12,8 @@
     "check:locale-parity": "node scripts/checks/locale-parity.mjs",
     "check:budgets": "node scripts/checks/budgets.mjs",
     "test:budgets": "node --test scripts/checks/budgets.test.mjs",
-    "test:time": "npm --prefix tests/time test --"
+    "test:time": "npm --prefix tests/time test --",
+    "test:cms": "node --test apps/web/lib/cms/*.test.ts"
   },
   "engines": {
     "node": "24.x"
