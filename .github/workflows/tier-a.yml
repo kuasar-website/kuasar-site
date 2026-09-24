@@ -57,6 +57,9 @@ jobs:
       - name: Budget-checker fixture suite
         run: npm run test:budgets
 
+      - name: Content pipeline tests
+        run: npm run test:content --if-present
+
       # The budget-enforcement step below inspects apps/web/.next/ — it
       # does not build anything itself (design.md's "Workflow" decision).
       # A fresh build must succeed here, immediately before it runs, so a
