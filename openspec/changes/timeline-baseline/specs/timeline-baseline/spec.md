@@ -51,3 +51,14 @@ The home timeline section SHALL offer a localized link to `/en/timeline` or `/tr
 #### Scenario: Nonempty collection
 - **WHEN** either locale has one or more entries
 - **THEN** the home section links to its matching timeline route, which presents the full history with correct localized canonical and alternate links
+
+### Requirement: Page semantics and entry links
+The full timeline SHALL expose one page-level heading and subordinate entry headings, while the home section SHALL remain subordinate to the home heading. Entry link targets SHALL be stable across locales.
+
+#### Scenario: Full page and home section
+- **WHEN** either locale renders the full timeline or its home section
+- **THEN** the full page uses h1/h2 and the home section uses h2/h3 without changing entry content
+
+#### Scenario: Cross-locale entry target
+- **WHEN** an entry with the same stable identifier is linked in the other locale
+- **THEN** its fragment resolves to the same entry identifier, including non-ASCII identifiers

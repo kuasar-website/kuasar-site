@@ -61,3 +61,10 @@ in Firefox. Fixture content is synthetic and is never used by production routes.
 Test empty production routes after integration. Measure real route budgets then;
 passing fixture tests does not establish route performance or complete integration.
 A real-device visual/copy review remains required.
+
+## Route preparation
+
+Use `headingLevel={1}` on the future full page; default 2 is for a home section.
+Use `timelineEntryFragment(instanceId, entryId)` when linking to an entry in another
+locale, with the destination instance ID. See the OpenSpec integration.md for the
+actual upstream contract mapping and unresolved rendering/image decisions.

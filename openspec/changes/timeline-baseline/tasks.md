@@ -24,3 +24,8 @@ Browser/component revision: `acf880a0c773459249c3cb68da79128b50a9ab0e`.
 - Tier B timeline baseline passed: https://github.com/kuasar-website/kuasar-site/actions/runs/35564518901
 - 8 SSR tests and 29 browser tests passed. One Firefox CDP touch case is deliberately skipped; Chromium verifies the gesture.
 - Task 3.2 verifies the isolated component using real production CSS, not production routes. Tasks 2.1–2.3, production budget verification in 3.1, and human baseline review in 3.3 remain open.
+
+## Integration preparation — 2026-09-25
+
+See integration.md for the inspected upstream interfaces and concrete remaining decisions.
+Page-level heading support and locale-stable entry fragments are implemented; 10 SSR tests, web typecheck, ESLint and component Stylelint pass locally. Production route integration remains unchecked.

@@ -21,6 +21,8 @@ type Props = {
   entries: readonly TimelineEntry[];
   /** Supply only after the corresponding full timeline route exists. */
   viewMoreHref?: string;
+  /** Use 1 on the full timeline page; home sections keep the default 2. */
+  headingLevel?: 1 | 2;
 };
 
 const copy = {
@@ -48,17 +50,28 @@ const copy = {
   },
 } as const;
 
+/** Stable across locale changes; instance id must match the destination timeline. */
+export function timelineEntryId(instanceId: string, entryId: string) {
+  return `${instanceId}-entry-${encodeURIComponent(entryId)}`;
+}
+
+export function timelineEntryFragment(instanceId: string, entryId: string) {
+  return `#${encodeURIComponent(timelineEntryId(instanceId, entryId))}`;
+}
+
 /** Native baseline: no client boundary, clock, event handler or carousel library. */
-export function Timeline({ id, locale, entries, viewMoreHref }: Props) {
+export function Timeline({ id, locale, entries, viewMoreHref, headingLevel = 2 }: Props) {
   if (entries.length === 0) return null;
   const labels = copy[locale];
+  const Heading = headingLevel === 1 ? "h1" : "h2";
+  const EntryHeading = headingLevel === 1 ? "h2" : "h3";
   // ISO date-only keys sort chronologically without a server clock or timezone.
   const ordered = [...entries].sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
 
   return (
     <section className={styles.timeline} lang={locale} aria-labelledby={`${id}-title`}>
       <header className={styles.header}>
-        <h2 id={`${id}-title`}>{labels.title}</h2>
+        <Heading className={styles.title} id={`${id}-title`}>{labels.title}</Heading>
         {viewMoreHref && <a href={viewMoreHref}>{labels.more} <span aria-hidden="true">→</span></a>}
       </header>
       <p className={styles.direction}>{labels.now} · {labels.direction}</p>
@@ -67,9 +80,9 @@ export function Timeline({ id, locale, entries, viewMoreHref }: Props) {
         aria-labelledby={`${id}-title`} aria-describedby={`${id}-instructions`}>
         <ol className={styles.entries} role="list">
           {ordered.map((entry) => (
-            <li key={entry.id} className={styles.entry} tabIndex={0}>
+            <li key={entry.id} id={timelineEntryId(id, entry.id)} className={styles.entry} tabIndex={0}>
               <p className={styles.meta}><time dateTime={entry.date}>{entry.date}</time> · {labels.kinds[entry.kind]}</p>
-              <h3>{entry.title}</h3>
+              <EntryHeading className={styles["entry-title"]}>{entry.title}</EntryHeading>
               {entry.image && (
                 // Native lazy images keep this presentation independent of routing/image configuration.
                 // eslint-disable-next-line @next/next/no-img-element

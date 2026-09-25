@@ -13,17 +13,17 @@
   gap: calc(4 * var(--spacing));
 }
 
-.timeline h2,
-.timeline h3 {
+.title,
+.entry-title {
   color: var(--color-ink);
   overflow-wrap: anywhere;
 }
 
-.timeline h2 {
+.title {
   font-size: var(--text-3xl);
 }
 
-.timeline h3 {
+.entry-title {
   margin-block: calc(4 * var(--spacing));
   font-size: var(--text-xl);
 }

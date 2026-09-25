@@ -18,7 +18,7 @@ const module = { exports: {} };
 runInThisContext(`(function(require,module,exports){${outputText}\n})`)(
   (id) => id.endsWith('.css') ? { __esModule: true, default: new Proxy({}, { get: (_, name) => String(name) }) } : requireWeb(id), module, module.exports,
 );
-const { Timeline } = module.exports;
+const { Timeline, timelineEntryId, timelineEntryFragment } = module.exports;
 const entry = (i) => ({ id: `entry-${i}`, date: `2022-01-${String(i % 28 + 1).padStart(2, '0')}`, kind: 'milestone', title: `Record ${i}`, body: `Caption ${i}` });
 const render = (locale, entries, props = {}) => renderToStaticMarkup(createElement(Timeline, { id: 'history', locale, entries, ...props }));
 
@@ -52,5 +52,22 @@ for (const locale of ['en', 'tr']) {
     assert.match(html, /width="640" height="400"/);
     assert.ok(html.includes(locale === 'tr' ? 'Bu sayfa henüz Türkçe olarak mevcut değil.' : 'This page is not yet available in English.'));
     assert.match(html, /href="\/other-locale"/);
+  });
+}
+
+for (const locale of ['en', 'tr']) {
+  test(`${locale}: full-page heading hierarchy and stable translation targets`, () => {
+    const record = { ...entry(0), id: 'ödül % 2026' };
+    const html = render(locale, [record], { headingLevel: 1 });
+    assert.match(html, /<h1[^>]*id="history-title"/);
+    assert.match(html, /<h2[^>]*>Record 0<\/h2>/);
+    assert.doesNotMatch(html, /<h3/);
+    const target = timelineEntryId('history', record.id);
+    assert.ok(html.includes(`id="${target}"`));
+    assert.equal(decodeURIComponent(timelineEntryFragment('history', record.id).slice(1)), target);
+    const section = render(locale, [record]);
+    assert.match(section, /<h2[^>]*id="history-title"/);
+    assert.match(section, /<h3[^>]*>Record 0<\/h3>/);
+    assert.doesNotMatch(section, /<h1/);
   });
 }

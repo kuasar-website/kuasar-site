@@ -29,3 +29,9 @@ Non-goals: implementing upstream loaders, locale router, site shell, home compos
 ## Migration Plan
 
 Submit an explicitly draft preparation change. Once upstream contracts land, add the DEV 5 route adapter, provide the home component to DEV 2, run Tier A plus dedicated browser scenarios, and obtain baseline review before any signature work. Reverting this preparation removes only its own component and artifacts.
+
+## Integration preparation (2026-09-25)
+
+See integration.md for inspected PR contracts and remaining field/rendering decisions.
+The presentation now supports an explicit page heading level and locale-stable entry
+fragments; this enables route composition without creating routes or duplicating loaders.
