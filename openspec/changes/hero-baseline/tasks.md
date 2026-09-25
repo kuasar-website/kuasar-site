@@ -18,3 +18,8 @@
 - Tier B hero baseline: https://github.com/kuasar-website/kuasar-site/actions/runs/35617380497
 - 3 SSR/artwork tests and 20 Chromium/Firefox browser tests passed.
 - These results cover the isolated hero with production token CSS and test-only links, not future shared actions or home integration. Section 2 remains open.
+
+## Integration preparation — 2026-09-25
+
+See integration.md for the inspected upstream interfaces and concrete remaining decisions.
+Shared ActionLink composition and shell ownership are documented. The sponsor destination and actual home integration remain unchecked; no production destination is guessed.
