@@ -1,0 +1,105 @@
+.action {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  display: inline-flex;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  gap: calc(var(--spacing) * 2);
+  justify-content: center;
+  line-height: var(--text-sm--line-height); /* stylelint-disable-line custom-property-pattern -- Tailwind v4 compound type token. */
+  max-inline-size: 100%;
+  min-block-size: calc(var(--spacing) * 11);
+  min-inline-size: 0;
+  padding-block: calc(var(--spacing) * 3);
+  padding-inline: calc(var(--spacing) * 5);
+  text-align: center;
+  text-decoration: none;
+  text-wrap: balance;
+}
+
+.action > span:first-child {
+  min-inline-size: 0;
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--color-orbit-400);
+  outline-offset: 3px;
+}
+
+.primary,
+.secondary {
+  transition-duration: var(--duration-fast);
+  transition-property: transform;
+  transition-timing-function: var(--ease-out);
+}
+
+.primary {
+  background-color: var(--color-cta);
+  border-color: var(--color-cta);
+  color: var(--color-cta-ink);
+}
+
+.secondary {
+  background-color: transparent;
+  border-color: var(--color-border-strong);
+  color: var(--color-ink);
+}
+
+.text {
+  border-color: transparent;
+  color: var(--color-ink-body);
+  justify-content: flex-start;
+  padding-inline: 0;
+}
+
+.arrow {
+  display: inline-block;
+  transition-duration: var(--duration-fast);
+  transition-property: transform;
+  transition-timing-function: var(--ease-out);
+}
+
+.primary:active,
+.secondary:active {
+  transform: scale(0.98);
+  transition-duration: var(--duration-instant);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .primary:hover {
+    background-color: var(--color-cta-hover);
+    border-color: var(--color-cta-hover);
+    transform: scale(1.01);
+  }
+
+  .secondary:hover {
+    border-color: var(--color-ink);
+    transform: scale(1.01);
+  }
+
+  .text:hover {
+    color: var(--color-ink);
+  }
+
+  .text:hover .arrow {
+    transform: translateX(calc(var(--spacing) / 2));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary,
+  .secondary,
+  .arrow {
+    transition: none;
+  }
+
+  .primary:hover,
+  .primary:active,
+  .secondary:hover,
+  .secondary:active,
+  .text:hover .arrow {
+    transform: none;
+  }
+}
