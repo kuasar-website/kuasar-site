@@ -11,7 +11,8 @@
     "check:reduced-motion-css": "node scripts/checks/reduced-motion-css.mjs",
     "check:locale-parity": "node scripts/checks/locale-parity.mjs",
     "check:budgets": "node scripts/checks/budgets.mjs",
-    "test:budgets": "node --test scripts/checks/budgets.test.mjs"
+    "test:budgets": "node --test scripts/checks/budgets.test.mjs",
+    "test:time": "npm --prefix tests/time test --"
   },
   "engines": {
     "node": "24.x"
