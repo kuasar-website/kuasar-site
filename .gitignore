@@ -10,7 +10,7 @@ skills-lock.json
 node_modules/
 .pnpm-store/
 
-# Secrets. These live in the Vercel and Render dashboards and are never committed.
+# Secrets. These live in the Vercel and DigitalOcean dashboards and are never committed.
 .env
 .env.*
 !.env.example

@@ -17,7 +17,7 @@ step 1. Once it exists, replace every occurrence in this repository.
 | Piece | Provider | Plan | Cost | What it does |
 | --- | --- | --- | --- | --- |
 | Website | Vercel | Hobby | $0 | Serves the public site. Static, rebuilt on demand |
-| CMS | Render | Starter | ~$7/mo | Strapi admin panel. Editors log in here |
+| CMS | DigitalOcean | App Platform, 512 MB container | ~$5/mo | Strapi admin panel. Editors log in here |
 | Database | Neon | Free | $0 | Postgres behind Strapi |
 | Media | Cloudflare R2 | Free tier | ~$0 | Photographs and files. No egress charges |
 | Image resizing | Cloudflare | Free tier | ~$0 | 5,000 unique transformations/mo free |
@@ -25,7 +25,7 @@ step 1. Once it exists, replace every occurrence in this repository.
 | Code + CI | GitHub | Free, **public** (step 0 — not done yet) | $0 | Unlimited Actions minutes; branch protection |
 | Media archive | Google Workspace | Club account | TBD | Shared Drive holding the original photography |
 
-**Total: roughly $7/month plus the domain.** Budget ceiling is ~$15/month — see
+**Total: roughly $5/month plus the domain.** Budget ceiling is ~$15/month — see
 [../adr/0001-stack.md](../adr/0001-stack.md) before adding anything paid.
 
 **The most important thing in this document:** if Strapi is down, *the website stays up*.
@@ -57,7 +57,7 @@ In order:
 
 1. **Audit the history for secrets.** `git log -p | grep -iE 'secret|token|password|key='`
    is a crude first pass; read anything it flags. There should be nothing — secrets live in
-   the Vercel and Render dashboards — but confirm rather than assume.
+   the Vercel and DigitalOcean dashboards — but confirm rather than assume.
 2. **Settings → General → Danger Zone → Change visibility → Public.**
 3. **Settings → Advanced Security:** switch on **secret scanning** and **push protection**.
    Both are free on public repositories, and push protection is the one that stops the
@@ -96,9 +96,6 @@ grep -rl '<DOMAIN>' --exclude-dir=.git . | xargs sed -i 's/<DOMAIN>/your-domain.
 ### 2. Create the Neon database
 
 Neon free tier, club account. Create a project and a database for Strapi.
-
-**Do not use Render's free Postgres.** Free databases there are capped and deleted a fixed
-period after creation — you will lose everything on a schedule you did not notice.
 
 Copy the pooled connection string. Neon's free tier includes connection pooling; use the
 pooled endpoint, not the direct one, because Strapi opens more connections than the direct
@@ -139,24 +136,39 @@ folder, move it into a Shared Drive now, while somebody still has the access to 
 If there is no such Drive at all, stop and say so. Decision 6 in ADR 0002 is void without
 it, and an off-provider copy of the R2 bucket becomes necessary instead.
 
-### 4. Deploy Strapi to Render
+### 4. Deploy Strapi to DigitalOcean App Platform
 
-Create a Render **Starter** service of type **Docker** (not a Node/Nixpacks build). It does
-**not** build from source — it pulls a prebuilt image:
+Create the DigitalOcean account under the club (decision 9 of ADR 0002). If a card is
+declined, add **PayPal** as the payment method instead — that is why DigitalOcean was
+chosen over Render.
 
-- **Image:** `ghcr.io/kuasar-website/kuasar-site/cms:latest`, published to GHCR by
+Create an App Platform app from a **container image** (not from a GitHub repository — a
+source build OOMs). It does **not** build from source; it pulls a prebuilt image:
+
+- **Image:** registry type **GitHub Container Registry**, repository
+  `kuasar-website/kuasar-site/cms`, tag `latest`. Published by
   `.github/workflows/cms-deploy.yml` on every push to `main` that touches `apps/cms/**`,
   and on manual dispatch. The admin panel is compiled in that workflow, never on the
-  Starter instance — this is the fix for the 512 MB OOM below, applied ahead of time
-  rather than after a failed deploy.
-- **GHCR package:** `kuasar-site/cms`, owned by the `kuasar-website` GitHub org. Make it
-  visible to Render (public package, or a pull token in Render's registry credentials).
-- **Deploy trigger:** add the Render service's **Deploy Hook URL** to the repository as the
-  `RENDER_DEPLOY_HOOK_URL` Actions secret. The workflow's `deploy` job POSTs it after the
-  image is pushed. Without it the workflow still builds and pushes; only the automatic
-  redeploy is skipped.
-- **Do not** create the service as a Node build "to try Starter first" — the first deploy
-  then OOMs before the Docker service exists. Docker from the start.
+  instance — this is the fix for the 512 MB OOM below, applied ahead of time rather than
+  after a failed deploy.
+- **GHCR package visibility: public.** In the `kuasar-website` org, Packages → `cms` →
+  Package settings → Change visibility → Public. Leave App Platform's registry
+  credentials empty. A private package would need a personal GitHub token that breaks
+  when its owner leaves — see ADR 0002 decision 4.
+- **Size and region:** the $5/month 512 MB container, region Frankfurt (`fra`). HTTP port
+  `1337`.
+- **Deploy trigger:** App Platform does not redeploy by itself when a GHCR tag changes, so
+  the workflow's `deploy` job calls the DigitalOcean API. Add two Actions secrets to the
+  repository:
+  - `DIGITALOCEAN_APP_ID` — the app's ID, from its URL in the control panel or
+    `doctl apps list`.
+  - `DIGITALOCEAN_ACCESS_TOKEN` — API → Tokens → Generate, **custom scopes limited to
+    `app`** (read and update), not full access. Record its expiry in
+    [../HANDOVER.md](../HANDOVER.md).
+
+  Without them the workflow still builds and pushes; only the automatic redeploy fails.
+- **Do not** create the app from the GitHub repository "to try it first" — that is a
+  source build, and it OOMs. Container image from the start.
 
 Environment variables:
 
@@ -175,13 +187,13 @@ Environment variables:
 
 **The admin OOM is already handled.** Strapi's admin-panel build is memory-hungry and
 out-of-memory during build is the single most common Strapi deployment failure. Because the
-Render service runs a prebuilt image (step 4) and only ever calls `strapi start`, that
-build never runs on the 512 MB instance. If you ever see an OOM on Render, something has
-reverted the service to a source build — fix that, do **not** upsize the instance. The
+App Platform app runs a prebuilt image (step 4) and only ever calls `strapi start`, that
+build never runs on the 512 MB instance. If you ever see an OOM on App Platform, something
+has reverted the app to a source build — fix that, do **not** upsize the instance. The
 spike is at build time, not run time.
 
-Create the first admin user by hand through the Render URL (`/admin`) as soon as the
-service is live, before anyone else finds it. No Super Admin is created in code.
+Create the first admin user by hand through the App Platform URL (`/admin`) as soon as the
+app is live, before anyone else finds it. No Super Admin is created in code.
 
 ### 5. Configure the upload provider
 
@@ -316,7 +328,7 @@ does not verify itself.
 ### Rotating credentials
 
 When someone with access leaves, rotate in this order: Strapi admin users first (remove
-theirs), then `PREVIEW_SECRET` and `REVALIDATE_SECRET` in both Render and Vercel, then the
+theirs), then `PREVIEW_SECRET` and `REVALIDATE_SECRET` in both App Platform and Vercel, then the
 R2 API token, then the Neon connection string. Update
 [../HANDOVER.md](../HANDOVER.md) as you go.
 
@@ -356,14 +368,15 @@ Two of those will bite you during a restore, so know them before you start:
 
 | Symptom | Most likely cause |
 | --- | --- |
-| Strapi build fails on Render | The service is doing a source build. It must be a Docker service running the GHCR image from `cms-deploy.yml` (step 4) — the admin is built in CI. Do not upsize |
-| `cms-deploy.yml` builds but Render does not redeploy | `RENDER_DEPLOY_HOOK_URL` secret missing or stale. Re-copy the Deploy Hook URL from the Render service settings |
+| Strapi build fails on App Platform | The component is doing a source build. It must be a container-image component running the GHCR image from `cms-deploy.yml` (step 4) — the admin is built in CI. Do not upsize |
+| `cms-deploy.yml` builds but App Platform does not redeploy | `DIGITALOCEAN_ACCESS_TOKEN` or `DIGITALOCEAN_APP_ID` secret missing, expired or wrong. See step 4 |
+| App Platform cannot pull the image | The GHCR package was made private. Set it back to public (step 4) |
 | Upload fails with an ACL error | `ACL` is set in the provider config. R2 does not support it — remove it |
 | Images 404 at `media.<DOMAIN>` | Custom domain not bound to the bucket, or DNS not propagated |
 | Every image suddenly unoptimised | Transformation allowance exceeded. Check Cloudflare usage; 5,000 unique/mo are free |
 | Published change does not appear | Webhook not reaching Vercel. Check Strapi's webhook delivery log first |
 | Preview shows a blank frame | Frontend is refusing to be framed by the Strapi origin |
-| Preview 401s | `PREVIEW_SECRET` differs between Render and Vercel |
+| Preview 401s | `PREVIEW_SECRET` differs between App Platform and Vercel |
 | Site builds fail, frontend unchanged | Strapi is down. The build reads from Strapi — see ADR 0001, Consequences |
 | Dates show the wrong "upcoming" state | Something computed time on the server. All time-relative state is client-derived — ADR 0001, rule 3 |
 

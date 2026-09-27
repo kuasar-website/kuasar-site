@@ -10,10 +10,6 @@ import { isDatabaseClientKind } from '@strapi/database';
  * Strapi opens more connections than Neon's direct endpoint is comfortable with; the
  * pooler is what the runbook and docs/adr/0002-cms.md decision 4 require.
  *
- * Production MUST NOT use Render's Postgres offering. Render's free databases are capped
- * and deleted a fixed period after creation — see docs/adr/0002-cms.md decision 4 and
- * docs/ops/cms-runbook.md step 2.
- *
  * Set the connection through `DATABASE_URL`. SSL is on by default for Postgres because
  * Neon requires it; a local Postgres without TLS can set `DATABASE_SSL=false`.
  */
