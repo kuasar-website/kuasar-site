@@ -47,13 +47,12 @@ Record their state on the PR. Do not tick any of these on assumption.
 
 ## 6. Documents
 
-- [x] 6.1 `docs/adr/0002-cms.md` §5: add one sentence on overflow. Past 5,000 on the Free plan, new transformations return 9422, `onerror=redirect` serves the original, cached sizes keep working, and there is no charge. Point to this change's design.
-- [x] 6.2 `docs/ops/cms-runbook.md`:
+- [x] 6.1 `docs/ops/cms-runbook.md`:
   - Step 3: keep `r2.dev` disabled, enable Transformations (same-zone sources), add a cache rule for `media.kuasar.org`.
   - Step 5: responsive formats and size optimisation are enforced off at boot; do not upload real content until `R2_PUBLIC_URL` is set; prefer uploading a new asset over "replace", because R2 has no versioning and the edge caches.
   - Monthly check: add one line — read the unique-transformation count on the Cloudflare dashboard. At 4,000 or more, apply design.md decision 2's contingency (single format first, then fewer widths).
   - Troubleshooting: replace "Every image suddenly unoptimised" with "Images suddenly slow/heavy → transformation allowance exhausted, originals served via `onerror=redirect`; resets monthly". Add a row for the build failing with a non-media image host → re-upload after `R2_PUBLIC_URL` is set.
-- [x] 6.3 Do **not** run the global `<DOMAIN>` replacement. That is runbook step 1, done by flight-ops when the zone exists (task 0.1).
+- [x] 6.2 Do **not** run the global `<DOMAIN>` replacement. That is runbook step 1, done by flight-ops when the zone exists (task 0.1).
 
 ## 7. Verification — which gate covers what
 

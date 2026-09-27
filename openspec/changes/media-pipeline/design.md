@@ -70,7 +70,7 @@ Either lever is a code change to `apps/web/lib/media/cloudflare-loader.ts` or `n
 
 On the Free plan, new transformations return error 9422 and cached ones keep working. With `onerror=redirect`, the visitor gets the original from `media.kuasar.org/<key>` instead of a broken image. Because every image has declared `width`/`height` (decision 5), the original is displayed at the right size with **no layout shift**. What the visitor loses is bytes: a multi-megabyte original instead of a ~100 KB derivative. The allowance resets monthly, and there is no charge.
 
-Rejected alternatives: letting new sizes fail (a broken photograph reads as a broken site, the failure ADR 0002 names), and the paid plan ($0.50/1,000 needs a club card, and ADR 0001 sets a ~$15/month ceiling for a failure that sits inside the free allowance). The PR records this whole paragraph. `docs/adr/0002-cms.md` §5 gets one sentence stating the overflow behaviour, and the runbook troubleshooting row changes from "every image suddenly unoptimised" to "images suddenly slow/heavy → transformation allowance".
+Rejected alternatives: letting new sizes fail (a broken photograph reads as a broken site, the failure ADR 0002 names), and the paid plan ($0.50/1,000 needs a club card, and ADR 0001 sets a ~$15/month ceiling for a failure that sits inside the free allowance). The PR records this whole paragraph, and the runbook troubleshooting row changes from "every image suddenly unoptimised" to "images suddenly slow/heavy → transformation allowance".
 
 ### 4. A host guard at the data boundary fails the build
 
@@ -185,7 +185,6 @@ These are verified by hand once the blockers clear.
 - **Runbook step 3:** leave `r2.dev` public access **disabled**. Enable **Images → Transformations** on the `kuasar.org` zone, allowing only same-zone sources, which is the default. Add a cache rule giving `media.kuasar.org` a long edge TTL.
 - **Runbook step 5:** state that responsive formats and size optimisation are enforced off at boot.
 - **Troubleshooting:** the 9422 / slow-images row.
-- **ADR 0002 §5:** gains the overflow sentence and a pointer to this design.
 
 The global `<DOMAIN>` → `kuasar.org` replacement is runbook step 1, owned by flight-ops when the transfer completes. It is **not** done here, so that the docs do not claim a zone exists before it does.
 
