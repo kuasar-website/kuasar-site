@@ -54,7 +54,7 @@
       `dynamicParams = false`, defensive `notFound()`, and no request-path fetch.
 - [x] 4.4 Generate archive canonical/alternates from the localization helper and detail
       canonical/`hreflang`/`x-default` from the matched mission's two localized slugs.
-- [ ] 4.5 Hand the newly published fixed and dynamic mission routes to Dev 3 for inclusion
+- [x] 4.5 Hand the newly published fixed and dynamic mission routes to Dev 3 for inclusion
       in their owned `app/sitemap.ts`; do not cross that file-zone boundary silently.
 
 ## 5. Verification and handoff
@@ -77,6 +77,6 @@
 - [x] 5.7 Run typecheck, ESLint, Stylelint, reduced-motion CSS, locale parity, content tests,
       production build, import-graph/first-load budget checks, and strict OpenSpec
       validation; mission routes must stay ≤175 KB with 0 KB deferred animation.
-- [ ] 5.8 Remove all temporary fixtures/proof artifacts, confirm only Dev 2's assigned
+- [x] 5.8 Remove all temporary fixtures/proof artifacts, confirm only Dev 2's assigned
       mission paths and this OpenSpec change remain, then push a separate review PR without
       merging it.
