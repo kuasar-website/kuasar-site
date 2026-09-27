@@ -1,8 +1,9 @@
 name: CMS deploy
 
 # Builds the Strapi admin panel in CI (where there is more than 512 MB), pushes a
-# production image to GHCR, and tells Render to pull it. Render Starter runs the image
-# and never compiles the admin — see docs/adr/0002-cms.md decision 4.
+# production image to GHCR (public package), and tells DigitalOcean App Platform to pull
+# it. The 512 MB App Platform container runs the image and never compiles the admin — see
+# docs/adr/0002-cms.md decision 4.
 #
 # This is a deploy path, not a merge gate. No Tier A / Tier B check asserts the CMS
 # schema (docs/adr/0004-verification.md); docs/task-assignments.html marks cms-platform
@@ -65,12 +66,18 @@ jobs:
     needs: build-push
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Render deploy
+      - name: Trigger App Platform deploy
         env:
-          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          APP_ID: ${{ secrets.DIGITALOCEAN_APP_ID }}
         run: |
-          if [ -z "$HOOK" ]; then
-            echo "RENDER_DEPLOY_HOOK_URL is not set — skipping. Add it in repo Settings > Secrets once the Render Docker service exists (docs/ops/cms-runbook.md step 4)." >&2
+          if [ -z "$TOKEN" ] || [ -z "$APP_ID" ]; then
+            echo "DIGITALOCEAN_ACCESS_TOKEN or DIGITALOCEAN_APP_ID is not set — skipping. Add both in repo Settings > Secrets once the App Platform app exists (docs/ops/cms-runbook.md step 4)." >&2
             exit 1
           fi
-          curl -fsS -X POST "$HOOK"
+          # App Platform does not watch GHCR tags; a new deployment re-pulls :latest.
+          curl -fsS -X POST \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"force_build": false}' \
+            "https://api.digitalocean.com/v2/apps/$APP_ID/deployments" > /dev/null
