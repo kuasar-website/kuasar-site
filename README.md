@@ -20,7 +20,7 @@ section as an inventory of what runs — check `apps/web/package.json` (and, onc
 Next.js 16 (App Router) and TypeScript on Vercel, statically generated with on-demand
 revalidation — visitors never wait on a database, and the site stays up when the CMS is down.
 
-Strapi 5 CE on Render with Postgres on Neon, media on Cloudflare R2. One repository, npm
+Strapi 5 CE on DigitalOcean App Platform with Postgres on Neon, media on Cloudflare R2. One repository, npm
 workspaces, Node 24 LTS.
 
 ## Running it locally
@@ -37,7 +37,7 @@ npm run develop -w apps/cms  # Strapi → http://localhost:1337/admin
 ```
 
 The site needs environment variables to reach Strapi: copy `apps/web/.env.example` to
-`.env.local` and fill it. Secrets live in the Vercel and Render dashboards, never in this
+`.env.local` and fill it. Secrets live in the Vercel and DigitalOcean dashboards, never in this
 repository.
 
 ## Layout
@@ -45,7 +45,7 @@ repository.
 ```
 apps/web/            Next.js site → Vercel                (scaffolded)
   └ public/brand/    Wordmark SVG                         (committed)
-apps/cms/            Strapi CMS → Render                  (planned)
+apps/cms/            Strapi CMS → DigitalOcean            (planned)
 content/missions/    Mission content, in git              (planned)
 content/timeline/    Timeline entries, in git             (planned)
 design/              Design system: tokens, motion, content model, i18n, brand

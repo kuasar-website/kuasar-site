@@ -5,7 +5,7 @@ const TURKISH_LOCALE = { code: 'tr', name: 'Turkish (tr)' };
 const REQUIRED_R2_VARS = ['R2_ENDPOINT', 'R2_BUCKET', 'R2_ACCESS_KEY_ID', 'R2_ACCESS_SECRET'] as const;
 
 /**
- * R2 is REQUIRED in production: Render's disk is ephemeral, so a local-disk upload
+ * R2 is REQUIRED in production: App Platform's disk is ephemeral, so a local-disk upload
  * vanishes on the next deploy and takes every photograph with it (docs/adr/0002-cms.md
  * decision 5). This must run in `register()`, the earliest application lifecycle hook,
  * rather than in `config/plugins.ts` — Strapi evaluates config modules both when starting

@@ -1,6 +1,6 @@
 ## Purpose
 
-Gives editors a Strapi 5 admin on Render, backed by Neon Postgres, in which they can create and translate the seven Strapi-resident collections in English and Turkish without touching git, and without a schema that ranks sponsors or lets an alumnus portrait publish without consent.
+Gives editors a Strapi 5 admin on DigitalOcean App Platform, backed by Neon Postgres, in which they can create and translate the seven Strapi-resident collections in English and Turkish without touching git, and without a schema that ranks sponsors or lets an alumnus portrait publish without consent.
 
 ## ADDED Requirements
 
@@ -113,19 +113,19 @@ The CMS SHALL provide an Editor role distinct from Super Admin. Editors SHALL cr
 - **WHEN** a Super Admin is signed in
 - **THEN** they retain full administration, including schema and user management, which an Editor does not
 
-### Requirement: Hosting uses Render Starter and Neon pooled Postgres
-The production CMS process SHALL run on Render Starter and SHALL use a Neon pooled Postgres connection string as its database URL. It SHALL NOT use Render's Postgres offering.
+### Requirement: Hosting uses DigitalOcean App Platform and Neon pooled Postgres
+The production CMS process SHALL run on a 512 MB DigitalOcean App Platform container, pulling a public GHCR image, and SHALL use a Neon pooled Postgres connection string as its database URL. It SHALL NOT use a DigitalOcean-hosted database.
 
 #### Scenario: Production database URL is the Neon pooler
 - **WHEN** the production CMS starts
-- **THEN** it connects using the configured `DATABASE_URL` pointing at Neon's pooled endpoint, not at a Render-hosted Postgres instance
+- **THEN** it connects using the configured `DATABASE_URL` pointing at Neon's pooled endpoint, not at a DigitalOcean-hosted database
 
-### Requirement: Admin panel is built in CI, not on Starter
-Deploying the CMS SHALL NOT compile the admin panel on the Render Starter instance. The admin bundle SHALL be produced in GitHub Actions (or an equivalent CI runner with more than 512 MB) and the Starter instance SHALL serve that prebuilt bundle.
+### Requirement: Admin panel is built in CI, not on the App Platform instance
+Deploying the CMS SHALL NOT compile the admin panel on the 512 MB App Platform instance. The admin bundle SHALL be produced in GitHub Actions (or an equivalent CI runner with more than 512 MB) and the App Platform instance SHALL serve that prebuilt bundle.
 
-#### Scenario: Render start does not rebuild admin
-- **WHEN** the CMS is deployed to Render Starter
-- **THEN** the Starter instance starts from a prebuilt admin and does not run the admin compile step that OOMs at 512 MB
+#### Scenario: App Platform start does not rebuild admin
+- **WHEN** the CMS is deployed to App Platform
+- **THEN** the App Platform instance starts from a prebuilt admin and does not run the admin compile step that OOMs at 512 MB
 
 #### Scenario: CI produces the admin bundle
 - **WHEN** the CMS deploy workflow runs

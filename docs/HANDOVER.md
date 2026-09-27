@@ -33,8 +33,8 @@ There are two deployed pieces and they are deliberately independent.
 **The website** is a Next.js app on Vercel. It is *statically generated*: the pages are
 built once and served as files. Visitors never wait on a database.
 
-**The CMS** is Strapi, running on Render with a Postgres database on Neon. Editors log in
-there to add talks, events, announcements, alumni and sponsors. When they publish, Strapi
+**The CMS** is Strapi, running on DigitalOcean App Platform with a Postgres database on
+Neon. Editors log in there to add talks, events, announcements, alumni and sponsors. When they publish, Strapi
 pings the website, which rebuilds the affected pages.
 
 **Photographs and files** live in Cloudflare R2, served from `media.<DOMAIN>`, and are
@@ -42,7 +42,7 @@ resized on the fly by Cloudflare.
 
 **The single most important consequence:** if the CMS is down, **the website is still
 up**. Everything visitors see keeps working. Only editing stops. This was designed in
-deliberately, because the CMS runs on a $7 server owned by people who graduate. Do not
+deliberately, because the CMS runs on a $5 server owned by people who graduate. Do not
 panic-fix a CMS outage.
 
 **The one real catch:** deploys read from the CMS at build time, so while Strapi is down
@@ -70,7 +70,7 @@ the rule, recorded in [adr/0002-cms.md](adr/0002-cms.md) decision 9.
 | Service | What it is for | Owner | Backup owner | Renewal | Cost |
 | --- | --- | --- | --- | --- | --- |
 | Cloudflare | Domain, DNS, R2 media, image resizing | TBD | TBD | TBD | ~$10/yr domain |
-| Render | Runs Strapi (Docker service, pulls the GHCR image) | TBD | TBD | TBD | ~$7/mo |
+| DigitalOcean | Runs Strapi (App Platform service, pulls the public GHCR image). Billed via PayPal if cards are declined | TBD | TBD | TBD | ~$5/mo |
 | Neon | Postgres behind Strapi | TBD | TBD | n/a | $0 |
 | Vercel | Runs the website | TBD | TBD | n/a | $0 (Hobby) |
 | GitHub (`kuasar-website` org) | Code, CI, backups, and the GHCR container image for the CMS (`cms` package). Repository is **public** | TBD | TBD | n/a | $0 |
@@ -123,7 +123,7 @@ npm install
 ```
 
 npm workspaces, Node 24 LTS, pinned in `.nvmrc` and in `engines`. If those versions do not
-match what Vercel and Render are set to, fix that mismatch before debugging anything else —
+match what Vercel and DigitalOcean are set to, fix that mismatch before debugging anything else —
 it is a recurring source of problems that look like code bugs and are not. Vercel offers
 20.x, 22.x and 24.x only, so 24 is both the newest LTS and the newest thing that deploys.
 
@@ -133,7 +133,7 @@ npm run develop -w apps/cms  # Strapi admin at http://localhost:1337/admin
 ```
 
 The website needs environment variables to reach Strapi. Copy `apps/web/.env.example` to
-`.env.local` and fill it. The secrets are in the Vercel and Render dashboards — they are
+`.env.local` and fill it. The secrets are in the Vercel and DigitalOcean dashboards — they are
 not in this repository and must never be committed.
 
 ## Deploying
@@ -143,10 +143,10 @@ not in this repository and must never be committed.
 - Push to `main` → Vercel builds and deploys the website.
 - Push to `main` touching `apps/cms/**` → the **CMS deploy** GitHub Action builds the
   Strapi admin panel, pushes a Docker image to GHCR
-  (`ghcr.io/kuasar-website/kuasar-site/cms`), and pings Render's deploy hook. Render runs
-  the image; it never builds Strapi itself. Why: Strapi's admin build OOMs Render Starter's
-  512 MB — see [adr/0002-cms.md](adr/0002-cms.md) decision 4. The workflow also has a
-  **Run workflow** button for manual redeploys.
+  (`ghcr.io/kuasar-website/kuasar-site/cms`), and asks DigitalOcean App Platform to
+  redeploy. App Platform runs the image; it never builds Strapi itself. Why: Strapi's
+  admin build OOMs the 512 MB instance — see [adr/0002-cms.md](adr/0002-cms.md)
+  decision 4. The workflow also has a **Run workflow** button for manual redeploys.
 
 Pull requests get a Vercel preview URL. Use it; that is what it is for.
 
@@ -166,7 +166,7 @@ grows harder every month.
 
 ```
 apps/web/            Next.js website → Vercel
-apps/cms/            Strapi CMS → Render
+apps/cms/            Strapi CMS → DigitalOcean App Platform
 content/missions/    Mission content (git, one directory per mission)
 content/timeline/    Timeline entries (git)
 design/              Design system: tokens, motion, content model, i18n, brand
@@ -219,7 +219,7 @@ read by you.
 | Document | What it decides |
 | --- | --- |
 | [adr/0001-stack.md](adr/0001-stack.md) | Next.js on Vercel, static rendering, why dates are computed in the browser, repo layout, analytics |
-| [adr/0002-cms.md](adr/0002-cms.md) | Strapi on Render, R2 media, backups, what lives in git vs the CMS, KVKK debt |
+| [adr/0002-cms.md](adr/0002-cms.md) | Strapi on DigitalOcean App Platform, R2 media, backups, what lives in git vs the CMS, KVKK debt |
 | [adr/0003-motion-stack.md](adr/0003-motion-stack.md) | Which animations may use a library and which may not, and why |
 | [adr/0004-verification.md](adr/0004-verification.md) | What CI checks, and what it deliberately does not |
 | [adr/0005-repository-visibility.md](adr/0005-repository-visibility.md) | Why the repository is public, and what that costs |
