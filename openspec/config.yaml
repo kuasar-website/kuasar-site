@@ -12,8 +12,8 @@ context: |
   prospective members (reach Join Us). Everyone else is served by credibility.
 
   Stack — settled, not open for renegotiation. See docs/adr/0001-stack.md.
-  Next.js 16 App Router + TypeScript on Vercel; Strapi 5 CE on Render with Postgres on
-  Neon; media on Cloudflare R2. One repo: apps/web, apps/cms. npm workspaces, Node 24 LTS
+  Next.js 16 App Router + TypeScript on Vercel; Strapi 5 CE on DigitalOcean App
+  Platform with Postgres on Neon; media on Cloudflare R2. One repo: apps/web, apps/cms. npm workspaces, Node 24 LTS
   (Vercel offers 20/22/24 only). Tailwind v4, design tokens as CSS custom properties in
   @theme. The repository is public — that is what makes branch protection and unlimited
   Actions minutes free. See docs/adr/0005-repository-visibility.md.
