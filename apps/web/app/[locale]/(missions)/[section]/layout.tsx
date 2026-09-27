@@ -19,5 +19,5 @@ export function generateStaticParams({ params }: StaticParamsContext) {
 }
 
 export default function MissionSectionLayout({ children }: MissionSectionLayoutProps) {
-  return children;
+  return <>{children}</>;
 }
