@@ -5,11 +5,17 @@ Gives editors a Strapi 5 admin on DigitalOcean App Platform, backed by Neon Post
 ## ADDED Requirements
 
 ### Requirement: Exactly seven locale-enabled collections
-The CMS SHALL expose exactly these seven collection types, each with i18n enabled: Stellar Talk, Nebula Night, Galactic Summit, Schedule Event, Announcement, Alumni, and Sponsor. It SHALL NOT expose any other collection type. Mission and Timeline Entry SHALL NOT appear in the CMS. Each collection SHALL accept zero entries, a single entry, and many entries.
+The CMS SHALL expose exactly these seven **KUASAR/project-defined** content collections in the Content Manager, each with i18n enabled: Stellar Talk, Nebula Night, Galactic Summit, Schedule Event, Announcement, Alumni, and Sponsor. It SHALL NOT expose any other project-defined collection type. Mission and Timeline Entry SHALL NOT appear in the CMS. Each collection SHALL accept zero entries, a single entry, and many entries.
+
+A content type that Strapi or one of its core plugins registers for its own operation — for example `plugin::users-permissions.user`, which backs the Public role's API permissions rather than any project content — is **not** a project-defined content collection and SHALL NOT count toward, or be counted against, the seven. Such a plugin-provided type SHALL NOT be visible in the Content Manager, since it has no editorial purpose here and its presence would be indistinguishable from an unauthorized eighth collection.
 
 #### Scenario: Admin lists only the seven collections
 - **WHEN** an Editor opens the Content Manager
 - **THEN** the collection list contains Stellar Talk, Nebula Night, Galactic Summit, Schedule Event, Announcement, Alumni, and Sponsor, and contains no eighth collection and no Mission or Timeline Entry
+
+#### Scenario: A plugin-provided type stays hidden
+- **WHEN** the `users-permissions` plugin remains enabled for its Public-role API permissions
+- **THEN** its `User` content type does not appear anywhere in the Content Manager's collection list, and the visible list still contains exactly the seven KUASAR collections
 
 #### Scenario: Empty collections are valid
 - **WHEN** a collection has zero published entries
