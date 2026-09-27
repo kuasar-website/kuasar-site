@@ -39,7 +39,7 @@
 - [x] 4.2 At 320 px, keyboard-check all four valid routes for reading/focus order, visible
       focus, complete Turkish labels, one primary CTA per viewport, and no horizontal
       overflow. Repeat with reduced motion and confirm the shared action does not move.
-- [ ] 4.3 Run axe-core on all four valid routes and attach page screenshots to the PR.
+- [x] 4.3 Run axe-core on all four valid routes and attach page screenshots to the PR.
       Record this as manual review evidence: current Tier A does not run an app-level axe
       scan.
 - [x] 4.4 Run Tier A-equivalent checks: typecheck, ESLint, Stylelint, reduced-motion CSS,

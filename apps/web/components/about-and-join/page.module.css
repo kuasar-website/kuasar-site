@@ -55,7 +55,7 @@
 }
 
 .text-sections section {
-  max-inline-size: var(--container-prose);
+  max-inline-size: 60ch;
   padding-block-start: calc(var(--spacing) * 5);
   border-block-start: 1px solid var(--color-border);
 }
