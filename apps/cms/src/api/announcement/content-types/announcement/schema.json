@@ -41,9 +41,8 @@
       "pluginOptions": { "i18n": { "localized": true } }
     },
     "coverImage": {
-      "type": "media",
-      "multiple": false,
-      "allowedTypes": ["images"],
+      "type": "component",
+      "component": "shared.image",
       "pluginOptions": { "i18n": { "localized": false } }
     }
   }

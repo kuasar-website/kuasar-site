@@ -21,10 +21,11 @@
       "pluginOptions": { "i18n": { "localized": false } }
     },
     "photos": {
-      "type": "media",
-      "multiple": true,
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.image",
       "required": true,
-      "allowedTypes": ["images"],
+      "min": 1,
       "pluginOptions": { "i18n": { "localized": false } }
     },
     "title": {

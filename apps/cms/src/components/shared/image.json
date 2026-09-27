@@ -1,0 +1,24 @@
+{
+  "collectionName": "components_shared_images",
+  "info": {
+    "displayName": "Image",
+    "description": "An image with its alt text in both locales. Used by every image field, always non-localized, so the image is chosen once and both alts are filled together (openspec/changes/media-pipeline design.md decision 6). Strapi's own file 'Alternative text' is not used by the site."
+  },
+  "options": {},
+  "attributes": {
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["images"]
+    },
+    "altEn": {
+      "type": "string",
+      "required": true
+    },
+    "altTr": {
+      "type": "string",
+      "required": true
+    }
+  }
+}
