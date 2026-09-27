@@ -31,7 +31,7 @@ const deniedTypes = [
  *   - **ACL is omitted entirely** — R2 does not support it, and almost every S3 example
  *     on the internet sets it.
  *
- * R2 is REQUIRED in production: Render's disk is ephemeral, so a local-disk upload
+ * R2 is REQUIRED in production: App Platform's disk is ephemeral, so a local-disk upload
  * vanishes on the next deploy and takes every photograph with it. That requirement is
  * enforced in `src/index.ts`'s `register()` lifecycle hook, not here — this file is a
  * Strapi config module, and Strapi evaluates config modules while building the admin
