@@ -7,6 +7,7 @@ export default function Home() {
         <Image
           className="h-5 w-[100px] invert"
           src="/next.svg"
+          unoptimized
           alt="Next.js logo"
           width={100}
           height={20}
@@ -48,6 +49,7 @@ export default function Home() {
             <Image
               className="dark:invert h-[14px] w-4"
               src="/vercel.svg"
+              unoptimized
               alt="Vercel logomark"
               width={16}
               height={14}
