@@ -8,7 +8,8 @@ Documentation checked on 2026-09-27, rather than relying on memory:
 - **Cloudflare Images pricing** (`developers.cloudflare.com/images/pricing/`): for images outside Cloudflare Images, "up to 5,000 unique transformations each month for free", then "$0.50 / 1,000" **on the Paid plan**. Each distinct parameter set is one unique transformation, and a repeat within the month counts once. On the Free plan, past the allowance, "existing transformations in cache will continue to be served as expected. New transformations will return a `9422` error", and "you will not be charged".
 - **Cloudflare transform-via-URL**: the URL shape is `https://<ZONE>/cdn-cgi/image/<OPTIONS>/<SOURCE>`, and it requires transformations to be enabled on the zone. Same-zone sources are always allowed. `onerror=redirect` "redirects the end-user to the URL of the original source image when a fatal error prevents the image from being transformed", and it "works only if the image is in the same zone".
 - **R2 custom domains** (`developers.cloudflare.com/r2/buckets/public-buckets/`): the domain must be "a zone in the same account as the R2 bucket". `r2.dev` "is rate-limited and should only be used for development purposes", and it can be disabled.
-- **Strapi 5 Media Library** (`docs.strapi.io/cms/features/media-library`): "Responsive friendly upload" (default **on**) generates small/medium/large formats. "Size optimization" (default **on**) re-encodes. "Auto orientation" (default **off**). All three can be set in the admin panel or through the upload plugin config.
+- **Strapi 5 Media Library** (`docs.strapi.io/cms/features/media-library`): "Responsive friendly upload" (default **on**) generates small/medium/large formats. "Size optimization" (default **on**) re-encodes. "Auto orientation" (default **off**). The docs say these three are "available in the admin panel" only, with no documented config key. **Corrected at apply time against the installed `@strapi/upload`** — see decision 7.
+- **Cloudflare Images features** (`developers.cloudflare.com/images/optimization/features/`): "color profiles and EXIF rotation are applied to the image even if the metadata is discarded". Browsers also apply EXIF orientation to `<img>` by default (`image-orientation: from-image`), so the original served by `onerror=redirect` is displayed upright too.
 
 **Motion: none.** No animation is introduced on any route, and no import reaches an animation library.
 
@@ -129,17 +130,38 @@ The cost of the chosen option is recorded honestly: a third locale would be a sc
 
 Strapi's built-in file `alternativeText` is ignored by the site. The PR notes this, so an editor who fills it is not surprised when it has no effect.
 
-### 7. Strapi stops making derivatives, but keeps auto-orientation
+### 7. Strapi stores the untouched original and records display dimensions
 
-`src/index.ts` `bootstrap` writes the upload plugin settings on every boot: `responsiveDimensions: false`, `sizeOptimization: false`, `autoOrientation: true`. Apply confirms the exact settings API against current Strapi 5 docs; the fallback is the upload plugin config key. Enforcing on boot, rather than trusting the admin toggle, means a Super Admin flipping the switch is corrected at the next deploy. The code comment explains why.
+*Revised during apply (2026-09-27), after reading the installed `@strapi/upload` 5.52.3 source. The original plan was "turn on auto-orientation", which the source shows does not work.*
 
-**Auto-orientation stays on, deliberately.** It is the one image operation left on the instance. A phone photo is stored landscape with an EXIF "rotate 90°" tag, so without auto-orientation Strapi records swapped `width`/`height`, the browser displays the image rotated, and the reserved box has the wrong aspect ratio. That is a guaranteed layout shift on exactly the "real photographs" the acceptance criterion names. The cost is one `sharp` pass per upload. To bound its memory on the 512 MB instance, the upload `sizeLimit` is set to **25 MB**, which is more than a full-resolution launch JPEG and the matching `strapi::body` limit. A larger file is rejected at upload with Strapi's size error.
+What the installed plugin actually does:
+
+- `uploadImage()` (`services/upload.js`) **always** calls `generateThumbnail()`, which makes a 245×156 image for the admin Media Library grid. No setting disables it.
+- `optimize()` (`services/image-manipulation.js`) only re-encodes when `sizeOptimization` or `autoOrientation` is on. With size optimisation off, it re-encodes at quality 100. If that output is larger than the original, which is nearly always the case for a camera JPEG, it **discards the rotated result and keeps the original**. Auto-orientation on its own is therefore close to a no-op.
+- `getDimensions()` reads `sharp().metadata()` `width`/`height`. Those are the **stored pixel** dimensions, before EXIF orientation. A phone photo tagged "rotate 90°" is recorded with width and height swapped.
+- The three settings live in the plugin store (`type: 'plugin', name: 'upload', key: 'settings'`). The admin page writes there. The docs list no config-file key.
+
+Decisions:
+
+1. **Settings enforced on boot:** `src/index.ts` `bootstrap` writes `responsiveDimensions: false`, `sizeOptimization: false` and `autoOrientation: false` into the store on every boot. It preserves any other keys (for example `aiMetadata`) and writes the store directly, not through `setSettings()`, which sends a telemetry event on every call. A Super Admin flipping a toggle is corrected at the next deploy. With all three off, `optimize()` returns the file untouched, so **the original's bytes reach R2 unmodified**.
+2. **The admin thumbnail is allowed** (user decision, 2026-09-27). The spec permits one admin-only thumbnail per upload. The site never reads `formats`; the guard (decision 4) uses only the original's `url`. Suppressing the thumbnail would mean patching Strapi internals and making the Media Library grid download multi-MB originals.
+3. **Display dimensions via a narrow upload extension** (user decision, 2026-09-27). `src/extensions/upload/strapi-server.ts` wraps the `image-manipulation` service's `getDimensions`. It calls the original, reads EXIF `orientation` with the **same `sharp` instance `@strapi/upload` uses**, loaded via `createRequire` from that package, so no new dependency is added. When the orientation is 5–8 (the four 90° variants), it swaps the returned width and height. Nothing is re-encoded.
+
+   This is correct end-to-end: Cloudflare "applies EXIF rotation even if the metadata is discarded", and browsers apply it to `<img>` by default. So the transformed image, the `onerror=redirect` original and the reserved box all share one aspect ratio.
+
+   **The cost is a dependency on a Strapi internal:** the service name and the `getDimensions(file)` signature. **The extension must be re-checked on every Strapi upgrade, patch releases included** — the procedure is in `docs/ops/cms-runbook.md`, "Upgrading Strapi". Two failure modes, each caught automatically:
+   - *Strapi renames or removes the internal.* At registration the extension throws if the service or function is missing, so `strapi develop`/`start` refuses to boot, naming the file.
+   - *Strapi starts returning displayed dimensions itself.* The swap would then rotate them back, silently. `exif-dimensions.test.ts` asserts that Strapi's own `getDimensions` still returns **stored** dimensions for an orientation-6 photo, so Tier A fails and says to remove the extension.
+
+   The swap logic lives in `exif-dimensions.ts` (no Strapi or `sharp` import), so the test runs it against the real `sharp` and the real installed Strapi service, for all eight orientations and both input forms Strapi uses (file path and stream). It runs in Tier A as part of `test:media`. The alternatives were rejected: size optimisation on (re-encodes the R2 copy at quality 80 and is still not guaranteed to rotate), and an editor rule (mis-rotated uploads become layout shift that no CI catches).
+
+`sizeLimit` is set to **25 MB** in the upload config, with the matching `strapi::body` `formidable.maxFileSize`. That is more than a full-resolution launch JPEG, and it bounds the memory of the one remaining `sharp` operation (the thumbnail) on the 512 MB instance. A larger file is rejected at upload with Strapi's size error.
 
 **Honest limit on "never touches disk":** Strapi's multipart parser buffers an upload in the OS temp directory for the length of the request before streaming it to R2, then deletes it. Nothing *persists* on the instance, which is what the ephemeral-disk argument in ADR 0002 is about. The spec states "persist", not "touch", for this reason.
 
 ### 8. CI: one new Tier A step, and no pretending about the rest
 
-A root `test:media` script covers the loader and the host guard. It checks URL shape, that widths come only from the set, that `r2.dev`, the S3 endpoint and a relative `/uploads` path each throw, and that missing dimensions or a missing locale alt throw. The script is `node --test apps/web/lib/media/*.test.ts`, the same convention (Node 24 type stripping, tests beside the module) as `git-content-pipeline`'s `test:content`. `tier-a.yml` gets a "Media pipeline tests" step for it, placed after "Content pipeline tests".
+A root `test:media` script covers the loader and the host guard. It checks URL shape, that widths come only from the set, that `r2.dev`, the S3 endpoint and a relative `/uploads` path each throw, and that missing dimensions or a missing locale alt throw. It also runs the CMS upload-extension test (decision 7). The script is `node --test apps/web/lib/media/*.test.ts apps/cms/src/extensions/upload/*.test.ts`, the same convention (Node 24 type stripping, tests beside the module) as `git-content-pipeline`'s `test:content`. `tier-a.yml` gets a "Media pipeline tests" step for it, placed after "Content pipeline tests".
 
 **Relationship to PR #20's "Content pipeline tests" step** (checked against `main` at `c794ada`, 2026-09-27): PR #20 added `npm run test:content --if-present` to Tier A ahead of its script. The script is defined only on the unmerged `change/git-content-pipeline` branch, as `node --test apps/web/lib/content/*.test.ts`. On `main` the step currently runs nothing, and it becomes live when that branch merges. The media tests do **not** ride on it, for three reasons:
 

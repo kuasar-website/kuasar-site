@@ -4,12 +4,20 @@ Defines how an uploaded image gets from the Strapi admin to a visitor on either 
 
 ## ADDED Requirements
 
-### Requirement: Uploaded media is stored only on R2, as a single original
-An image uploaded through the Strapi Media Library SHALL be persisted only in the R2 bucket. The CMS instance SHALL NOT persist the upload or any derivative of it on its own filesystem. The CMS SHALL store exactly one object per upload, the original, and SHALL NOT generate resized derivative formats, because resizing happens at the edge.
+### Requirement: Uploaded media is stored only on R2, as the original plus an admin-only thumbnail
+An image uploaded through the Strapi Media Library SHALL be persisted only in the R2 bucket. The CMS instance SHALL NOT persist the upload or any derivative of it on its own filesystem. The CMS SHALL store the original bytes unmodified (not re-encoded, not rotated) and SHALL NOT generate responsive derivative formats, because resizing happens at the edge. The one exception is the CMS's own admin thumbnail, which the CMS always creates for its Media Library grid. The public site SHALL NOT reference that thumbnail or any stored derivative; it SHALL use only the original's URL.
 
-#### Scenario: Upload persists only the original on R2
+#### Scenario: Upload persists the original and the admin thumbnail only
 - **WHEN** an Editor uploads a photograph in a configured environment
-- **THEN** exactly one object for that upload exists in the R2 bucket, and the stored file record lists no derived small/medium/large/thumbnail formats
+- **THEN** the R2 bucket holds the original, byte-for-byte as uploaded, plus at most one admin thumbnail, and the stored file record lists no small, medium or large formats
+
+#### Scenario: Site ignores the thumbnail
+- **WHEN** a page in either locale renders an uploaded image
+- **THEN** every emitted image URL is derived from the original's URL, never from the thumbnail's
+
+#### Scenario: Rotated phone photo records display dimensions
+- **WHEN** an Editor uploads a photo whose pixels are stored landscape with an EXIF orientation tag of 5–8 (a 90° rotation)
+- **THEN** the stored width and height are the displayed (rotated) dimensions, so the reserved box has the photo's real aspect ratio
 
 #### Scenario: Redeploying the CMS loses no image
 - **WHEN** the CMS instance is redeployed or restarted after images were uploaded

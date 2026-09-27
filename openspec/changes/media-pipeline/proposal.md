@@ -23,7 +23,7 @@
 - **Edge transformation.** `apps/web` gets a Cloudflare loader for `next/image`, so every image URL becomes `https://media.kuasar.org/cdn-cgi/image/<options>/<key>`. Vercel's optimiser is never used. The loader uses `onerror=redirect`: past the free allowance, new sizes fall back to the original image rather than breaking.
 - **One image component** that every section uses. It always renders with the width and height of the stored asset (or inside a box whose aspect ratio is declared), renders the alt text for the current locale, and accepts only media-host URLs.
 - **The build refuses a non-media host.** An image URL on `*.r2.dev`, on the raw `r2.cloudflarestorage.com` endpoint, or on any host other than `media.kuasar.org` fails the build, naming the offending field. It never ships silently.
-- **Strapi stops resizing.** Responsive formats and size optimisation are switched off, so the instance stores one original per upload and does no image work.
+- **Strapi stops resizing.** Responsive formats and size optimisation are switched off, so the instance stores the original unmodified (plus the admin-only thumbnail Strapi always makes, which the site never uses). A small upload extension records the displayed width and height of EXIF-rotated photos, so the reserved box matches.
 - **BREAKING (CMS schema, pre-production):** every **image** media field in the seven Strapi types becomes a non-localized `shared.image` component `{ image, altEn, altTr }`, with both alts required. Galleries become repeatable components. Video (`hoverVideo`) and file (`sponsorshipPdf`) fields are unchanged. No production content exists yet, so no data migration is needed.
 - **Documents:** `design/content-model.md` records the image component and alt rule. `docs/adr/0002-cms.md` §5 and the runbook record the overflow behaviour, the transformations toggle, and the domain transfer. The runbook's troubleshooting row for "every image suddenly unoptimised" is corrected to match `onerror=redirect`.
 
@@ -57,7 +57,7 @@ If `git-content-pipeline` adopts it, that change specifies the frontmatter shape
 ## Capabilities
 
 ### New Capabilities
-- `media-pipeline`: how an uploaded image gets from Strapi to a visitor. It covers R2 as the only store, one original per upload, delivery from the custom media domain only, edge resizing with a defined overflow fallback, alt text required in `en` and `tr`, and layout-stable rendering with declared dimensions.
+- `media-pipeline`: how an uploaded image gets from Strapi to a visitor. It covers R2 as the only store, the original stored unmodified with display dimensions recorded, delivery from the custom media domain only, edge resizing with a defined overflow fallback, alt text required in `en` and `tr`, and layout-stable rendering with declared dimensions.
 
 ### Modified Capabilities
 - (none in `openspec/specs/`.) `cms-platform` is not archived, so its media-field shape cannot be delta'd yet. The alt-text and image-component requirements are specified in `media-pipeline`, and this change must be archived **after** `cms-platform`.

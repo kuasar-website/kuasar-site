@@ -3,7 +3,7 @@
 **Audience: someone who has never seen this system before.** No prior context is assumed.
 If a step does not make sense, that is a bug in this document — fix it while you are here.
 
-- **Last verified:** 2026-08-16
+- **Last verified:** 2026-08-16 (media steps 3 and 5 revised 2026-09-27, not yet run against a live bucket)
 - **Related:** [../adr/0002-cms.md](../adr/0002-cms.md),
   [../adr/0001-stack.md](../adr/0001-stack.md),
   [../adr/0005-repository-visibility.md](../adr/0005-repository-visibility.md),
@@ -112,6 +112,13 @@ In the Cloudflare account:
 2. Bind a **custom domain**: `media.<DOMAIN>`. Do **not** use the default `r2.dev` URL —
    it is rate-limited and explicitly not for production.
 3. Create an R2 API token scoped to that bucket. Save the access key ID and secret.
+4. Leave the bucket's **`r2.dev` public access disabled** (the default). The custom domain
+   is the only public route to the media; the site's build refuses any `r2.dev` URL anyway.
+5. On the `<DOMAIN>` zone, **enable Images → Transformations**, keeping accepted sources at
+   the default (same zone only). Without it every `/cdn-cgi/image/...` URL fails and
+   visitors get the full-size originals.
+6. Add a **cache rule** for `media.<DOMAIN>` with a long edge TTL. Uploaded files get a
+   unique name, so they never change in place.
 
 Note the account ID; the S3 endpoint is
 `https://<account-id>.r2.cloudflarestorage.com`.
@@ -195,6 +202,26 @@ local disk. Two details that cause the usual failed first attempt are already ap
 
 Your job here is just to set the `R2_*` variables (step 4 table) and, once
 `media.<DOMAIN>` is bound, `R2_PUBLIC_URL`.
+
+**Do not upload real content before `R2_PUBLIC_URL` is set.** Strapi stores each file's URL
+at upload time; without it the URL points at the raw R2 endpoint, and the site's build
+refuses such images. The fix is to re-upload them after setting the variable.
+
+Also already applied, so do not "fix" them in Settings → Media Library:
+
+- **Responsive formats, size optimisation and auto-orientation are forced off on every
+  boot** (`apps/cms/src/index.ts`). Resizing happens at Cloudflare's edge, and the original
+  is kept byte-for-byte. Strapi still makes one small admin thumbnail; the site never uses it.
+- **Rotated phone photos** get their displayed width and height recorded by
+  `apps/cms/src/extensions/upload/strapi-server.ts`, so pages do not shift when they load.
+- **Alt text lives on the entry, not on the file.** Each image field asks for an English and
+  a Turkish alt, both required to publish. Strapi's own "Alternative text" field on the file
+  is not used by the site.
+- **Uploads are capped at 25 MB.**
+
+**Prefer uploading a new file over "Replace media".** R2 has no versioning, so the replaced
+file is gone for good (the original should still be in the Shared Drive, step 3a), and the
+edge cache can keep serving the old image under the same URL until its TTL expires.
 
 Upload a test image through the Strapi Media Library and confirm it appears at
 `https://media.<DOMAIN>/...`. If the URL works but the image is missing from the admin
@@ -289,6 +316,11 @@ If the newest commit is more than two weeks old, the scheduled workflow has stop
 likeliest cause is GitHub disabling it after 60 days of repository inactivity. Re-enable
 it under the repository's Actions tab, then investigate why the repository went quiet.
 
+While you are here, read this month's **unique transformations** count on the Cloudflare
+dashboard (Images → Transformations). At **4,000 or more**, the site is approaching the free
+5,000: switch the image loader to a single output format first, and cut the width set only
+if that is not enough — the media-pipeline change's design, decision 2, has the numbers.
+
 ### Annually: verify the media system of record
 
 [../adr/0002-cms.md](../adr/0002-cms.md) decides that **R2 is a CDN, not a system of
@@ -312,6 +344,39 @@ Workspace account. Once a year, confirm all four of these in writing in
 **If any answer is no,** the decision in ADR 0002 is void and you need an off-provider copy
 of the R2 bucket. Do not leave it unresolved; it is the one part of the media design that
 does not verify itself.
+
+### Upgrading Strapi
+
+Upgrade with `npm run upgrade -w apps/cms` (Strapi's own upgrade tool), never by editing one
+`@strapi/*` version by hand — a partial upgrade splits the packages and the CMS stops booting.
+Take a snapshot first (step 8, manual run).
+
+**Then re-check the upload extension, every time — patch releases included.**
+`apps/cms/src/extensions/upload/strapi-server.ts` wraps a Strapi internal (the upload
+plugin's `image-manipulation.getDimensions`) so that phone photos rotated by EXIF are
+recorded with their displayed width and height. Strapi does not promise to keep that
+internal stable, so an upgrade can break it in two ways:
+
+1. **Strapi renamed or removed it.** The CMS refuses to start with an error naming
+   `strapi-server.ts`. Find where the new version records image dimensions and re-point the
+   extension; do not just delete it, or rotated photos will shift pages again.
+2. **Strapi started recording displayed dimensions itself.** Then the extension would swap
+   them back. Nothing crashes — photos just get the wrong shape.
+
+Both are caught by the same tests, which also run in Tier A:
+
+```bash
+npm run test:media
+```
+
+If the test *"Strapi alone still records STORED dimensions"* fails, case 2 has happened:
+delete the extension (and `exif-dimensions.ts` and its test) rather than "fixing" the test.
+Any other failure in `exif-dimensions.test.ts` means case 1.
+
+Finally, by hand: upload a portrait photo taken on a phone and confirm the Media Library shows
+it taller than wide. While you are in Settings → Media Library, confirm the three toggles
+`apps/cms/src/index.ts` forces off still exist under the same names; if Strapi renamed them,
+update `UPLOAD_SETTINGS` there.
 
 ### Rotating credentials
 
@@ -360,7 +425,10 @@ Two of those will bite you during a restore, so know them before you start:
 | `cms-deploy.yml` builds but Render does not redeploy | `RENDER_DEPLOY_HOOK_URL` secret missing or stale. Re-copy the Deploy Hook URL from the Render service settings |
 | Upload fails with an ACL error | `ACL` is set in the provider config. R2 does not support it — remove it |
 | Images 404 at `media.<DOMAIN>` | Custom domain not bound to the bucket, or DNS not propagated |
-| Every image suddenly unoptimised | Transformation allowance exceeded. Check Cloudflare usage; 5,000 unique/mo are free |
+| Images suddenly slow or heavy (full-size files) | Transformation allowance exhausted: new sizes return 9422 and `onerror=redirect` serves the originals. Nothing is broken and nothing is charged; it resets next month. Check the count on the Cloudflare dashboard (see *Monthly*) |
+| Every image broken or full-size from the first deploy, never resized | Transformations not enabled on the zone (step 3, item 5). A `Cf-Resized` response header on a `/cdn-cgi/image/` URL shows whether resizing was attempted |
+| Site build fails with `[media] ... is not on https://media.<DOMAIN>` | Images uploaded before `R2_PUBLIC_URL` was set (step 5). Set it, re-upload the named image |
+| Site build fails with `[media] ... alt text is empty` | The named entry's image lacks its English or Turkish alt. Fill both in Strapi and republish |
 | Published change does not appear | Webhook not reaching Vercel. Check Strapi's webhook delivery log first |
 | Preview shows a blank frame | Frontend is refusing to be framed by the Strapi origin |
 | Preview 401s | `PREVIEW_SECRET` differs between Render and Vercel |
