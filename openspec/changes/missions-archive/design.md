@@ -1,9 +1,9 @@
 ## Context
 
-See `proposal.md` — Why and `specs/missions-archive/spec.md` for behavior. This design is
-prepared while its two implementation blockers remain open: PR #16 supplies
-`loadMissions()` and typed mission/locale records; PR #18 supplies the locale shell. No
-code from either PR is copied into this branch.
+See `proposal.md` — Why and `specs/missions-archive/spec.md` for behavior. PR #16 now
+supplies `loadMissions()` and typed mission/locale records on `main`; PR #18 supplies the
+locale shell. This branch consumes those final APIs after merging `origin/main` and does
+not duplicate either implementation.
 
 The git-content loader deliberately returns the MDX body as an opaque string and leaves
 compilation to the rendering capability. The repository has no Markdown/MDX runtime
@@ -39,11 +39,11 @@ and returning all slug params produces static detail routes.
 
 Routes live under the assigned route group as
 `app/[locale]/(missions)/[section]/page.tsx` and
-`app/[locale]/(missions)/[section]/[slug]/page.tsx`. The `[section]` generator receives
-the parent locale and returns only `resolveSegment("missions", locale)`; the detail
-generator returns every loader-provided slug for that locale. Both segments set
-`dynamicParams = false`, and pages call `notFound()` defensively if a supplied segment or
-slug does not resolve.
+`app/[locale]/(missions)/[section]/[slug]/page.tsx`. A thin `[section]/layout.tsx` owns the
+parent segment generator: it receives the resolved parent locale and returns only
+`resolveSegment("missions", locale)`. The detail generator returns every loader-provided
+slug for that locale. Both dynamic segments set `dynamicParams = false`, and pages call
+`notFound()` defensively if a supplied segment or slug does not resolve.
 
 Alternatives rejected: hard-coding parallel `missions/` and `gorevler/` directories
 duplicates page code; a catch-all dispatcher couples every future section into one file;
@@ -131,8 +131,8 @@ matching locale MDX file. No Strapi field or request exists.
 
 ## Risks / Trade-offs
 
-- **PR #16 or #18 may change before merge** → implementation does not begin until both are
-  on `main`; then re-read their final exported types and revalidate this plan before code.
+- **Upstream loader or shell contracts may evolve later** → consume only their public
+  exports and keep route/model tests explicit so drift fails during typecheck or build.
 - **A deliberately small Markdown subset rejects otherwise-valid MDX** → errors name the
   mission, locale, and unsupported construct; expanding the subset later is a renderer
   change, not permission to execute arbitrary JSX.
@@ -147,7 +147,7 @@ matching locale MDX file. No Strapi field or request exists.
 
 ## Migration Plan
 
-After PR #16 and PR #18 merge, update this branch from `origin/main` without importing
-their feature branches. Implement and verify against temporary mission fixtures, remove
-all fixtures, then open one missions-only PR. Rollback removes the mission route group and
-components; git content and upstream contracts remain untouched.
+The branch has been updated from `origin/main` after PR #16 and PR #18 merged. Implement
+and verify against temporary mission fixtures, remove all fixtures, then open one
+missions-only PR. Rollback removes the mission route group and components; git content and
+upstream contracts remain untouched.

@@ -2,8 +2,8 @@
 
 KUASAR's missions are the site's primary credibility evidence, but the repository has no
 public archive or detail route that can turn git-resident mission records into a usable
-bilingual history. Once `git-content-pipeline` and `site-shell` land, this is Dev 2's next
-surface and the first page capability that can exercise both contracts together.
+bilingual history. With `git-content-pipeline` and `site-shell` now on `main`, this is Dev
+2's next surface and the first page capability that exercises both contracts together.
 
 ## What Changes
 
@@ -44,6 +44,5 @@ client-time-state contracts without changing their requirements.
   or duplicated into Strapi, and no new content entity is introduced.
 - Adds no runtime dependency, CMS request, analytics, embed, animation library, or
   time-based/cron revalidation.
-- Implementation remains blocked until PR #16 (`git-content-pipeline`) and PR #18
-  (`site-shell`) merge. This branch deliberately contains neither PR's code and will be
-  updated from `main` only after both land.
+- Consumes the merged PR #16 (`git-content-pipeline`) and PR #18 (`site-shell`) contracts
+  directly from `main`; it does not copy or fork either implementation.
