@@ -6,7 +6,7 @@ for (const locale of ['en', 'tr']) {
       await page.setViewportSize({ width, height: 844 });
       await page.goto(`/${locale}`);
       await expect(page.getByRole('heading', { name: 'KUASAR', level: 1 })).toBeVisible();
-      await expect(page.getByText('Koç University Association of Space & Rocketry')).toBeVisible();
+      await expect(page.getByRole('region', { name: 'KUASAR' }).getByText('Koç University Association of Space & Rocketry')).toBeVisible();
       const logo = page.locator('h1 svg');
       const box = await logo.boundingBox();
       expect(box!.width).toBeGreaterThanOrEqual(120);
