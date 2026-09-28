@@ -48,3 +48,16 @@ Site-shell/home integration by the owning teams, actual `/en` and `/tr` first-lo
 JS measurements (≤160KB), real-phone LCP (<2.5s), and bilingual visual review.
 Fixture checks cannot replace these. Keep the change draft until the tasks in
 `openspec/changes/hero-baseline/tasks.md` are complete. Hero-signature is separate.
+
+## Shared integration (2026-09-28)
+
+`HomeHero({ locale, sponsorHref })` composes the real shared `ActionLink` variants
+with the existing Hero. Join URLs come from `sectionPath`, not a second route map.
+The home owner supplies the approved Connect Us/PDF destination. No placeholder
+is a default. The #24 about-and-join PR contains the club's verified `FORM_LINKS`
+contract; consume that once merged rather than copying its URL into DEV 5.
+
+The browser fixture now renders the actual `SiteShell`, `HomeHero`, shared button
+CSS and language contexts. Destination endpoints in the fixture remain test-only.
+This covers shell composition and keyboard interaction without publishing a new
+home route or taking over DEV 2's home-composition task.

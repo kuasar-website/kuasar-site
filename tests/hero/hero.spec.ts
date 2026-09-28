@@ -27,16 +27,17 @@ for (const locale of ['en', 'tr']) {
   test(`${locale}: keyboard actions work without JavaScript`, async ({ page }) => {
     await page.goto(`/${locale}`);
     const actions = page.locator('section a');
-    await page.keyboard.press('Tab');
+    await actions.first().focus();
     await expect(actions.first()).toBeFocused();
     await expect(actions.first()).toHaveCSS('outline-style', 'solid');
     await page.keyboard.press('Enter');
-    await expect(page).toHaveURL(/#sponsors$/);
+    await expect(page).toHaveURL(new RegExp(`/${locale}/connect-fixture$`));
+    await page.goto(`/${locale}`);
     await actions.first().focus();
     await page.keyboard.press('Tab');
     await expect(actions.last()).toBeFocused();
     await page.keyboard.press('Enter');
-    await expect(page).toHaveURL(/#members$/);
+    await expect(page).toHaveURL(new RegExp(locale === 'tr' ? '/tr/bize-katil$' : '/en/join$'));
   });
   test(`${locale}: reduced motion is the same static baseline`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -47,5 +48,20 @@ for (const locale of ['en', 'tr']) {
     }));
     expect(animated).toBe(false);
     await expect(page.getByRole('heading', { name: 'KUASAR', level: 1 })).toBeVisible();
+  });
+}
+
+for (const locale of ['en', 'tr']) {
+  test(`${locale}: shared shell skip link and language switch remain available`, async ({ page }) => {
+    await page.goto(`/${locale}`);
+    await page.keyboard.press('Tab');
+    const skip = page.locator('a[href="#main-content"]');
+    await expect(skip).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('main')).toBeFocused();
+    await expect(page.locator('main')).toHaveCount(1);
+    await expect(page.locator('h1')).toHaveCount(1);
+    const other = locale === 'tr' ? 'en' : 'tr';
+    await expect(page.locator(`a[hreflang="${other}"]`)).toHaveAttribute('href', `/${other}/`);
   });
 }

@@ -23,3 +23,12 @@
 
 See integration.md for the inspected upstream interfaces and concrete remaining decisions.
 Shared ActionLink composition and shell ownership are documented. The sponsor destination and actual home integration remain unchecked; no production destination is guessed.
+
+## Shared integration preparation — 2026-09-28
+
+Merged main (6593502). Added `HomeHero`, which composes real shared actions and
+localized Join destinations; the approved sponsor URL is required from the owner.
+The fixture now includes the actual site shell, shared actions and language
+contexts. Task 2.1 remains open only for DEV 2's actual home assembly and published
+destinations; this fixture is not presented as a released home page. Tasks 2.2–2.4
+still require production home measurements and human review.

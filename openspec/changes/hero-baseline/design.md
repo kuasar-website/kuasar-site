@@ -26,3 +26,17 @@ Non-goals: home assembly, shared button implementation, language routing, CMS, a
 ## Migration Plan
 
 Keep this preparation draft until site-shell is available. DEV 2 composes the DEV 5 hero into the localized homes using shared actions. Verify actual route budgets and real-phone LCP; obtain bilingual visual review before signature work. Revert only hero-local files if needed.
+
+## Shared integration (2026-09-28)
+
+The branch now includes merged site-shell and interaction-primitives from main.
+`HomeHero` fills Hero's slots with actual shared `ActionLink` components, using
+`sectionPath('join', locale)` and a required approved sponsor destination. It
+introduces neither a button variant nor a client boundary. The browser fixture
+uses actual SiteShell with its pathname/search contexts and production CSS, so
+skip link, single-main/h1 semantics and language switching are tested together.
+
+The home owner can import this ready-to-compose server component. PR #24 contains
+the verified Connect Us form contract but remains unmerged; DEV 5 does not copy
+its constants or merge another owner's work. Actual home assembly, final routes'
+160KB budget, real-phone LCP and visual acceptance remain release tasks.
