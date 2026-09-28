@@ -6,9 +6,9 @@
 
 ## 2. Production integration (upstream contracts required)
 
-- [ ] 2.1 Consume the actual git-content-pipeline loader and locale types after they are available; adding real entries remains data-only. Do not build the upstream pipeline in DEV 5.
-- [ ] 2.2 Add DEV 5 timeline routes at /en/timeline and /tr/zaman-cizelgesi, localized not-found for empty data, canonical/hreflang and route-preserving switcher integration through the existing locale system.
-- [ ] 2.3 Supply the populated section and localized view-more link to home-composition; verify empty data hides both. Home composition and navbar remain DEV 2 scope.
+- [x] 2.1 Consume the actual git-content-pipeline loader and locale types after they are available; adding real entries remains data-only. Do not build the upstream pipeline in DEV 5.
+- [x] 2.2 Add DEV 5 timeline routes at /en/timeline and /tr/zaman-cizelgesi, localized not-found for empty data, canonical/hreflang and route-preserving switcher integration through the existing locale system.
+- [x] 2.3 Supply the populated section and localized view-more link to home-composition; verify empty data hides both. Home composition and navbar remain DEV 2 scope.
 
 ## 3. Verification and baseline review
 
@@ -29,3 +29,19 @@ Browser/component revision: `acf880a0c773459249c3cb68da79128b50a9ab0e`.
 
 See integration.md for the inspected upstream interfaces and concrete remaining decisions.
 Page-level heading support and locale-stable entry fragments are implemented; 10 SSR tests, web typecheck, ESLint and component Stylelint pass locally. Production route integration remains unchecked.
+
+## Integration verification — 2026-09-28
+
+Merged current main (6593502) into this branch. Tasks 2.1–2.3 now have the actual
+loader adapter, literal localized routes, empty-route 404 boundaries, metadata,
+sitemap registration, and the ready-to-compose `TimelineSection` export.
+
+- 18 SSR/adapter tests passed (both locales, zero/one/fifty, fallback languages,
+  MDX prose, optional image dimensions/alt, invalid data, mixed ISO ordering).
+- Production builds with empty and fifty-record temporary fixtures passed. HTTP
+  checks verify real 404/200 status, shell, one h1/main, route-preserving language
+  links, canonical/alternate URLs and sitemap inclusion/exclusion.
+- Integrated timeline first-load JS: approximately 135.3 KB, below 175 KB; no
+  deferred animation. Fixtures are restored/removed, never published as history.
+- Task 3.1 remains open for the actual home-composition budget; task 3.3 still
+  needs human phone/desktop review and merge. Browser CI is rerun on this revision.

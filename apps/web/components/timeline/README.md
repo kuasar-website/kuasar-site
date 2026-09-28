@@ -68,3 +68,26 @@ Use `headingLevel={1}` on the future full page; default 2 is for a home section.
 Use `timelineEntryFragment(instanceId, entryId)` when linking to an entry in another
 locale, with the destination instance ID. See the OpenSpec integration.md for the
 actual upstream contract mapping and unresolved rendering/image decisions.
+
+## Merged content integration (2026-09-28)
+
+`TimelineSection` is the server component for DEV 2's home composition. It uses
+`loadTimelineEntries()` and omits both section and link when no records exist.
+The dedicated routes are `/en/timeline` and `/tr/zaman-cizelgesi`; the other
+locale/segment combinations return 404. No real history is invented.
+
+Captions are compiled on the server with `@mdx-js/mdx`. Markdown emphasis and links
+render as markup; executable MDX/HTML is rejected because captions are data.
+For an optional `index.json` image, add exactly one `![localized description](/path)`
+in each locale body. The asset must exist under `apps/web/public`; `sharp` reads
+its intrinsic dimensions. No asset metadata or guessed alt text is added to the
+shared loader schema. Missing titles/images/alternatives fail with the record path.
+
+An incomplete locale displays the complete other locale with its `lang` and a
+visible notice. If both are incomplete, the requested content keeps its notice
+without a fictitious available-version link. Calendar dates and offset-qualified
+instants sort by their parsed value; rendering never reads the current time.
+
+Sitemap discovery includes populated timeline routes only when
+`NEXT_PUBLIC_SITE_URL` is configured. It never publishes the unresolved domain
+placeholder. Other section owners remain responsible for their own entries.

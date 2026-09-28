@@ -4,6 +4,7 @@ on:
     branches: [change/timeline-baseline]
     paths:
       - "apps/web/**"
+      - "content/timeline/**"
       - "tests/timeline/**"
       - "package*.json"
       - ".nvmrc"
@@ -12,6 +13,7 @@ on:
     branches: [main]
     paths:
       - "apps/web/**"
+      - "content/timeline/**"
       - "tests/timeline/**"
       - "package*.json"
       - ".nvmrc"
@@ -30,6 +32,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm ci --prefix tests/timeline
-      - run: node --test tests/timeline/baseline.test.mjs
+      - run: node --test tests/timeline/*.test.mjs
       - run: npm exec --prefix tests/timeline -- playwright install --with-deps chromium firefox
       - run: npm --prefix tests/timeline test
+      - run: node tests/timeline/check-routes.mjs

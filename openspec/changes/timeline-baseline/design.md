@@ -1,6 +1,6 @@
 ## Context
 
-See proposal.md and docs/task-assignments.html. DEV 5 owns presentation; DEV 3 owns git-content-pipeline and locale-routing, DEV 2 owns home-composition. The current base has no content loader or localized routes. Prepare a presentation component without inventing their APIs or taking over their files. Full integration remains explicitly unfinished.
+See proposal.md and docs/task-assignments.html. DEV 5 owns presentation; DEV 3 owns git-content-pipeline and locale-routing, DEV 2 owns home-composition. The 2026-09-28 base includes the merged git-content loader, locale helpers and site shell. The DEV 5 adapter consumes these contracts; home assembly remains DEV 2 scope.
 
 Authority: ADR 0001 (neutral dates), ADR 0002 (git storage), ADR 0003 (native baseline first), ADR 0004 (verification), design/content-model.md, design/i18n.md, design/motion.md and design/tokens.md.
 
@@ -35,3 +35,26 @@ Submit an explicitly draft preparation change. Once upstream contracts land, add
 See integration.md for inspected PR contracts and remaining field/rendering decisions.
 The presentation now supports an explicit page heading level and locale-stable entry
 fragments; this enables route composition without creating routes or duplicating loaders.
+
+## Integration implementation (2026-09-28)
+
+- Two literal localized route folders avoid competing with the missions PR's dynamic
+  `[section]` route. Each rejects the other locale and has a localized not-found boundary.
+- `timelineViews` consumes the existing entry types and loader, validates title, renders
+  MDX on the server, chooses the complete fallback language and labels it explicitly.
+- New server-only dependencies: `@mdx-js/mdx` compiles the prose already returned by the
+  loader; `sharp` reads actual dimensions from local public assets. No client import path
+  reaches either package. No changes to the shared content schema or loader.
+- Caption prose is data, not an executable widget: MDX expressions/imports/JSX and raw
+  HTML fail with a file path. Standard Markdown is rendered, not printed or stripped.
+  Heading markup is demoted to paragraphs to retain the page/entry heading hierarchy.
+- Optional images use the facts path and a matching localized Markdown image alternative
+  in each body. Missing/duplicate alt, missing assets and paths outside public fail.
+- All valid shared ISO formats sort by instant rather than lexical order. Raw dates
+  remain visible and no clock value is computed.
+- `TimelineSection` provides the home handoff; no home page or navbar is changed.
+- The route owner adds only populated timeline sitemap entries, gated by the existing
+  site URL environment variable. No placeholder domain or empty timeline is advertised.
+
+Human baseline review, populated production route measurements and home assembly remain
+release work; test fixtures do not stand in for actual history or real-phone review.

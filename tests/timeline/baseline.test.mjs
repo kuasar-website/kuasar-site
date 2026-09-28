@@ -16,7 +16,7 @@ const { outputText } = ts.transpileModule(source, {
 // CSS Modules are names only in SSR unit tests; browser layout is tested separately.
 const module = { exports: {} };
 runInThisContext(`(function(require,module,exports){${outputText}\n})`)(
-  (id) => id.endsWith('.css') ? { __esModule: true, default: new Proxy({}, { get: (_, name) => String(name) }) } : requireWeb(id), module, module.exports,
+  (id) => id === '../../lib/time/date' ? { parseISO: (v) => Date.parse(v) } : id.endsWith('.css') ? { __esModule: true, default: new Proxy({}, { get: (_, name) => String(name) }) } : requireWeb(id), module, module.exports,
 );
 const { Timeline, timelineEntryId, timelineEntryFragment } = module.exports;
 const entry = (i) => ({ id: `entry-${i}`, date: `2022-01-${String(i % 28 + 1).padStart(2, '0')}`, kind: 'milestone', title: `Record ${i}`, body: `Caption ${i}` });

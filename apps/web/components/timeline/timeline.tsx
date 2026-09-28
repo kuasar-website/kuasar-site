@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
+import { parseISO } from "../../lib/time/date";
+import type { Locale } from "../../lib/i18n/segments";
 import styles from "./timeline.module.css";
 
 export type TimelineEntry = {
   id: string;
-  /** Valid ISO YYYY-MM-DD from the git content loader. */
+  /** Valid ISO calendar day or offset-qualified instant from the git loader. */
   date: string;
   kind: "founding" | "competition" | "launch" | "milestone" | "recognition";
   title: string;
@@ -12,12 +14,14 @@ export type TimelineEntry = {
   link?: string;
   /** Set by the adapter when the requested translation is incomplete. */
   availableTranslationHref?: string;
+  translationIncomplete?: boolean;
+  contentLocale?: Locale;
 };
 
 type Props = {
   /** Unique on the page; also prefixes accessible description IDs. */
   id: string;
-  locale: "en" | "tr";
+  locale: Locale;
   entries: readonly TimelineEntry[];
   /** Supply only after the corresponding full timeline route exists. */
   viewMoreHref?: string;
@@ -65,8 +69,8 @@ export function Timeline({ id, locale, entries, viewMoreHref, headingLevel = 2 }
   const labels = copy[locale];
   const Heading = headingLevel === 1 ? "h1" : "h2";
   const EntryHeading = headingLevel === 1 ? "h2" : "h3";
-  // ISO date-only keys sort chronologically without a server clock or timezone.
-  const ordered = [...entries].sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
+  // Parsing supplied instants is deterministic; it never reads the server clock.
+  const ordered = [...entries].sort((a, b) => (parseISO(b.date) ?? 0) - (parseISO(a.date) ?? 0) || a.id.localeCompare(b.id));
 
   return (
     <section className={styles.timeline} lang={locale} aria-labelledby={`${id}-title`}>
@@ -82,17 +86,17 @@ export function Timeline({ id, locale, entries, viewMoreHref, headingLevel = 2 }
           {ordered.map((entry) => (
             <li key={entry.id} id={timelineEntryId(id, entry.id)} className={styles.entry} tabIndex={0}>
               <p className={styles.meta}><time dateTime={entry.date}>{entry.date}</time> · {labels.kinds[entry.kind]}</p>
-              <EntryHeading className={styles["entry-title"]}>{entry.title}</EntryHeading>
+              <EntryHeading lang={entry.contentLocale} className={styles["entry-title"]}>{entry.title}</EntryHeading>
               {entry.image && (
                 // Native lazy images keep this presentation independent of routing/image configuration.
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={entry.image.src} alt={entry.image.alt} width={entry.image.width}
                   height={entry.image.height} loading="lazy" decoding="async" />
               )}
-              <div className={styles.body}>{entry.body}</div>
-              {entry.availableTranslationHref && (
+              <div lang={entry.contentLocale} className={styles.body}>{entry.body}</div>
+              {(entry.translationIncomplete || entry.availableTranslationHref) && (
                 <p className={styles.notice}>{labels.incomplete}{" "}
-                  <a href={entry.availableTranslationHref}>{labels.translation}</a>
+                  {entry.availableTranslationHref && <a href={entry.availableTranslationHref}>{labels.translation}</a>}
                 </p>
               )}
               {entry.link && <a href={entry.link}>{labels.entry}<span className={styles["sr-only"]}>: {entry.title}</span> <span aria-hidden="true">→</span></a>}

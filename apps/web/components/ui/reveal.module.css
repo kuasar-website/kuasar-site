@@ -1,0 +1,76 @@
+.reveal {
+  opacity: 1;
+  transform: none;
+}
+
+.reveal[data-reveal-mode="view-timeline"] {
+  animation-duration: var(--duration-reveal);
+  animation-fill-mode: both;
+  animation-name: kuasar-section-reveal;
+  animation-range: entry 0% cover 35%;
+  animation-timeline: view(block);
+  animation-timing-function: var(--ease-out);
+}
+
+.reveal[data-reveal-mode="observer"] {
+  transition-duration: var(--duration-reveal);
+  transition-property: transform, opacity;
+  transition-timing-function: var(--ease-out);
+}
+
+.reveal[data-reveal-mode="observer"][data-reveal-state="pending"] {
+  opacity: 0;
+  transform: translateY(calc(var(--spacing) * 6)) scale(0.95);
+}
+
+.reveal[data-reveal-mode="observer"][data-reveal-state="visible"] {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes kuasar-section-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--spacing) * 6)) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (width < 48rem) {
+  .reveal[data-reveal-mode="view-timeline"] {
+    animation-name: kuasar-section-reveal-mobile;
+  }
+
+  .reveal[data-reveal-mode="observer"] {
+    transition-property: opacity;
+  }
+
+  .reveal[data-reveal-mode="observer"][data-reveal-state="pending"] {
+    transform: none;
+  }
+}
+
+@keyframes kuasar-section-reveal-mobile {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal[data-reveal-mode="view-timeline"],
+  .reveal[data-reveal-mode="observer"] {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

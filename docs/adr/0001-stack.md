@@ -58,7 +58,7 @@ see rule 2.
 
 ### 1a. npm workspaces on Node 24 LTS
 
-Pinned in `.nvmrc` and in `engines`, and matched in both the Vercel and Render dashboards.
+Pinned in `.nvmrc` and in `engines`, and matched in both the Vercel and DigitalOcean dashboards.
 A mismatch between local and deploy Node is a recurring source of "works on my machine" in
 a rotating team, and it presents as a code bug rather than as a configuration problem.
 
@@ -83,7 +83,7 @@ revalidation of the affected tags. **User-facing routes never fetch Strapi in th
 path**, and no time-based revalidation is configured.
 
 A sleeping or broken CMS must never be able to slow or break a page view. This is the
-rule that makes a self-hosted CMS on a $7 instance an acceptable choice at all.
+rule that makes a self-hosted CMS on a $5 instance an acceptable choice at all.
 
 The revalidation endpoint is a route handler authorised by a shared secret. Note that
 `revalidateTag` takes a second cache-profile argument on Next 16 (`revalidateTag(tag,
@@ -116,7 +116,7 @@ neutral state on the server so hydration does not mismatch.
 
 ```
 apps/web     → Next.js frontend, deploys to Vercel
-apps/cms     → Strapi 5, deploys to Render
+apps/cms     → Strapi 5, deploys to DigitalOcean App Platform
 content/     → git-resident content (see 0002)
 design/      → design documents
 docs/        → ADRs and operational documents
@@ -197,8 +197,8 @@ completes — including a frontend-only hotfix that touches no CMS content at al
 removes the runtime dependency; it does not remove the build-time one, and no amount of
 static generation will.
 
-This is accepted rather than solved. Render Starter does not spin down when idle the way
-Render's free tier does, so Strapi should be reachable nearly always, and the coincidence
+This is accepted rather than solved. The App Platform container does not spin down when
+idle, so Strapi should be reachable nearly always, and the coincidence
 that actually hurts — an urgent frontend hotfix arriving during a Strapi outage — is rare
 enough to carry.
 

@@ -62,3 +62,15 @@ The full timeline SHALL expose one page-level heading and subordinate entry head
 #### Scenario: Cross-locale entry target
 - **WHEN** an entry with the same stable identifier is linked in the other locale
 - **THEN** its fragment resolves to the same entry identifier, including non-ASCII identifiers
+
+#### Scenario: Both translations incomplete
+- **WHEN** both locale records are marked incomplete
+- **THEN** the requested language remains visible with an incomplete notice and no invented available-version link
+
+#### Scenario: Caption and optional image data
+- **WHEN** a git record provides Markdown prose and an optional local image path
+- **THEN** prose formatting renders on the server and the image uses its localized Markdown alternative and actual dimensions; invalid metadata fails with the record path
+
+#### Scenario: Executable content in a caption
+- **WHEN** a caption includes MDX imports, expressions, JSX or raw HTML
+- **THEN** the build rejects it with its source path rather than executing a widget or embed
