@@ -88,6 +88,7 @@ test('optional git image gets localized alt and real dimensions, and appears onl
     assert.equal((html.match(/<img /g) || []).length, 1);
     assert.match(html, /width="300" height="200"/);
     assert.ok(html.includes(`alt="${locale} alternative"`));
+    assert.ok(html.includes(`<img lang="${locale}"`));
   }
 });
 test('bad captions and missing image descriptions fail with entry context', async () => {

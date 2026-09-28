@@ -90,7 +90,7 @@ export function Timeline({ id, locale, entries, viewMoreHref, headingLevel = 2 }
               {entry.image && (
                 // Native lazy images keep this presentation independent of routing/image configuration.
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={entry.image.src} alt={entry.image.alt} width={entry.image.width}
+                <img lang={entry.contentLocale} src={entry.image.src} alt={entry.image.alt} width={entry.image.width}
                   height={entry.image.height} loading="lazy" decoding="async" />
               )}
               <div lang={entry.contentLocale} className={styles.body}>{entry.body}</div>
@@ -99,7 +99,7 @@ export function Timeline({ id, locale, entries, viewMoreHref, headingLevel = 2 }
                   {entry.availableTranslationHref && <a href={entry.availableTranslationHref}>{labels.translation}</a>}
                 </p>
               )}
-              {entry.link && <a href={entry.link}>{labels.entry}<span className={styles["sr-only"]}>: {entry.title}</span> <span aria-hidden="true">→</span></a>}
+              {entry.link && <a href={entry.link}>{labels.entry}<span lang={entry.contentLocale} className={styles["sr-only"]}>: {entry.title}</span> <span aria-hidden="true">→</span></a>}
             </li>
           ))}
         </ol>
