@@ -1,15 +1,21 @@
 ## Purpose
 
-Gives editors a Strapi 5 admin on Render, backed by Neon Postgres, in which they can create and translate the seven Strapi-resident collections in English and Turkish without touching git, and without a schema that ranks sponsors or lets an alumnus portrait publish without consent.
+Gives editors a Strapi 5 admin on DigitalOcean App Platform, backed by Neon Postgres, in which they can create and translate the seven Strapi-resident collections in English and Turkish without touching git, and without a schema that ranks sponsors or lets an alumnus portrait publish without consent.
 
 ## ADDED Requirements
 
 ### Requirement: Exactly seven locale-enabled collections
-The CMS SHALL expose exactly these seven collection types, each with i18n enabled: Stellar Talk, Nebula Night, Galactic Summit, Schedule Event, Announcement, Alumni, and Sponsor. It SHALL NOT expose any other collection type. Mission and Timeline Entry SHALL NOT appear in the CMS. Each collection SHALL accept zero entries, a single entry, and many entries.
+The CMS SHALL expose exactly these seven **KUASAR/project-defined** content collections in the Content Manager, each with i18n enabled: Stellar Talk, Nebula Night, Galactic Summit, Schedule Event, Announcement, Alumni, and Sponsor. It SHALL NOT expose any other project-defined collection type. Mission and Timeline Entry SHALL NOT appear in the CMS. Each collection SHALL accept zero entries, a single entry, and many entries.
+
+A content type that Strapi or one of its core plugins registers for its own operation — for example `plugin::users-permissions.user`, which backs the Public role's API permissions rather than any project content — is **not** a project-defined content collection and SHALL NOT count toward, or be counted against, the seven. Such a plugin-provided type SHALL NOT be visible in the Content Manager, since it has no editorial purpose here and its presence would be indistinguishable from an unauthorized eighth collection.
 
 #### Scenario: Admin lists only the seven collections
 - **WHEN** an Editor opens the Content Manager
 - **THEN** the collection list contains Stellar Talk, Nebula Night, Galactic Summit, Schedule Event, Announcement, Alumni, and Sponsor, and contains no eighth collection and no Mission or Timeline Entry
+
+#### Scenario: A plugin-provided type stays hidden
+- **WHEN** the `users-permissions` plugin remains enabled for its Public-role API permissions
+- **THEN** its `User` content type does not appear anywhere in the Content Manager's collection list, and the visible list still contains exactly the seven KUASAR collections
 
 #### Scenario: Empty collections are valid
 - **WHEN** a collection has zero published entries
@@ -113,19 +119,19 @@ The CMS SHALL provide an Editor role distinct from Super Admin. Editors SHALL cr
 - **WHEN** a Super Admin is signed in
 - **THEN** they retain full administration, including schema and user management, which an Editor does not
 
-### Requirement: Hosting uses Render Starter and Neon pooled Postgres
-The production CMS process SHALL run on Render Starter and SHALL use a Neon pooled Postgres connection string as its database URL. It SHALL NOT use Render's Postgres offering.
+### Requirement: Hosting uses DigitalOcean App Platform and Neon pooled Postgres
+The production CMS process SHALL run on a 512 MB DigitalOcean App Platform container, pulling a public GHCR image, and SHALL use a Neon pooled Postgres connection string as its database URL. It SHALL NOT use a DigitalOcean-hosted database.
 
 #### Scenario: Production database URL is the Neon pooler
 - **WHEN** the production CMS starts
-- **THEN** it connects using the configured `DATABASE_URL` pointing at Neon's pooled endpoint, not at a Render-hosted Postgres instance
+- **THEN** it connects using the configured `DATABASE_URL` pointing at Neon's pooled endpoint, not at a DigitalOcean-hosted database
 
-### Requirement: Admin panel is built in CI, not on Starter
-Deploying the CMS SHALL NOT compile the admin panel on the Render Starter instance. The admin bundle SHALL be produced in GitHub Actions (or an equivalent CI runner with more than 512 MB) and the Starter instance SHALL serve that prebuilt bundle.
+### Requirement: Admin panel is built in CI, not on the App Platform instance
+Deploying the CMS SHALL NOT compile the admin panel on the 512 MB App Platform instance. The admin bundle SHALL be produced in GitHub Actions (or an equivalent CI runner with more than 512 MB) and the App Platform instance SHALL serve that prebuilt bundle.
 
-#### Scenario: Render start does not rebuild admin
-- **WHEN** the CMS is deployed to Render Starter
-- **THEN** the Starter instance starts from a prebuilt admin and does not run the admin compile step that OOMs at 512 MB
+#### Scenario: App Platform start does not rebuild admin
+- **WHEN** the CMS is deployed to App Platform
+- **THEN** the App Platform instance starts from a prebuilt admin and does not run the admin compile step that OOMs at 512 MB
 
 #### Scenario: CI produces the admin bundle
 - **WHEN** the CMS deploy workflow runs

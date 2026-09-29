@@ -5,7 +5,7 @@ const TURKISH_LOCALE = { code: 'tr', name: 'Turkish (tr)' };
 const REQUIRED_R2_VARS = ['R2_ENDPOINT', 'R2_BUCKET', 'R2_ACCESS_KEY_ID', 'R2_ACCESS_SECRET'] as const;
 
 /**
- * R2 is REQUIRED in production: Render's disk is ephemeral, so a local-disk upload
+ * R2 is REQUIRED in production: App Platform's disk is ephemeral, so a local-disk upload
  * vanishes on the next deploy and takes every photograph with it (docs/adr/0002-cms.md
  * decision 5). This must run in `register()`, the earliest application lifecycle hook,
  * rather than in `config/plugins.ts` — Strapi evaluates config modules both when starting
@@ -29,6 +29,39 @@ function assertProductionMediaStorage(): void {
         'see docs/adr/0002-cms.md decision 5 and docs/ops/cms-runbook.md step 5.'
     );
   }
+}
+
+/**
+ * `users-permissions` stays enabled — its Public role is what grants `apps/web`'s
+ * anonymous reads on the seven KUASAR collections, so the plugin cannot simply be
+ * removed. But its own `User` content type is unused (no public account/login feature
+ * exists anywhere in this project — see design/content-model.md, docs/adr/0002-cms.md)
+ * and it registers as an ordinary collection type, which makes it visible in the
+ * Content Manager sidebar alongside the seven real collections. Live production
+ * verification found exactly this: 8 entries in Content Manager instead of 7.
+ *
+ * This hides only its Content Manager visibility via `pluginOptions['content-manager']`,
+ * the standard Strapi mechanism for this — it does not disable the plugin, and it does
+ * not touch admin authentication (`admin::user`, a separate model) or the Public role's
+ * permissions.
+ */
+function hideUsersPermissionsUserFromContentManager(strapi: Core.Strapi): void {
+  const userContentType = strapi.contentTypes['plugin::users-permissions.user'];
+
+  if (!userContentType) {
+    strapi.log.warn(
+      '[register] plugin::users-permissions.user content type not found — nothing to hide.'
+    );
+    return;
+  }
+
+  userContentType.pluginOptions = {
+    ...userContentType.pluginOptions,
+    'content-manager': {
+      ...(userContentType.pluginOptions?.['content-manager'] as Record<string, unknown> | undefined),
+      visible: false,
+    },
+  };
 }
 
 /**
@@ -122,8 +155,9 @@ async function enforceUploadSettings(strapi: Core.Strapi): Promise<void> {
 }
 
 export default {
-  register(/* { strapi }: { strapi: Core.Strapi } */) {
+  register({ strapi }: { strapi: Core.Strapi }) {
     assertProductionMediaStorage();
+    hideUsersPermissionsUserFromContentManager(strapi);
   },
 
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {

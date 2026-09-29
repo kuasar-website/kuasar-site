@@ -10,7 +10,7 @@ All seven collections are new Strapi types. Locale-specific vs fact fields follo
 
 **Goals:**
 - A Strapi 5 CE workspace at `apps/cms` that joins the existing `apps/*` npm workspace glob.
-- Production on Render Starter against Neon pooled Postgres, with admin compiled in CI.
+- Production on DigitalOcean App Platform (512 MB container; changed from Render Starter on 2026-09-27, see ADR 0002 decision 4) against Neon pooled Postgres, with admin compiled in CI.
 - Schema, locales, roles, and R2 provider matching the specs.
 - Record the enum values `design/content-model.md` left as "defined in code."
 
@@ -56,15 +56,15 @@ The `speakers` attribute is **non-localized** (`content-model.md` marks it a fac
 
 **R2 via `@strapi/provider-upload-aws-s3` in `config/plugins.ts`.** `region: 'auto'`, custom `endpoint`, **omit `ACL`**. Credentials from env (`R2_*`). Local `develop` may use the same provider when env is set, or Strapi's local provider when it is not — never commit a fallback that writes uploads into git.
 
-**OOM path: GitHub Actions builds a production Docker image; Render runs the image and never compiles admin.** Starter's 512 MB is the runtime budget; the admin compile is the spike. Alternatives considered:
-- Upsize Render — rejected by ADR 0002 decision 4 (paying year-round for a two-minute spike).
+**OOM path: GitHub Actions builds a production Docker image; App Platform runs the image and never compiles admin.** The instance's 512 MB is the runtime budget; the admin compile is the spike. Alternatives considered:
+- Upsize the instance — rejected by ADR 0002 decision 4 (paying year-round for a two-minute spike).
 - Commit `build/` — rejected on a public repository (generated churn, review noise).
-- Nixpacks `buildCommand: npm run build` on Starter — this is the failure mode.
-- Fetch a GitHub artifact during Render build — extra moving parts, still a build step on Starter.
+- A host-side source build (`npm run build` on the 512 MB instance) — this is the failure mode.
+- Fetch a GitHub artifact during a host-side build — extra moving parts, still a build step on the instance.
 
-Dockerfile: Node 24, `npm ci` at repo context or workspace-aware copy of `apps/cms`, `NODE_OPTIONS` heap large enough for `strapi build`, then a runtime stage that copies `node_modules` (production) and the admin `build/` / `dist/` output and `CMD`s `strapi start`. Render service: Docker, root as appropriate, env from the runbook table (`DATABASE_URL` = Neon **pooled** string, Strapi secrets, R2, `CLIENT_URL`). Auto-deploy from `main` via the registry GHCR (`ghcr.io`), club GitHub org, never a personal Docker Hub.
+Dockerfile: Node 24, `npm ci` at repo context or workspace-aware copy of `apps/cms`, `NODE_OPTIONS` heap large enough for `strapi build`, then a runtime stage that copies `node_modules` (production) and the admin `build/` / `dist/` output and `CMD`s `strapi start`. App Platform app: container image from public GHCR, env from the runbook table (`DATABASE_URL` = Neon **pooled** string, Strapi secrets, R2, `CLIENT_URL`). Redeployed from `main` via the registry GHCR (`ghcr.io`), club GitHub org, never a personal Docker Hub.
 
-**Workflow file** `.github/workflows/cms-deploy.yml`: on push to `main` when `apps/cms/**` or the Dockerfile/workflow change; `workflow_dispatch`. Build and push the image tagged with the git sha and `latest`. Render watches the image or is notified via deploy hook. No secrets in logs.
+**Workflow file** `.github/workflows/cms-deploy.yml`: on push to `main` when `apps/cms/**` or the Dockerfile/workflow change; `workflow_dispatch`. Build and push the image tagged with the git sha and `latest`. App Platform does not watch GHCR tags, so the workflow creates a deployment through the DigitalOcean API. No secrets in logs.
 
 **`DATABASE_URL` is the Neon pooler hostname** (`-pooler.`). Strapi 5 database config uses the connection string with SSL required. Direct (unpooled) Neon URL is local-only if someone needs it; production MUST be pooled.
 
@@ -72,8 +72,8 @@ Dockerfile: Node 24, `npm ci` at repo context or workspace-aware copy of `apps/c
 
 ## Risks / Trade-offs
 
-- **[Risk] First Render deploy still OOMs if the service is created with a Node build command before the Docker service exists.** → Create the Render service as Docker from the start; do not "try Starter Node and fall back."
-- **[Risk] GHCR + Render credentials add handover surface.** → Club GitHub org owns the packages; Render deploy key lives in GitHub Actions secrets and `docs/HANDOVER.md`. No personal accounts.
+- **[Risk] First deploy still OOMs if the App Platform app is created from the GitHub repository (a source build).** → Create it from the container image from the start.
+- **[Risk] GHCR + DigitalOcean credentials add handover surface.** → Club GitHub org owns the packages, which are public so App Platform needs no pull token; the DigitalOcean API token (scoped to `app`) lives in GitHub Actions secrets and `docs/HANDOVER.md`. No personal accounts.
 - **[Risk] `heroTreatment` / Schedule `type` values were unspecified; wrong set ships.** → Values are written into `design/content-model.md` in this change so they are not tribal knowledge. Changing them later is a schema + document change, which is the point of an enum.
 - **[Risk] Bootstrap that mutates roles on every boot fights live permission edits.** → Seed Editor only when the role is absent; never reset Super Admin.
 - **[Risk] Local develop without R2 credentials silently uses disk, and someone copies that config to production.** → Production config must fail startup if `R2_*` are missing. Local may document a disk provider in `.env.example` only.
@@ -82,9 +82,9 @@ Dockerfile: Node 24, `npm ci` at repo context or workspace-aware copy of `apps/c
 
 ## Migration Plan
 
-Greenfield: no existing CMS data. Order: Neon pooled DB (flight-ops) → GHCR workflow merging to `main` → Render Docker service with env → first Super Admin via the live URL → confirm Editor role exists → upload a test file only after R2 env is set.
+Greenfield: no existing CMS data. Order: Neon pooled DB (flight-ops) → GHCR workflow merging to `main` → App Platform app with env → first Super Admin via the live URL → confirm Editor role exists → upload a test file only after R2 env is set.
 
-Rollback: point Render at the previous image tag. Schema-down is not needed on the first deploy; later schema edits are their own change.
+Rollback: point App Platform at the previous image tag. Schema-down is not needed on the first deploy; later schema edits are their own change.
 
 ## Open Questions
 

@@ -866,7 +866,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
     <div class="poll__row" data-crew="d4" data-link="d1 d2 d3 d5">
       <i class="lamp lamp--nogo" style="--i:2" aria-hidden="true"></i>
       <span class="poll__station">ACCOUNTS</span>
-      <span class="poll__item"><b class="poll__call poll__call--nogo">no-go</b>Cloudflare, Render, Neon, Vercel, Google Workspace — every row in HANDOVER is <code class="mono">TBD</code>.</span>
+      <span class="poll__item"><b class="poll__call poll__call--nogo">no-go</b>Cloudflare, DigitalOcean, Neon, Vercel, Google Workspace — every row in HANDOVER is <code class="mono">TBD</code>.</span>
       <span class="poll__blocks">Blocks <b>every deploy and all Strapi-backed sections</b>. Two people per account, club card only, never trial credits.</span>
       <span class="poll__owner"><span class="chip chip--d4">Dev 4 · GC</span></span>
     </div>
@@ -880,7 +880,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
     <div class="poll__row" data-crew="d1" data-link="d4">
       <i class="lamp lamp--caution" style="--i:4" aria-hidden="true"></i>
       <span class="poll__station">CI&nbsp;GATES</span>
-      <span class="poll__item"><b class="poll__call poll__call--caution">caution</b>Tier A <b>exists and is green</b> (<code class="mono">.github/workflows/tier-a.yml</code>, ~1–2&nbsp;min). <code class="mono">cms-deploy.yml</code> <b>fails on every push to main</b> — no <code class="mono">RENDER_DEPLOY_HOOK_URL</code>.</span>
+      <span class="poll__item"><b class="poll__call poll__call--caution">caution</b>Tier A <b>exists and is green</b> (<code class="mono">.github/workflows/tier-a.yml</code>, ~1–2&nbsp;min). <code class="mono">cms-deploy.yml</code> <b>fails on every push to main</b> — no <code class="mono">DIGITALOCEAN_ACCESS_TOKEN</code> / <code class="mono">DIGITALOCEAN_APP_ID</code>.</span>
       <span class="poll__blocks">The handoff is now <b>due</b>: Tier A has run many times, so Dev 4 can require it in the ruleset. <b>This is the step people forget</b> — it is still unforgotten only because nobody has done it.</span>
       <span class="poll__owner"><span class="chip chip--d1">Dev 1 · BOOSTER</span></span>
     </div>
@@ -956,7 +956,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
           <h4>Must do</h4>
           <ul>
             <li>npm workspaces at the root; <b>npm, never pnpm</b> — Strapi expects a flat <code>node_modules</code> and Vercel picks the manager from the committed lockfile.</li>
-            <li>Node 24 LTS pinned in <code>.nvmrc</code> and <code>engines</code>, matched in the Vercel and Render dashboards.</li>
+            <li>Node 24 LTS pinned in <code>.nvmrc</code> and <code>engines</code>, matched in the Vercel and DigitalOcean dashboards.</li>
             <li>Next.js pinned to an exact <b>16.3.x</b>, lockfile committed, so five machines and two deploy targets resolve identically.</li>
             <li>Both deploy targets get a root directory so neither builds the other's code.</li>
             <li>A wrapper around the build-time Strapi fetch that fails with <code>Strapi unreachable at &lt;url&gt; — see docs/ops/cms-runbook.md</code>, never a raw <code>ECONNREFUSED</code>.</li>
@@ -1238,7 +1238,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
             <li><b>Alumni's <code>consentRecordedAt</code> and <code>consentSource</code> are required fields.</b> An editor must be unable to publish a portrait without recording where consent came from. A policy nobody reads does not survive turnover; a required field does.</li>
             <li>Galactic Summit's <code>accentToken</code> and <code>heroTreatment</code> are <b>constrained enums</b> whose values are defined in code — the one sanctioned CMS-to-design coupling.</li>
             <li>Editor role for editors; Super Admin for exactly the two people named in HANDOVER.</li>
-            <li>Render Starter, Neon pooled connection string — <b>never Render's free Postgres</b>, which is deleted on a schedule you did not notice.</li>
+            <li>DigitalOcean App Platform (512 MB container, public GHCR image), Neon pooled connection string — <b>not a DigitalOcean database</b>.</li>
           </ul>
         </div>
         <div class="cat__col">
@@ -1253,7 +1253,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
         <div class="cat__col cat__col--block">
           <h4>Blocks / blocked by</h4>
           <ul>
-            <li>Blocked by <b>accounts</b> (Neon, Render) and by <b>platform-foundation</b> for the workspace root.</li>
+            <li>Blocked by <b>accounts</b> (Neon, DigitalOcean) and by <b>platform-foundation</b> for the workspace root.</li>
             <li>Blocks every Strapi-backed section — <b>five of the site's routes</b>.</li>
             <li>Strapi cannot run on Vercel. This is a recurring suggestion and the answer is always no.</li>
             <li><b>Status 2026-09-19 — merged, not archived.</b> All seven content types, i18n, roles and the R2 provider are in <code>apps/cms</code>. The <b>7 open tasks are all live verification</b> and every one needs a reachable database: the real <code>strapi develop</code> boot, the bilingual admin walkthrough, the Alumni consent rejection, and Editor&nbsp;vs&nbsp;Super&nbsp;Admin. Verified statically only so far. <b>Do not archive until they are run.</b></li>
@@ -1713,7 +1713,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
           <h4>Must do</h4>
           <ul>
             <li>Strapi's S3 provider against R2. <b>Omit <code>ACL</code> entirely</b> — R2 does not support it and nearly every S3 example sets it. <code>region: 'auto'</code>, endpoint <code>https://&lt;account-id&gt;.r2.cloudflarestorage.com</code>.</li>
-            <li>Uploads never touch the Strapi instance's disk: Render's filesystem is ephemeral, and serving images from Strapi would take every photograph offline when Strapi sleeps.</li>
+            <li>Uploads never touch the Strapi instance's disk: App Platform's filesystem is ephemeral, and serving images from Strapi would take every photograph offline when Strapi sleeps.</li>
             <li>Resize at <b>Cloudflare's edge in front of R2</b>, not through <code>next/image</code> on Vercel — quota exhaustion there is a site-wide visual regression triggered by traffic rather than by a deploy.</li>
             <li>Alt text is a required authoring field in both locales.</li>
           </ul>
@@ -1766,7 +1766,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
           <h4>Acceptance</h4>
           <ul>
             <li>Publish in Strapi, wait seconds, reload the public page — it changed. Checked from Strapi's webhook delivery log first when it does not.</li>
-            <li>Preview renders inside the Strapi admin iframe; a blank frame means framing is refused, a 401 means the secrets differ between Render and Vercel.</li>
+            <li>Preview renders inside the Strapi admin iframe; a blank frame means framing is refused, a 401 means the secrets differ between App Platform and Vercel.</li>
             <li>An unauthenticated call to either handler is rejected.</li>
           </ul>
         </div>
@@ -2867,7 +2867,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
             <div class="block" style="margin-top:22px">
               <h4>Watch out</h4>
               <ul>
-                <li><b>Four failures that each cost an afternoon:</b> setting <code>ACL</code> on R2 (it has none); using Render's free Postgres (deleted on a schedule); calling <code>draftMode()</code> without awaiting it (pre-Next-15 API, from Strapi's own docs); and copying a pre-16 <code>revalidateTag</code> call, which typechecks and silently under-revalidates.</li>
+                <li><b>Four failures that each cost an afternoon:</b> setting <code>ACL</code> on R2 (it has none); creating the App Platform app from the GitHub repository instead of the GHCR image (a source build, which OOMs); calling <code>draftMode()</code> without awaiting it (pre-Next-15 API, from Strapi's own docs); and copying a pre-16 <code>revalidateTag</code> call, which typechecks and silently under-revalidates.</li>
                 <li><b>Your load is front-heavy.</b> If accounts drag, hand <code>galactic-summit</code> to GUIDO, who is idle until Phase 3 — that swap is planned, not a favour.</li>
                 <li>If Strapi is down, the site stays up. <b>Do not panic-fix a CMS outage</b> — but do remember that deploys stop too.</li>
               </ul>
