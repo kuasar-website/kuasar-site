@@ -3,7 +3,7 @@
 - [x] 1.1 Implement independent Stellar Talk and Nebula Night Server Component blocks with bilingual controls, stable event identities, optional links and required photo slots for nights.
 - [x] 1.2 Add responsive token-based portrait/editorial and photo-led layouts; reuse shared actions and DateTime without a new motion library or video source.
 - [x] 1.3 Verify both locales with zero, one and fifty records, independently empty collections, optional fields, one-photo nights, neutral SSR dates and preserved speaker/film names.
-- [ ] 1.4 Run Tier A, strict OpenSpec validation and dedicated Tier B events browser checks for no-JavaScript reading, keyboard links, narrow layouts and reduced motion. Existing time-state checks alone do not cover event layout.
+- [x] 1.4 Run Tier A, strict OpenSpec validation and dedicated Tier B events browser checks for no-JavaScript reading, keyboard links, narrow layouts and reduced motion. Existing time-state checks alone do not cover event layout.
 
 ## 2. Production integration after media-pipeline
 
