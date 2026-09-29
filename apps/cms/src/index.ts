@@ -112,6 +112,48 @@ async function assertEditorRole(strapi: Core.Strapi): Promise<void> {
   }
 }
 
+/**
+ * The Media Library stores the original, unmodified, and nothing else the site uses.
+ * Resizing happens at Cloudflare's edge in front of R2 (docs/adr/0002-cms.md decision 5),
+ * so Strapi's own resizing would only duplicate it, and on Render Starter's 512 MB it
+ * spends memory for files no page ever requests.
+ *
+ * - `responsiveDimensions: false` — no small/medium/large copies.
+ * - `sizeOptimization: false` — no re-encoding. The R2 object stays byte-for-byte the upload.
+ * - `autoOrientation: false` — with size optimisation off, Strapi's auto-orientation
+ *   re-encodes at quality 100 and then discards the result whenever it is larger than the
+ *   original, which it nearly always is. Display dimensions for EXIF-rotated photos come
+ *   from `src/extensions/upload/strapi-server.ts` instead.
+ *
+ * Strapi still makes its own 245×156 admin thumbnail on every upload; no setting stops it.
+ * The site never reads it.
+ *
+ * These live in the plugin store that Settings > Media Library writes to; there is no
+ * config-file key. They are written on every boot so a toggle flipped in the admin panel is
+ * corrected at the next deploy. The store is written directly, not via the upload service's
+ * `setSettings()`, which sends a telemetry event per call. Other keys are preserved.
+ */
+const UPLOAD_SETTINGS = {
+  responsiveDimensions: false,
+  sizeOptimization: false,
+  autoOrientation: false,
+} as const;
+
+async function enforceUploadSettings(strapi: Core.Strapi): Promise<void> {
+  const store = strapi.store({ type: 'plugin', name: 'upload', key: 'settings' });
+  const current = ((await store.get({})) ?? {}) as Record<string, unknown>;
+
+  const drifted = Object.entries(UPLOAD_SETTINGS).filter(([key, value]) => current[key] !== value);
+
+  if (drifted.length > 0) {
+    await store.set({ value: { ...current, ...UPLOAD_SETTINGS } });
+    strapi.log.info(
+      `[bootstrap] Media Library settings reset (${drifted.map(([key]) => key).join(', ')}): ` +
+        'images are resized at the edge, never by Strapi.'
+    );
+  }
+}
+
 export default {
   register({ strapi }: { strapi: Core.Strapi }) {
     assertProductionMediaStorage();
@@ -121,5 +163,6 @@ export default {
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
     await ensureTurkishLocale(strapi);
     await assertEditorRole(strapi);
+    await enforceUploadSettings(strapi);
   },
 };
