@@ -28,13 +28,14 @@
 
 - [x] 2.1 Replace the `create-next-app` placeholder `metadata` export (`title:
       "Create Next App"`) with real KUASAR fallback metadata: `title: { default: "KUASAR",
-      template: "%s" }` and a factual description. *(The identity template ("%s") rather
-      than a real prefix/suffix template is deliberate — see `design.md`, "Root metadata
-      gets a title.default, never a title.template"; a real template would have
-      double-suffixed `about-and-join`'s already-complete `"<Page> | KUASAR"` titles, which
-      a TypeScript build + a live curl of `/` together confirmed does not happen: the stock
-      `/` page renders exactly `<title>KUASAR</title>`, the fallback, with no route-specific
-      override yet to test against a real conflict case.)*
+      template: "%s" }` and a factual description. *(The identity template ("%s") is
+      required by Next's `Metadata` type alongside `title.default`, and is deliberately not
+      a real prefix/suffix template — see `design.md`, "Root metadata gets a title.default
+      and an identity title.template, never a branding prefix/suffix template"; a real
+      template would have double-suffixed `about-and-join`'s already-complete `"<Page> |
+      KUASAR"` titles, which a TypeScript build + a live curl of `/` together confirmed does
+      not happen: the stock `/` page renders exactly `<title>KUASAR</title>`, the fallback,
+      with no route-specific override yet to test against a real conflict case.)*
 - [x] 2.2 Add `metadataBase` so relative canonical/hreflang URLs (as
       `sectionAlternates()` already emits) resolve against the real site origin instead of
       `next`'s `http://localhost:3000` default. *(Discovered and fixed during
@@ -44,10 +45,16 @@
       until `NEXT_PUBLIC_SITE_URL` is set post-domain-registration, matching Next's own
       documented fallback rather than fabricating a fake domain.)*
 - [x] 2.3 Confirm no route-specific metadata already written by another capability is
-      overridden. *(No route currently sets conflicting metadata to test against directly —
-      `about-and-join` is still an open, unmerged PR, not on `main` — but the template
-      mechanism itself was verified against the installed Next.js 16.3.1 title resolver
-      source, not assumed; see `design.md`.)*
+      overridden. *(At implementation time, no route set conflicting metadata to test
+      against directly — `about-and-join` was still an open, unmerged PR, not on `main` —
+      but the template mechanism itself was verified against the installed Next.js 16.3.1
+      title resolver source, not assumed; see `design.md`. **Correction, 2026-09-30:**
+      `about-and-join` has since merged into `main` (confirmed:
+      `apps/web/app/[locale]/(about-and-join)/**` exists on `origin/main`, and its own
+      OpenSpec change's tasks.md shows all tasks complete). This does not change the
+      verified finding — `about-and-join`'s `pageMetadata()` sets full string titles, which
+      the identity template passes through unchanged, exactly as the resolver-source
+      verification predicted.)*
 
 ## 3. robots.txt and sitemap.xml — verified, not modified
 
@@ -59,10 +66,14 @@
       the preview route does not exist. Left as-is.)*
 - [x] 3.3 Confirm `sitemap.ts` lists only routes that exist on `main`, using the existing
       locale-routing alternates mechanism, and that an empty sitemap remains valid.
-      *(`find apps/web/app -type d` on `main` still returns no `[locale]/**` subdirectory;
-      `sitemap.ts` still correctly returns `[]`. Confirmed no open PR's routes — including
-      `about-and-join`'s four pages and `missions-archive`'s routes — are advertised; they
-      are not on `main`.)*
+      *(At implementation time, `find apps/web/app -type d` on `main` returned no
+      `[locale]/**` subdirectory and `sitemap.ts` correctly returned `[]`; no open PR's
+      routes — including `about-and-join`'s four pages and `missions-archive`'s routes — were
+      advertised, since none were on `main` yet. **Correction, 2026-09-30:** `about-and-join`,
+      `missions-archive`, `hero-baseline`, and `timeline-baseline` have since all merged;
+      `sitemap.ts` on current `main` now lists real routes rather than `[]`. This is
+      `sitemap.ts`'s own mechanism working as designed — this capability still has not
+      touched `sitemap.ts` or `robots.ts`, which is the only thing this task verifies.)*
 - [x] 3.4 Domain: confirmed `<DOMAIN>` is still an unregistered placeholder on `main`
       (`git grep -in "kuasar\.org" origin/main` — zero hits outside open, unmerged PRs) —
       not settled, so `robots.ts`/`sitemap.ts` correctly keep the placeholder and this

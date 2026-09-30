@@ -13,10 +13,11 @@ verified rather than rebuilt here.
   root layout via their `/next` entry points. Both count against the route's first-load JS
   budget like any other import — no exemption is requested or granted.
 - Replace the root layout's `create-next-app` placeholder `metadata` with a site-wide
-  fallback: a `title.default` (no `template`, so it cannot double-suffix a route's own
-  title string) and a factual description, plus `metadataBase` so the relative
-  canonical/hreflang URLs `locale-routing`'s `sectionAlternates()` already emits resolve
-  against the real site origin instead of `next`'s `localhost` default.
+  fallback: a `title.default` with an identity `template` (`"%s"`, required by Next's
+  `Metadata` type alongside `default` — not a branding prefix/suffix template, so it cannot
+  double-suffix a route's own title string) and a factual description, plus `metadataBase`
+  so the relative canonical/hreflang URLs `locale-routing`'s `sectionAlternates()` already
+  emits resolve against the real site origin instead of `next`'s `localhost` default.
 - Add a reusable, currently-unwired analytics-event helper,
   `trackSponsorshipPdfOpened()`, for the one authorized custom event. It is not called from
   anywhere in this change: no Galactic Summit route or "Become a Partner" interaction

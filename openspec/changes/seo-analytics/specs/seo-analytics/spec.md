@@ -32,9 +32,14 @@ embedded third-party script, per the KVKK debt recorded in `docs/adr/0002-cms.md
 
 ### Requirement: Root layout metadata is real and does not corrupt route-specific metadata
 The root layout SHALL define a fallback `title.default` and a factual site description,
-with no `title.template`, and SHALL set `metadataBase` so relative canonical and hreflang
-URLs resolve against the site's real origin rather than a development default. It SHALL
-NOT override a route's own title, description, or discovery metadata.
+using an identity `title.template` (`"%s"`) rather than a branding prefix/suffix template,
+and SHALL set `metadataBase` so relative canonical and hreflang URLs resolve against the
+site's real origin rather than a development default. It SHALL NOT override a route's own
+title, description, or discovery metadata. An identity template is required here because
+Next's `Metadata` type requires a `template` alongside `title.default`; a real prefix/suffix
+template (for example `"%s | KUASAR"`) would apply to every child route's own string title
+and double-suffix routes — such as `about-and-join`'s — that already end in `" | KUASAR"`
+themselves.
 
 #### Scenario: A route with no metadata of its own falls back correctly
 - **WHEN** a route defines no `title` or `description` of its own

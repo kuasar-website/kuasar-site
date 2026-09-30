@@ -50,21 +50,25 @@ that enforcement: the wrapper components are measured by `check:budgets`; the ru
 scripts they fetch at request time from `/_vercel/insights/...` are not, and this design
 does not claim otherwise.
 
-### Root metadata gets a `title.default`, never a `title.template`
+### Root metadata gets a `title.default` and an identity `title.template`, never a branding prefix/suffix template
 
 `about-and-join` (merged) already sets each page's own `title` as a full string ending in
 `" | KUASAR"` (its own `pageMetadata()` helper). Per the installed Next.js 16.3.1 docs
 (`node_modules/next/dist/docs/.../generate-metadata.md`, "title.template"): a parent's
 `title.template` applies to any child that provides `title` as a plain string, and only a
-child's own `title.absolute` opts out. Setting a root `template` here would therefore
-silently double-suffix every existing and future route's title
-(`"About KUASAR | KUASAR | KUASAR"`). `title.default` alone has no such effect — per the
-same doc, "`title.template` has no effect if a route has not defined a title or
-title.default" — so it only supplies a fallback for a route with no title of its own
-(today: the stock `/` page and `/_not-found`), and leaves every other route's title
-untouched. If a route ever wants a shared template, that is a coordinated decision across
-every capability that already sets its own title string, not something to introduce
-unilaterally here.
+child's own `title.absolute` opts out. Setting a real prefix/suffix root `template` here
+(for example `"%s | KUASAR"`) would therefore silently double-suffix every existing and
+future route's title (`"About KUASAR | KUASAR | KUASAR"`).
+
+Next's `Metadata` type requires a `template` alongside `title.default` — `title.default`
+cannot be set alone — so `title.template` is set to the **identity template `"%s"`**: a
+required value, not a branding decision. Confirmed against the installed resolver
+(`node_modules/next/dist/lib/metadata/resolvers/resolve-title.js`): an identity template is
+a true no-op for any child that provides its own string title, and only supplies a fallback
+for a route with no title of its own (today: the stock `/` page and `/_not-found`). Every
+other route's title is untouched. If a route ever wants a real shared prefix/suffix
+template, that is a coordinated decision across every capability that already sets its own
+title string, not something to introduce unilaterally here.
 
 ### `metadataBase` is added; it resolves relative URLs, it does not add or override any route's own fields
 
@@ -72,10 +76,17 @@ Next.js resolves a relative `alternates.canonical`/`alternates.languages` URL ag
 `metadataBase` when the parent layout sets one, and otherwise silently falls back to
 `http://localhost:3000` in the resolved output. `locale-routing`'s `sectionAlternates()`
 (used by `about-and-join` today, and by every future page capability) already returns
-root-relative paths for exactly these fields. Setting `metadataBase` here, using the same
-`NEXT_PUBLIC_SITE_URL ?? "https://<DOMAIN>"` placeholder pattern `robots.ts`/`sitemap.ts`
-already use, means those relative URLs resolve to the real (eventual) site origin without
-any change to `sectionAlternates()` itself or to any page's own metadata object.
+root-relative paths for exactly these fields.
+
+**`metadataBase` cannot use the same `NEXT_PUBLIC_SITE_URL ?? "https://<DOMAIN>"` string
+pattern `robots.ts`/`sitemap.ts` use**, and this was discovered as a real bug during
+implementation, not a deliberate design choice: `robots.ts`/`sitemap.ts` only ever
+string-interpolate that value, but `metadataBase` requires an actual `URL` instance, and
+`new URL("https://<DOMAIN>")` throws at build time — `<`/`>` are not legal URL characters.
+The implemented form is `SITE_URL ? new URL(SITE_URL) : undefined`: `undefined` is Next's
+own documented fallback (relative URLs resolve against `http://localhost:3000`, with a
+console warning) until `NEXT_PUBLIC_SITE_URL` is actually set — never a fabricated
+placeholder domain. See `tasks.md` 2.2 for how this was found and fixed.
 
 ### The sponsorship-PDF event is a named helper, not wired to anything yet
 
@@ -118,11 +129,20 @@ existing budget check, not exempted from it.
   explicitly in this change's `tasks.md` as a blocked, not skipped, item, and by keeping
   the function itself trivial to find (`apps/web/lib/analytics/**`, matching the existing
   `apps/web/lib/{i18n,time,content}/**` convention).
-- **`metadataBase` still points at the `<DOMAIN>` placeholder.** Every resolved canonical/
-  hreflang URL will read `https://<DOMAIN>/...` until the domain is registered and
-  `NEXT_PUBLIC_SITE_URL` is set — no worse than `robots.ts`/`sitemap.ts`'s existing state,
-  and corrected the same way, in one place, once the domain exists
-  (`docs/ops/cms-runbook.md`, step 1).
+- **`metadataBase` is `undefined`, not a placeholder URL, until `NEXT_PUBLIC_SITE_URL` is
+  set.** Every resolved canonical/hreflang URL falls back to Next's own
+  `http://localhost:3000` default (with a console warning) until then — worse in one sense
+  than `robots.ts`/`sitemap.ts`'s existing state (their string-only placeholder at least
+  reads as `<DOMAIN>`, not `localhost`), but the correct behavior given `metadataBase` cannot
+  safely hold the `<DOMAIN>` placeholder at all (see the `metadataBase` decision above).
+  **Correction, 2026-09-30:** the production domain is now known to be `kuasar.org` (DNS:
+  `kuasar.org`'s nameservers are Cloudflare's, and `media.kuasar.org` is already live per
+  `media-pipeline`'s verification). This capability does not hardcode that domain into
+  application code — no requirement in `docs/adr/0001-stack.md` or `docs/ops/cms-runbook.md`
+  authorizes that, and the runbook's own domain-registration step is still flight-ops's job,
+  not this capability's. Operationally: production should set
+  `NEXT_PUBLIC_SITE_URL=https://kuasar.org` once the Vercel project exists (see
+  `docs/HANDOVER.md`), at which point `metadataBase` resolves correctly with no code change.
 - **No CI gate measures the `/_vercel/insights/...` runtime scripts' weight** — recorded
   explicitly, per `docs/adr/0001-stack.md` §6's own admission that CI "covers most of the
   weight, not all of it."
