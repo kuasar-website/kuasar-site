@@ -314,6 +314,15 @@ role, not Super Admin. Super Admin is for the two people named in
 [../HANDOVER.md](../HANDOVER.md) and nobody else — an editor who can change the content
 model can break the build.
 
+**Then check Settings → Administration Panel → Roles → Editor's Delete and Publish
+permissions are actually on.** Confirmed live, 2026-09-30: the built-in Editor role does not
+reliably ship with Delete and Publish enabled by default — Read/Create/Update were on,
+Delete/Publish were not, and had to be turned on by hand. `apps/cms`'s bootstrap code only
+asserts the Editor role exists; it does not set or verify its action permissions, on purpose
+(see `openspec/changes/cms-platform/design.md`, Risks). Verify this once per environment
+(a fresh App Platform deploy or a new database both count), not once per new editor invited
+to an already-configured environment.
+
 ### Monthly: confirm the backup is still running
 
 Takes thirty seconds. Do not skip it; a backup that stopped silently is worse than no
