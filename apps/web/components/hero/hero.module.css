@@ -1,0 +1,61 @@
+.hero {
+  padding: calc(6 * var(--spacing));
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  overflow-wrap: anywhere;
+}
+
+.identity {
+  width: min(100%, 52rem);
+}
+
+/* 18% padding around a 64% mark = 0.28125 times its width on every side. */
+.mark-frame {
+  padding: 18%;
+}
+
+.wordmark {
+  margin: 0;
+  line-height: 1;
+}
+
+.wordmark svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--color-ink);
+}
+
+.subtitle {
+  max-width: 32ch;
+  margin: 0;
+  font-size: clamp(var(--text-lg), 3vw, var(--text-2xl));
+  line-height: 1.4;
+  text-wrap: balance;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(8 * var(--spacing));
+  max-width: 52rem;
+  margin-block: calc(10 * var(--spacing));
+}
+
+.audience {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.audience p {
+  margin-block: 0 calc(3 * var(--spacing));
+  color: var(--color-ink-body);
+  font-size: var(--text-base);
+}
+
+@media (width >= 48rem) {
+  .hero {
+    padding: calc(12 * var(--spacing));
+  }
+}

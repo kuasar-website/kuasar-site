@@ -1,0 +1,35 @@
+name: Tier B hero baseline
+on:
+  push:
+    branches: [change/hero-baseline]
+    paths:
+      - "apps/web/**"
+      - "tests/hero/**"
+      - "package*.json"
+      - ".nvmrc"
+      - ".github/workflows/tier-b-hero.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "tests/hero/**"
+      - "package*.json"
+      - ".nvmrc"
+      - ".github/workflows/tier-b-hero.yml"
+permissions:
+  contents: read
+jobs:
+  hero-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm ci --prefix tests/hero
+      - run: node --test tests/hero/baseline.test.mjs
+      - run: npm exec --prefix tests/hero -- playwright install --with-deps chromium firefox
+      - run: npm --prefix tests/hero test

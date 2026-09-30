@@ -11,6 +11,13 @@ const allowedMediaTypes = [
   'text/csv',
 ];
 
+/**
+ * Largest single upload, in bytes. More than a full-resolution launch JPEG, and it bounds the
+ * memory of the one image operation Strapi still runs on the 512 MB Render instance (its
+ * admin thumbnail). The matching `strapi::body` limit is in config/middlewares.ts.
+ */
+export const UPLOAD_SIZE_LIMIT = 25 * 1024 * 1024;
+
 const deniedTypes = [
   'image/svg+xml',
   'application/vnd.microsoft.portable-executable',
@@ -90,6 +97,7 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin =>
     upload: {
       config: {
         ...uploadConfig,
+        sizeLimit: UPLOAD_SIZE_LIMIT,
         security: {
           allowedTypes: allowedMediaTypes,
           deniedTypes,

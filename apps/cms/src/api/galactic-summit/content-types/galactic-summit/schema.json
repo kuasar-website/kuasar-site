@@ -58,9 +58,9 @@
       "inversedBy": "summits"
     },
     "photos": {
-      "type": "media",
-      "multiple": true,
-      "allowedTypes": ["images"],
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.image",
       "pluginOptions": { "i18n": { "localized": false } }
     },
     "contactAddress": {
@@ -91,9 +91,8 @@
       "pluginOptions": { "i18n": { "localized": false } }
     },
     "backgroundImage": {
-      "type": "media",
-      "multiple": false,
-      "allowedTypes": ["images"],
+      "type": "component",
+      "component": "shared.image",
       "pluginOptions": { "i18n": { "localized": false } }
     }
   }
