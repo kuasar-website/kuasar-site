@@ -14,7 +14,8 @@
     "test:budgets": "node --test scripts/checks/budgets.test.mjs",
     "test:time": "npm --prefix tests/time test --",
     "test:media": "node --test apps/web/lib/media/*.test.ts apps/cms/src/extensions/upload/*.test.ts",
-    "test:content": "node --test apps/web/lib/content/*.test.ts"
+    "test:content": "node --test apps/web/lib/content/*.test.ts",
+    "test:cms": "node --test apps/web/lib/cms/*.test.ts"
   },
   "engines": {
     "node": "24.x"
