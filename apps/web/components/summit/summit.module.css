@@ -1,0 +1,253 @@
+/* Galactic Summit — tokens only (design/tokens.md). No animation.
+   The year's accent (--summit-accent) is used ONLY on the hero frame and the
+   decorative heading rule. Buttons, links, focus rings, the Upcoming/Live badge
+   and meaningful text never read it (openspec/changes/galactic-summit D3). */
+
+.summit {
+  display: grid;
+  gap: var(--space-section-tight);
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  padding-block-end: var(--space-section-tight);
+}
+
+.summit[data-accent="aurora"] { --summit-accent: var(--color-summit-aurora); }
+.summit[data-accent="ion"] { --summit-accent: var(--color-summit-ion); }
+.summit[data-accent="violet"] { --summit-accent: var(--color-summit-violet); }
+.summit[data-accent="ember"] { --summit-accent: var(--color-summit-ember); }
+
+.photos figure {
+  margin: 0;
+}
+
+.photos img {
+  block-size: auto;
+  display: block;
+  inline-size: 100%;
+}
+
+/* --- Hero: one layout, three static treatments ------------------------------ */
+
+.frame {
+  aspect-ratio: 4 / 3;
+  background-color: var(--color-surface);
+  overflow: hidden;
+  position: relative;
+}
+
+.frame > span {
+  block-size: 100%;
+}
+
+.frame::after {
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.frame[data-treatment="wash"]::after {
+  background-color: color-mix(in oklch, var(--summit-accent) 45%, transparent);
+}
+
+.frame[data-treatment="gradient"]::after {
+  background-image: linear-gradient(135deg, var(--summit-accent), var(--color-canvas));
+}
+
+.frame[data-treatment="gradient"] img {
+  opacity: 0.35;
+}
+
+@media (width >= 48rem) {
+  .frame {
+    aspect-ratio: 21 / 9;
+  }
+}
+
+/* --- Intro: always on a solid surface, never over the image ---------------- */
+
+.intro,
+.section {
+  display: grid;
+  gap: calc(var(--spacing) * 5);
+  padding-inline: calc(var(--spacing) * 6);
+}
+
+.intro {
+  background-color: var(--color-surface);
+  padding-block: calc(var(--spacing) * 8);
+}
+
+.rule {
+  background-color: var(--summit-accent);
+  block-size: 4px;
+  display: block;
+  inline-size: calc(var(--spacing) * 16);
+}
+
+.title {
+  color: var(--color-ink);
+  font-size: var(--text-4xl);
+  font-weight: 650;
+}
+
+.empty {
+  color: var(--color-ink-body);
+  font-size: var(--text-lg);
+  padding-inline: calc(var(--spacing) * 6);
+}
+
+.summit > .title {
+  padding-block-start: calc(var(--spacing) * 16);
+  padding-inline: calc(var(--spacing) * 6);
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 3) calc(var(--spacing) * 10);
+  margin: 0;
+}
+
+.facts dt {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.facts dd {
+  align-items: center;
+  color: var(--color-ink-body);
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);
+  margin: 0;
+}
+
+.badge {
+  border: 1px solid currentcolor;
+  border-radius: 999px;
+  font-size: var(--text-xs);
+  font-weight: 650;
+  padding-block: calc(var(--spacing) / 2);
+  padding-inline: calc(var(--spacing) * 2);
+}
+
+/* Semantic state tokens only — never the summit accent. */
+.badge[data-time-state="upcoming"] { color: var(--color-state-upcoming); }
+.badge[data-time-state="live"] { color: var(--color-state-live); }
+
+.purpose {
+  color: var(--color-ink-body);
+  max-inline-size: var(--container-prose);
+}
+
+.actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 4);
+}
+
+.soon {
+  color: var(--color-ink-body);
+  font-weight: 600;
+}
+
+/* --- Sections --------------------------------------------------------------- */
+
+.heading {
+  color: var(--color-ink);
+  font-size: var(--text-2xl);
+  font-weight: 650;
+}
+
+.programme,
+.speakers,
+.photos,
+.archive {
+  display: grid;
+  gap: calc(var(--spacing) * 5);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.programme {
+  max-inline-size: var(--container-prose);
+}
+
+.programme li {
+  border-block-start: 1px solid var(--color-border);
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+  padding-block-start: calc(var(--spacing) * 3);
+}
+
+.time {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.item-title,
+.name {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.description,
+.role,
+.contact {
+  color: var(--color-ink-body);
+}
+
+.contact {
+  white-space: pre-line;
+}
+
+.speaker {
+  align-items: center;
+  display: grid;
+  gap: calc(var(--spacing) * 1) calc(var(--spacing) * 4);
+  grid-template-columns: calc(var(--spacing) * 24) 1fr;
+}
+
+.portrait {
+  border-radius: 999px;
+  grid-row: span 2;
+  inline-size: calc(var(--spacing) * 24);
+  overflow: hidden;
+}
+
+.edition {
+  border-block-start: 1px solid var(--color-border);
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+  padding-block-start: calc(var(--spacing) * 6);
+}
+
+.edition-title {
+  color: var(--color-ink);
+  font-size: var(--text-xl);
+  font-weight: 650;
+}
+
+@media (width >= 48rem) {
+  .speakers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .photos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (forced-colors: active) {
+  .rule,
+  .frame::after {
+    forced-color-adjust: none;
+  }
+
+  .badge {
+    border-color: CanvasText;
+  }
+}

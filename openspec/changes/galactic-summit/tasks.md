@@ -31,8 +31,8 @@
 
 ## 2. Neutral page baseline (no JS required)
 
-- [ ] 2.1 `apps/web/components/summit/copy.ts`: one en/tr table holding the spec's "Bilingual interface copy" table verbatim, including the Live badge and "İş ortağımız olun (PDF)".
-- [ ] 2.2 `apps/web/components/summit/summit-page.tsx` (server):
+- [x] 2.1 `apps/web/components/summit/copy.ts`: one en/tr table holding the spec's "Bilingual interface copy" table verbatim, including the Live badge and "İş ortağımız olun (PDF)".
+- [x] 2.2 `apps/web/components/summit/summit-page.tsx` (server):
   - `h1` "Galactic Summit {year}" with the brand `lang="en"`;
   - the neutral Istanbul date in `<time>`, or "Date to be announced";
   - location and purpose (with `lang` set to the content locale);
@@ -42,26 +42,26 @@
   - sections without data omitted;
   - the zero-editions message;
   - no sponsor output.
-- [ ] 2.3 `apps/web/components/summit/content.tsx` (server-only: `summitConfigured()`, which throws in production without `STRAPI_URL`, and a cached `loadSummit(locale)`) and `page.tsx` (params, metadata via `sectionAlternates('galactic-summit', …)` titled "Galactic Summit | KUASAR", page).
-- [ ] 2.4 One route file, `apps/web/app/[locale]/(galactic-summit)/galactic-summit/page.tsx`, with `dynamic = "error"`, `dynamicParams = false` and `revalidate = false`, serving both locales.
-- [ ] 2.5 `apps/web/components/summit/summit.module.css`:
+- [x] 2.3 `apps/web/components/summit/content.tsx` (server-only: `summitConfigured()`, which throws in production without `STRAPI_URL`, and a cached `loadSummit(locale)`) and `page.tsx` (params, metadata via `sectionAlternates('galactic-summit', …)` titled "Galactic Summit | KUASAR", page).
+- [x] 2.4 One route file, `apps/web/app/[locale]/(galactic-summit)/galactic-summit/page.tsx`, with `dynamic = "error"`, `dynamicParams = false` and `revalidate = false`, serving both locales.
+- [x] 2.5 `apps/web/components/summit/summit.module.css`:
   - tokens only, with the D3 `data-accent` → `--summit-accent` aliases and the three static treatments;
   - hero text on a surface token, never over the image;
   - the accent only on the hero frame and heading rule;
   - no horizontal scroll at 320px, and `forced-colors` support.
-- [ ] 2.6 `apps/web/app/sitemap.ts`: emit both Summit URLs with alternates whenever the CMS is configured (zero editions included). Leave the other entries unchanged.
-- [ ] 2.7 Confirm with a local production build against a synthetic CMS that both locales show the full neutral page, and every link works, with JavaScript disabled. Review the baseline before section 3.
+- [x] 2.6 `apps/web/app/sitemap.ts`: emit both Summit URLs with alternates whenever the CMS is configured (zero editions included). Leave the other entries unchanged.
+- [x] 2.7 Confirm with a local production build against a synthetic CMS that both locales show the full neutral page, and every link works, with JavaScript disabled. Review the baseline before section 3.
 
 ## 3. Client islands (built on the reviewed baseline)
 
-- [ ] 3.1 `apps/web/components/summit/sponsorship-pdf-link.tsx` (`"use client"`): a plain `<a>` with the shared `action secondary` classes, `target="_blank" rel="noopener"`, visible "(PDF)", the spec's accessible name, and `onClick` → `trackSponsorshipPdfOpened()`. Rendered only when a validated PDF exists.
+- [x] 3.1 `apps/web/components/summit/sponsorship-pdf-link.tsx` (`"use client"`): a plain `<a>` with the shared `action secondary` classes, `target="_blank" rel="noopener"`, visible "(PDF)", the spec's accessible name, and `onClick` → `trackSponsorshipPdfOpened()`. Rendered only when a validated PDF exists.
 - [x] 3.2 `apps/web/lib/summit/time.ts`: pure `istanbulDayKey(instant)` (`Intl` `formatToParts`, `Europe/Istanbul`) and `summitDayState(date, now)` → `"upcoming" | "live" | null` by Istanbul calendar-day comparison (design.md D7). It never reads a clock, adds no duration, and returns null for a null `now` or a missing/invalid date. `apps/web/lib/summit/time.test.ts`, run under `TZ=UTC` and `TZ=America/New_York`, covers:
   - the day before → upcoming; 00:00 Istanbul (`21:00Z` the previous UTC day) → live;
   - 23:59:59 Istanbul → live; the next Istanbul midnight → null;
   - a Summit time late in the Istanbul day whose UTC date differs;
   - null `now`, missing date and invalid date → null.
-- [ ] 3.3 `apps/web/components/summit/summit-day-badge.tsx` (`"use client"`): `useBrowserNow()` passed to `summitDayState`. Renders "Upcoming" / "Yaklaşan" (`--color-state-upcoming`) or "Live" / "Şimdi" (`--color-state-live`) as text, and nothing for null. Never uses a summit token. Not used for archive editions.
-- [ ] 3.4 Confirm that no motion or transitions are added beyond the shared L3 primitives, and that `check:reduced-motion-css` passes.
+- [x] 3.3 `apps/web/components/summit/summit-day-badge.tsx` (`"use client"`): `useBrowserNow()` passed to `summitDayState`. Renders "Upcoming" / "Yaklaşan" (`--color-state-upcoming`) or "Live" / "Şimdi" (`--color-state-live`) as text, and nothing for null. Never uses a summit token. Not used for archive editions.
+- [x] 3.4 Confirm that no motion or transitions are added beyond the shared L3 primitives, and that `check:reduced-motion-css` passes.
 
 ## 4. Documentation
 
@@ -94,12 +94,12 @@
   - sponsor names absent;
   - a sparse edition omits headings;
   - no horizontal scroll, reduced motion with no animations, and axe with zero violations before and after mount.
-- [ ] 5.3 `tests/summit/check-routes.mjs`: real `next build` and `next start` against a synthetic Strapi. It must:
+- [x] 5.3 `tests/summit/check-routes.mjs`: real `next build` and `next start` against a synthetic Strapi. It must:
   - prove these builds fail: none current, two current, a bad PDF host, still without an image;
   - for 0, 1 and 4 editions, plus sponsors-present: confirm both routes are prerendered with `initialRevalidateSeconds: false`;
   - confirm serving makes zero CMS requests, the sitemap has both URLs, and the switcher targets are correct;
   - confirm sponsors are absent from the HTML and route JS is within budget.
-- [ ] 5.4 `tests/events/check-routes.mjs`: its synthetic Strapi returns an empty, valid page for `/api/galactic-summits` (routing only, no assertion changes). Confirm that `events-baseline` still passes.
+- [x] 5.4 `tests/events/check-routes.mjs`: its synthetic Strapi returns an empty, valid page for `/api/galactic-summits` (routing only, no assertion changes). Confirm that `events-baseline` still passes.
 - [ ] 5.5 Add `.github/workflows/tier-b-summit.yml` per design D10 (`timeout-minutes: 10`, exactly the D10 path list, not required). Verify by inspection that a change touching only another route directory does not match. **CI gate:** this workflow plus Tier A. Site-wide axe and Lighthouse are not covered until `verification-browser-gates`; say so in the PR.
 - [ ] 5.6 Run Tier A locally (typecheck, lint, stylelint, reduced-motion, locale parity, budgets, content and media tests, build, check:budgets) and the full Summit suite. Run the events and time-state suites too.
 
