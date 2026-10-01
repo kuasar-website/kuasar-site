@@ -99,6 +99,12 @@
 
 ## 7. Live acceptance (manual; check only with evidence)
 
-- [ ] 7.1 Publish a Schedule Event in Strapi (en, and tr for one), rebuild the frontend, and confirm it appears on both routes in its Istanbul day. Record the evidence in the PR.
-- [ ] 7.2 Confirm a draft-only event does not appear on either route after rebuild.
+- [x] 7.1 Publish a Schedule Event in Strapi (en, and tr for one), rebuild the frontend, and confirm it appears on both routes in its Istanbul day. Record the evidence in the PR.
+  - **Evidence (2026-10-01):** read-only check against production Strapi (`https://kuasar-cms-alvwp.ondigitalocean.app`), public API only, no token, no CMS change.
+    - **Production data:** the synthetic canary `KUASAR-BACKUP-CANARY-PUBLISHED-7Q3X` (documentId `e67qint75hcv221sdx6a12ks`, published in en and tr, `startsAt` `2026-10-07T15:00:00.000Z`, type `other`) is the only published Schedule Event.
+    - **Rebuild:** local `next build` and `next start` of this branch at `3ffe04d`, with `STRAPI_URL` pointing at production through a GET-only logging proxy. The build made 6 CMS requests, all `GET` with `status=published` (schedule-events, stellar-talks and nebula-nights, each en and tr). None requested Alumni, and serving the pages made 0 CMS requests.
+    - **Rendered:** `/en/schedule` and `/tr/takvim` each list exactly 1 event, with `datetime="2026-10-07T15:00:00.000Z"`, under "October 2026" / "Ekim 2026". It reads "Wednesday, October 7, 2026 · 18:00" / "7 Ekim 2026 Çarşamba · 18:00", with type "Other" / "Diğer". The server HTML has no time state.
+    - **In the browser:** with a controlled clock (2026-10-01) under device zones UTC, Europe/Istanbul and America/New_York, both locales open on October 2026. The only day with events is 7 October ("…, 1 event: Other" / "…, 1 etkinlik: Diğer"), and it shows as upcoming.
+- [x] 7.2 Confirm a draft-only event does not appear on either route after rebuild.
+  - **Evidence (2026-10-01):** the same rebuild as 7.1. The synthetic draft-only canary `KUASAR-BACKUP-CANARY-DRAFT-7Q3X` (en and tr, never published) is absent from both `/en/schedule` and `/tr/takvim`, both in the server HTML and after the client grid mounts under all three device zones. A public title search for it also returns 0 results.
 - [ ] 7.3 Human keyboard and screen-reader pass (VoiceOver or NVDA) on both locales, on phone and desktop.
