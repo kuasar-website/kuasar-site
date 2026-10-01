@@ -1,0 +1,139 @@
+/* Schedule — tokens only (design/tokens.md). No animation: design.md D10. */
+
+.schedule {
+  display: grid;
+  gap: calc(var(--spacing) * 10);
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  padding-block: calc(var(--spacing) * 6) var(--space-section-tight);
+  padding-inline: calc(var(--spacing) * 6);
+}
+
+.note {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.empty {
+  color: var(--color-ink-body);
+  font-size: var(--text-lg);
+}
+
+.month {
+  display: grid;
+  gap: calc(var(--spacing) * 6);
+}
+
+.month-heading {
+  color: var(--color-ink);
+  font-size: var(--text-2xl);
+  font-weight: 650;
+}
+
+.agenda {
+  display: grid;
+  gap: calc(var(--spacing) * 6);
+  list-style: none;
+  margin: 0;
+  max-inline-size: var(--container-prose);
+  padding: 0;
+}
+
+.event {
+  border-block-start: 1px solid var(--color-border);
+  border-inline-start: 3px solid var(--color-border-strong);
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+  padding-block: calc(var(--spacing) * 5) calc(var(--spacing) * 2);
+  padding-inline-start: calc(var(--spacing) * 4);
+}
+
+.event:focus-visible {
+  outline: 2px solid var(--color-orbit-400);
+  outline-offset: 3px;
+}
+
+.event[data-type="talk"] { border-inline-start-color: var(--color-event-talk); }
+.type[data-type="talk"] { border-color: var(--color-event-talk); }
+
+.event[data-type="screening"] { border-inline-start-color: var(--color-event-screening); }
+.type[data-type="screening"] { border-color: var(--color-event-screening); }
+
+.event[data-type="summit"] { border-inline-start-color: var(--color-event-summit); }
+.type[data-type="summit"] { border-color: var(--color-event-summit); }
+
+.event[data-type="workshop"] { border-inline-start-color: var(--color-event-workshop); }
+.type[data-type="workshop"] { border-color: var(--color-event-workshop); }
+
+.event[data-type="other"] { border-inline-start-color: var(--color-event-other); }
+.type[data-type="other"] { border-color: var(--color-event-other); }
+
+.meta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);
+}
+
+.type {
+  border: 1px solid;
+  border-radius: 999px;
+  color: var(--color-ink-body);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding-block: calc(var(--spacing) / 2);
+  padding-inline: calc(var(--spacing) * 2);
+}
+
+.live {
+  border: 1px solid var(--color-state-live);
+  border-radius: 999px;
+  color: var(--color-state-live);
+  font-size: var(--text-xs);
+  font-weight: 650;
+  padding-block: calc(var(--spacing) / 2);
+  padding-inline: calc(var(--spacing) * 2);
+}
+
+.title {
+  color: var(--color-ink);
+  font-size: var(--text-xl);
+  font-weight: 650;
+}
+
+.when {
+  color: var(--color-ink-body);
+  font-size: var(--text-sm);
+}
+
+/* Client-derived state only; the server never emits data-time-state. */
+.event[data-time-state="live"] .when { color: var(--color-state-live); }
+.event[data-time-state="upcoming"] .when { color: var(--color-state-upcoming); }
+.event[data-time-state="past"] .when { color: var(--color-state-past); }
+
+.location,
+.description {
+  color: var(--color-ink-body);
+}
+
+.location {
+  font-size: var(--text-sm);
+}
+
+.sr-only {
+  block-size: 1px;
+  clip-path: inset(50%);
+  inline-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+}
+
+@media (forced-colors: active) {
+  .event,
+  .type,
+  .live {
+    border-color: CanvasText;
+  }
+}

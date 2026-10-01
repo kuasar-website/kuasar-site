@@ -1,21 +1,21 @@
 ## 0. Preconditions (verify, do not change)
 
-- [ ] 0.1 Confirm against `main` that the `schedule-event` schema still matches design.md, Context, field for field. Any drift: stop and update this change first.
-- [ ] 0.2 Use context7 to confirm the current Next.js 16 App Router APIs used here (`generateStaticParams` with parent params, `dynamic = "error"`, fetch `next.tags`, `useSyncExternalStore` hydration behaviour). Record any deviation from the events-showcase pattern in design.md before coding.
+- [x] 0.1 Confirm against `main` that the `schedule-event` schema still matches design.md, Context, field for field. Any drift: stop and update this change first.
+- [x] 0.2 Use context7 to confirm the current Next.js 16 App Router APIs used here (`generateStaticParams` with parent params, `dynamic = "error"`, fetch `next.tags`, `useSyncExternalStore` hydration behaviour). Record any deviation from the events-showcase pattern in design.md before coding.
 
 ## 1. Pure calendar logic (no React, no clock)
 
-- [ ] 1.1 `apps/web/lib/schedule/calendar.ts`: `istanbulDayKey`, `monthOf`, a Monday-first `monthMatrix`, `daysOccupied` (half-open, instant on start day, no spill at midnight), `addMonths`, and overlap-with-month. Every function takes instants as arguments; none reads `Date.now()`.
-- [ ] 1.2 `apps/web/lib/schedule/calendar.test.ts`: the 22:30Z → next Istanbul day case; a multi-day event; a month-spanning event; an end exactly at Istanbul midnight; an equal start and end (instant); December→January; leap February; 0, 1 and 50 events. Run under `TZ=UTC` and `TZ=America/New_York` with identical results.
+- [x] 1.1 `apps/web/lib/schedule/calendar.ts`: `istanbulDayKey`, `monthOf`, a Monday-first `monthMatrix`, `daysOccupied` (half-open, instant on start day, no spill at midnight), `addMonths`, and overlap-with-month. Every function takes instants as arguments; none reads `Date.now()`.
+- [x] 1.2 `apps/web/lib/schedule/calendar.test.ts`: the 22:30Z → next Istanbul day case; a multi-day event; a month-spanning event; an end exactly at Istanbul midnight; an equal start and end (instant); December→January; leap February; 0, 1 and 50 events. Run under `TZ=UTC` and `TZ=America/New_York` with identical results.
 
 ## 2. Data loader (build/revalidation only)
 
-- [ ] 2.1 `apps/web/lib/schedule/data.ts`, mirroring `lib/events/data.ts`:
+- [x] 2.1 `apps/web/lib/schedule/data.ts`, mirroring `lib/events/data.ts`:
   - published only, all pages, tag `schedule-calendar`, `force-cache`, `revalidate: false`, optional bearer token;
   - tr-over-en by `documentId`, with `contentLocale` kept;
   - validates exactly the schema fields per design D7: every violation, including `endsAt` earlier than `startsAt`, fails with the `documentId`, field(s), locale and a runbook pointer. No skip, no degraded render, no warning-only path;
   - stable `startsAt` ordering.
-- [ ] 2.2 `apps/web/lib/schedule/data.test.ts` covers:
+- [x] 2.2 `apps/web/lib/schedule/data.test.ts` covers:
   - drafts skipped, multi-page, duplicate across pages, wrong locale;
   - fallback merge, English route excludes Turkish-only documents;
   - each D7 failure names the `documentId` and field;
@@ -25,23 +25,23 @@
 
 ## 3. Neutral baseline (ships first, no JS required)
 
-- [ ] 3.1 `apps/web/components/schedule/copy.ts`: one en/tr table holding, verbatim:
+- [x] 3.1 `apps/web/components/schedule/copy.ts`: one en/tr table holding, verbatim:
   - the spec's "Bilingual interface copy" strings (heading, timezone note, both empty messages, Previous month/Önceki ay, Next month/Sonraki ay, Today/Bugün, the live-region message, the live badge);
   - the approved type labels;
   - state labels, "N events"/"N etkinlik", "+N more"/"+N daha", "Details"/"Ayrıntılar".
 
   `{month}` comes from `Intl.DateTimeFormat` in Europe/Istanbul.
-- [ ] 3.2 `apps/web/components/schedule/schedule-calendar.tsx` (client), pre-mount output only:
+- [x] 3.2 `apps/web/components/schedule/schedule-calendar.tsx` (client), pre-mount output only:
   - chronological list grouped by Istanbul month;
   - `<time dateTime>` with Istanbul-formatted date and time per locale;
   - visible type label, `lang="en"` on fallback content, optional location, description and link;
   - zero-state message;
   - no state attributes.
-- [ ] 3.3 `apps/web/components/schedule/content.tsx` (server-only): `scheduleConfigured()` (throws in production without `STRAPI_URL`) and a cached `loadSchedule(locale)`. Add `page.tsx` (params, metadata via `sectionAlternates('schedule', …)`, page).
-- [ ] 3.4 Add the routes `apps/web/app/[locale]/(schedule)/schedule/page.tsx` and `.../takvim/page.tsx` with `dynamic = "error"`, `dynamicParams = false` and `revalidate = false`, matching the events route files.
-- [ ] 3.5 `apps/web/components/schedule/schedule.module.css`: tokens only (no raw colours or durations), no horizontal scroll at 320px, Turkish strings untruncated, `forced-colors` support.
-- [ ] 3.6 `apps/web/app/sitemap.ts`: emit both schedule URLs with alternates whenever the CMS is configured and `NEXT_PUBLIC_SITE_URL` is set (zero events included). Leave the events and timeline entries unchanged.
-- [ ] 3.7 Confirm by local build with JS disabled: both locales show the full list. Review the baseline before starting section 4.
+- [x] 3.3 `apps/web/components/schedule/content.tsx` (server-only): `scheduleConfigured()` (throws in production without `STRAPI_URL`) and a cached `loadSchedule(locale)`. Add `page.tsx` (params, metadata via `sectionAlternates('schedule', …)`, page).
+- [x] 3.4 Add the routes `apps/web/app/[locale]/(schedule)/schedule/page.tsx` and `.../takvim/page.tsx` with `dynamic = "error"`, `dynamicParams = false` and `revalidate = false`, matching the events route files.
+- [x] 3.5 `apps/web/components/schedule/schedule.module.css`: tokens only (no raw colours or durations), no horizontal scroll at 320px, Turkish strings untruncated, `forced-colors` support.
+- [x] 3.6 `apps/web/app/sitemap.ts`: emit both schedule URLs with alternates whenever the CMS is configured and `NEXT_PUBLIC_SITE_URL` is set (zero events included). Leave the events and timeline entries unchanged.
+- [x] 3.7 Confirm by local build with JS disabled: both locales show the full list. Review the baseline before starting section 4.
 
 ## 4. Client enhancement (built on the reviewed baseline)
 
