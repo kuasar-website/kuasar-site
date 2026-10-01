@@ -184,13 +184,26 @@ can also take one by hand at any time — repository → Actions → the content
 workflow → **Run workflow**. Do that before a Strapi upgrade or a big editing session,
 rather than hoping the schedule lands at a convenient moment.
 
+The export is a plain HTTP client against Strapi's own REST API, using a dedicated, scoped
+API token (`CONTENT_BACKUP_API_TOKEN`) granted read access to exactly the six backed-up
+content types — never a database connection or credential of any kind. See
+[ops/cms-runbook.md](ops/cms-runbook.md) step 8 for the exact secrets and how to provision
+the token.
+
 ```bash
 git fetch origin content-snapshots
 git log origin/content-snapshots -1 --format='%ci %s'
 ```
 
 If that commit is more than two weeks old, **the backup has stopped**. Restart it before
-doing anything else; see [ops/cms-runbook.md](ops/cms-runbook.md).
+doing anything else; see [ops/cms-runbook.md](ops/cms-runbook.md). Checking this monthly is
+whichever Super Admin performs the monthly CMS check's job — see the accounts table above.
+
+**Not yet true as of this writing:** the token has not been created, no manual or scheduled
+run has happened, and the `content-snapshots` branch does not exist yet. This section
+describes the implemented mechanism, not a backup that has actually run — see
+[ops/cms-runbook.md](ops/cms-runbook.md) step 8 for exactly what is still owed before it can
+be trusted.
 
 The backups contain **content only, never photographs**. Two things are also left out on
 purpose, and both matter if you ever restore:

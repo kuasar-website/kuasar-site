@@ -280,30 +280,66 @@ It runs on two triggers:
   the days nobody is thinking about backups; the manual run is for the day you already know
   you are about to do something risky.
 
-**Two things must be true before this workflow ever runs, because the repository is
-public** (see [../adr/0005-repository-visibility.md](../adr/0005-repository-visibility.md)):
+**How it exports, and why that mechanism:** the workflow is a plain HTTP client
+(`scripts/content-snapshot/export.mjs`) calling the production Strapi REST Content API with a
+dedicated, scoped API token — **not** a direct database connection, and not Strapi's own
+`export` CLI. It never boots Strapi and needs no database credential of any kind. Two GitHub
+Actions secrets make it work:
+
+| Secret | What it is |
+| --- | --- |
+| `CONTENT_BACKUP_API_TOKEN` | A Strapi **custom**-type API token (Settings → API Tokens), granted `find`/`findOne` on exactly the six exported content types below — no other action, no other content type, and explicitly **never** Alumni |
+| `CMS_BASE_URL` | The production Strapi host |
+
+Neither secret exists yet as of this writing — create the token and add both secrets before
+the first run (manual or scheduled) can succeed. See
+[openspec/changes/content-backup/design.md](../../openspec/changes/content-backup/design.md),
+"Mechanism," for the full reasoning (in short: a direct database connection, even scoped,
+risks a write/migration path this read-only job has no need for).
+
+**Two things must be true before this workflow's output can be trusted, because the
+repository is public** (see
+[../adr/0005-repository-visibility.md](../adr/0005-repository-visibility.md)):
 
 - **Alumni are excluded from the export entirely** — the whole content type, not just its
   consent fields. Git history cannot be erased once it is public, so an alumnus asking to be
   removed could be honoured on the site and not in the backup. Keeping them out of the dump
-  is what makes that request answerable.
-- **The export is restricted to published entries.** An unfiltered Strapi export includes
-  drafts, and a draft committed to a public branch is public permanently — a force-push is
-  not a redaction once anyone has cloned or GitHub has cached it.
+  is what makes that request answerable. This export never queries Alumni at all, and the API
+  token above is never granted permission on it either — two independent layers, not one.
+- **The export is restricted to published entries.** Every request explicitly asks for
+  `status=published`; nothing in the workflow, the script, or its configuration can ask for
+  drafts instead. An unfiltered export would include drafts, and a draft committed to a
+  public branch is public permanently — a force-push is not a redaction once anyone has
+  cloned or GitHub has cached it.
 
 Both are argued in [../adr/0002-cms.md](../adr/0002-cms.md), *Known debt: KVKK*. Neither may
-be relaxed to make restores easier; the cost of the first one is recorded there as an
-accepted consequence.
+be relaxed to make restores easier.
+
+**Exactly six content types are exported** — Stellar Talk, Nebula Night, Galactic Summit,
+Schedule Event, Announcement, Sponsor — in both `en` and `tr`. Alumni is the seventh and is
+not among them.
 
 **Trigger the workflow by hand once and open the dump before trusting the schedule.** Search
 it for an alumnus's name and for a known draft. Finding either means the filters are not
-working, and the time to discover that is while the repository is still private. Then confirm
-it landed:
+working. Then confirm it landed:
 
 ```bash
 git fetch origin content-snapshots
 git log origin/content-snapshots --oneline -5
 ```
+
+**Restoring** is a manual, human-run procedure, and is only ever rehearsed against a
+disposable, non-production Strapi instance (the same local-Postgres pattern used to verify
+`cms-platform` — never directly against production). See
+[openspec/changes/content-backup/design.md](../../openspec/changes/content-backup/design.md),
+"Restore procedure," for the exact steps, including the one field (Announcement's `slug`)
+that must be set explicitly from the snapshot rather than regenerated.
+
+**As of this writing, none of the above has actually run yet.** The workflow and script are
+implemented; the token has not been created, no manual run has happened, `content-snapshots`
+does not exist yet, and no restore drill has been performed. Treat this section as accurate
+about *how it works* and not yet as evidence that it *has* worked — the live walkthrough
+above is still owed.
 
 ## Routine operations
 
@@ -327,6 +363,10 @@ to an already-configured environment.
 
 Takes thirty seconds. Do not skip it; a backup that stopped silently is worse than no
 backup, because you will believe you have one.
+
+**Who:** whichever Super Admin performs the monthly CMS check (see
+[../HANDOVER.md](../HANDOVER.md)'s accounts section for who that currently is). This is a
+documented operational check, not an automated alert — nothing pages anyone if it lapses.
 
 ```bash
 git fetch origin content-snapshots
