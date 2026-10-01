@@ -1,0 +1,93 @@
+name: Content snapshot
+
+# Weekly (plus on-demand) export of published, non-Alumni Strapi content into
+# the dedicated content-snapshots branch — docs/adr/0002-cms.md decision 2
+# (rule 2), openspec/changes/content-backup/design.md.
+#
+# This workflow lives on main because GitHub only fires `schedule` triggers
+# from the default branch. It never commits to main: every snapshot lands on
+# the orphan `content-snapshots` branch, created fresh on first run.
+#
+# The export itself (scripts/content-snapshot/export.mjs) is a stateless
+# HTTP client against the production Strapi REST Content API, authenticated
+# with a dedicated, scoped API token. It never boots Strapi and never
+# connects to a database — see design.md, "Mechanism," for why that was
+# deliberately rejected in favor of this approach.
+
+on:
+  schedule:
+    - cron: "0 3 * * 1" # every Monday, 03:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: content-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Export published content
+        env:
+          CMS_BASE_URL: ${{ secrets.CMS_BASE_URL }}
+          CONTENT_BACKUP_API_TOKEN: ${{ secrets.CONTENT_BACKUP_API_TOKEN }}
+        run: node scripts/content-snapshot/export.mjs
+        # No `continue-on-error`: a failed export must stop the job before
+        # any commit step below runs. Nothing here echoes $CMS_BASE_URL or
+        # $CONTENT_BACKUP_API_TOKEN — export.mjs never logs either.
+
+      - name: Publish snapshot to content-snapshots
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          SNAPSHOT_DIR="content/_snapshots"
+          WORKTREE=".content-snapshots-worktree"
+
+          if git ls-remote --exit-code --heads origin content-snapshots >/dev/null 2>&1; then
+            git fetch origin content-snapshots
+            git worktree add "$WORKTREE" origin/content-snapshots
+          else
+            # Portable orphan-branch creation: a worktree needs a real
+            # starting commit, so detach at HEAD, then orphan and clear it —
+            # never branched from main's own history.
+            git worktree add --detach "$WORKTREE" HEAD
+            (cd "$WORKTREE" && git checkout --orphan content-snapshots && git rm -rf --quiet .)
+            cat > "$WORKTREE/README.md" <<'EOF'
+          # content-snapshots
+
+          Weekly, automated export of published, non-Alumni Strapi content —
+          see docs/adr/0002-cms.md decision 2 and docs/ops/cms-runbook.md,
+          step 8, on `main`.
+
+          This branch is written only by `.github/workflows/content-snapshot.yml`.
+          Do not commit to it by hand; a manual snapshot is triggered from the
+          Actions tab ("Run workflow"), never by editing this branch directly.
+
+          Content only, never media, never drafts, never Alumni. See the
+          runbook for how to restore.
+          EOF
+          fi
+
+          rm -rf "${WORKTREE:?}/${SNAPSHOT_DIR:?}"
+          mkdir -p "$WORKTREE/$SNAPSHOT_DIR"
+          cp "$SNAPSHOT_DIR"/*.json "$WORKTREE/$SNAPSHOT_DIR/"
+
+          cd "$WORKTREE"
+          git add "$SNAPSHOT_DIR" README.md
+          if git diff --cached --quiet; then
+            echo "No content change since the last snapshot."
+          else
+            git commit -m "content snapshot: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push origin HEAD:content-snapshots
+          fi
