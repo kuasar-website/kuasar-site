@@ -1,16 +1,16 @@
 ## 0. Preconditions (verify, do not change)
 
-- [ ] 0.1 Confirm against `main` that the `galactic-summit`, `summit.programme-item`, `summit.speaker` and `shared.image` schemas still match design.md, Context. Any drift: stop and update this change first.
-- [ ] 0.2 Verify the Next.js 16 App Router APIs used (route segment config, fetch `next.tags`, client islands inside a static page) against the installed `next` docs, or context7 when available. Record any deviation in design.md before coding.
+- [x] 0.1 Confirm against `main` that the `galactic-summit`, `summit.programme-item`, `summit.speaker` and `shared.image` schemas still match design.md, Context. Any drift: stop and update this change first.
+- [x] 0.2 Verify the Next.js 16 App Router APIs used (route segment config, fetch `next.tags`, client islands inside a static page) against the installed `next` docs, or context7 when available. Record any deviation in design.md before coding.
 - [ ] 0.3 If PR #35 (schedule-calendar) has merged by then, merge `origin/main` normally before section 6 and resolve the expected one-line `tests/events/check-routes.mjs` conflict by keeping both paths.
 
 ## 1. Data loader (build/revalidation only)
 
-- [ ] 1.1 `apps/web/lib/summit/data.ts`, mirroring `lib/events/data.ts`:
+- [x] 1.1 `apps/web/lib/summit/data.ts`, mirroring `lib/events/data.ts`:
   - published only, all pages, tag `galactic-summit`, `force-cache`, `revalidate: false`, optional bearer token;
   - the D6 populate list, with **no `sponsors`**;
   - tr-over-en by `documentId`, keeping `contentLocale`.
-- [ ] 1.2 Validation per the spec's "Strict data contract":
+- [x] 1.2 Validation per the spec's "Strict data contract":
   - year, isCurrent, date, both enums, registrationUrl;
   - speakers' `speakerName`, and programme items that are not entirely empty;
   - duplicate years;
@@ -19,8 +19,8 @@
   - the current edition's still/wash requires `backgroundImage`.
 
   Every failure names Strapi, the `documentId`, the field and the runbook.
-- [ ] 1.3 Exactly-one-current invariant on the merged set: zero editions is valid, zero current or more than one current fails, naming every year and `documentId`. Return `{ current, others }` with `others` sorted by `year`, newest first.
-- [ ] 1.4 `apps/web/lib/summit/data.test.ts` covers:
+- [x] 1.3 Exactly-one-current invariant on the merged set: zero editions is valid, zero current or more than one current fails, naming every year and `documentId`. Return `{ current, others }` with `others` sorted by `year`, newest first.
+- [x] 1.4 `apps/web/lib/summit/data.test.ts` covers:
   - 0, 1 and 4 editions; none-current and two-current failures; duplicate year;
   - drafts skipped, pagination, wrong locale;
   - tr fallback (`contentLocale`) and English-only route content;
@@ -55,7 +55,7 @@
 ## 3. Client islands (built on the reviewed baseline)
 
 - [ ] 3.1 `apps/web/components/summit/sponsorship-pdf-link.tsx` (`"use client"`): a plain `<a>` with the shared `action secondary` classes, `target="_blank" rel="noopener"`, visible "(PDF)", the spec's accessible name, and `onClick` → `trackSponsorshipPdfOpened()`. Rendered only when a validated PDF exists.
-- [ ] 3.2 `apps/web/lib/summit/time.ts`: pure `istanbulDayKey(instant)` (`Intl` `formatToParts`, `Europe/Istanbul`) and `summitDayState(date, now)` → `"upcoming" | "live" | null` by Istanbul calendar-day comparison (design.md D7). It never reads a clock, adds no duration, and returns null for a null `now` or a missing/invalid date. `apps/web/lib/summit/time.test.ts`, run under `TZ=UTC` and `TZ=America/New_York`, covers:
+- [x] 3.2 `apps/web/lib/summit/time.ts`: pure `istanbulDayKey(instant)` (`Intl` `formatToParts`, `Europe/Istanbul`) and `summitDayState(date, now)` → `"upcoming" | "live" | null` by Istanbul calendar-day comparison (design.md D7). It never reads a clock, adds no duration, and returns null for a null `now` or a missing/invalid date. `apps/web/lib/summit/time.test.ts`, run under `TZ=UTC` and `TZ=America/New_York`, covers:
   - the day before → upcoming; 00:00 Istanbul (`21:00Z` the previous UTC day) → live;
   - 23:59:59 Istanbul → live; the next Istanbul midnight → null;
   - a Summit time late in the Istanbul day whose UTC date differs;
