@@ -45,19 +45,19 @@
 
 ## 4. Client enhancement (built on the reviewed baseline)
 
-- [ ] 4.1 After `useBrowserNow()` is non-null:
+- [x] 4.1 After `useBrowserNow()` is non-null:
   - visible-month state `{ followToday, year, month }` with prev, next and today;
   - grid follows month rollover only while `followToday` is set;
   - memoised matrix and placement;
   - agenda narrowed to the visible month, with a per-month empty message.
-- [ ] 4.2 Grid semantics and keyboard per design D9:
+- [x] 4.2 Grid semantics and keyboard per design D9:
   - table with caption, Monday-first `th scope="col"`, roving `tabindex` day buttons;
   - arrows, Home/End and PageUp/PageDown, crossing months with focus kept;
   - Enter/Space focuses the day's first agenda article;
   - polite live region for the month name.
-- [ ] 4.3 State: `classifyTime` per event; state tokens only; a visible live badge; visually-hidden upcoming and past labels; nothing for null.
-- [ ] 4.4 Legend of all five types (swatch plus localized label). Chips show the type text at `md+`. Below `md`, cells show the day number and per-type counts, and overflow becomes "+N more".
-- [ ] 4.5 Reserve the grid's `min-height` under `@media (scripting: enabled)` only. No transitions beyond the existing L3 primitives.
+- [x] 4.3 State: `classifyTime` per event; state tokens only; a visible live badge; visually-hidden upcoming and past labels; nothing for null.
+- [x] 4.4 Legend of all five types (swatch plus localized label). Chips show the type text at `md+`. Below `md`, cells show the day number and per-type counts, and overflow becomes "+N more".
+- [x] 4.5 Reserve the grid's `min-height` under `@media (scripting: enabled)` only. No transitions beyond the existing L3 primitives.
 
 ## 5. Verification
 

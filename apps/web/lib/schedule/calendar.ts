@@ -131,8 +131,8 @@ export function formatTime(instant: number, locale: TimeLocale): string {
   }).format(instant);
 }
 
-/** Full weekday names, Monday first. 2024-01-01 was a Monday. */
-export function weekdayNames(locale: TimeLocale): string[] {
-  const format = new Intl.DateTimeFormat(locale, { weekday: "long", timeZone: "UTC" });
+/** Weekday names, Monday first. 2024-01-01 was a Monday. */
+export function weekdayNames(locale: TimeLocale, width: "long" | "short" = "long"): string[] {
+  const format = new Intl.DateTimeFormat(locale, { weekday: width, timeZone: "UTC" });
   return Array.from({ length: 7 }, (_, i) => format.format(Date.UTC(2024, 0, 1 + i)));
 }
