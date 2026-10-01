@@ -1,5 +1,7 @@
 import type { Core } from '@strapi/strapi';
 
+import { UPLOAD_SIZE_LIMIT } from './plugins';
+
 /**
  * `strapi::security` sets a Content-Security-Policy that only permits same-origin images
  * and media. Uploads live on Cloudflare R2 (`media.<DOMAIN>` / the R2 endpoint), so the
@@ -38,7 +40,16 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Middlewar
     'strapi::cors',
     'strapi::poweredBy',
     'strapi::query',
-    'strapi::body',
+    {
+      // Multipart uploads are parsed by formidable; keep its cap equal to the upload
+      // plugin's sizeLimit so both reject the same files (config/plugins.ts).
+      name: 'strapi::body',
+      config: {
+        formidable: {
+          maxFileSize: UPLOAD_SIZE_LIMIT,
+        },
+      },
+    },
     'strapi::session',
     'strapi::favicon',
     'strapi::public',

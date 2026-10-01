@@ -20,14 +20,16 @@ default locale.
 - **THEN** the system serves the Turkish page at that path
 
 ### Requirement: Fixed temporary redirect from the bare root
-The system SHALL issue a `307 Temporary Redirect` from `/` to `/en/`. It SHALL
+The system SHALL issue a `307 Temporary Redirect` from `/` to `/en`. It SHALL
 NOT issue a `301` or `308` redirect, and SHALL NOT inspect the
-`Accept-Language` header to choose a locale.
+`Accept-Language` header to choose a locale. The target SHALL NOT carry a
+trailing slash, consistent with the no-trailing-slash convention every other
+localized route uses.
 
 #### Scenario: Visiting the bare domain
 - **WHEN** a visitor requests `/`
 - **THEN** the system responds with a `307` status and a `Location` header of
-  `/en/`
+  `/en`
 
 #### Scenario: The redirect never hardens into a permanent one
 - **WHEN** the same visitor requests `/` again on a later visit
@@ -36,7 +38,7 @@ NOT issue a `301` or `308` redirect, and SHALL NOT inspect the
 
 #### Scenario: No internal navigation targets the bare root
 - **WHEN** any in-app link or navigation element is rendered
-- **THEN** its target is a locale-prefixed path (for example `/en/` or
+- **THEN** its target is a locale-prefixed path (for example `/en` or
   `/tr/gorevler`), never the bare `/` — the redirect exists only for traffic
   arriving at the bare root from outside the site
 
@@ -83,11 +85,11 @@ capability.
 
 #### Scenario: Switching from English to Turkish on a section page
 - **WHEN** a visitor on `/en/missions` selects the Turkish switcher
-- **THEN** they land on `/tr/gorevler`, not on `/tr/`
+- **THEN** they land on `/tr/gorevler`, not on `/tr`
 
 #### Scenario: Switching from Turkish to English on a section page
 - **WHEN** a visitor on `/tr/gorevler` selects the English switcher
-- **THEN** they land on `/en/missions`, not on `/en/`
+- **THEN** they land on `/en/missions`, not on `/en`
 
 #### Scenario: Switching from English to Turkish on an entity detail page
 - **WHEN** a visitor on a mission's English detail page selects the Turkish
@@ -136,9 +138,9 @@ where CI guarantees both locales always declare a slug.
 
 ### Requirement: Discovery metadata for both locales
 The system SHALL emit, on every page in both locales, `hreflang` alternate
-links for both locales plus an `x-default` alternate pointing at the `/en/`
-version, and a self-referential `canonical` link pointing at that page's own
-locale — never at the other locale's URL.
+links for both locales plus an `x-default` alternate pointing at that page's
+English canonical URL, and a self-referential `canonical` link pointing at
+that page's own locale — never at the other locale's URL.
 
 #### Scenario: hreflang and canonical on the English page
 - **WHEN** the page at `/en/missions` is rendered

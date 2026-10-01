@@ -1,6 +1,6 @@
 # Multi-stage build for the KUASAR Strapi CMS.
 #
-# The admin panel compile is the memory spike that OOMs Render Starter's 512 MB
+# The admin panel compile is the memory spike that OOMs the 512 MB App Platform instance
 # (docs/adr/0002-cms.md decision 4). It happens HERE, on a CI runner with real memory.
 # The runtime image only runs `strapi start` against the prebuilt admin — it never
 # compiles anything.

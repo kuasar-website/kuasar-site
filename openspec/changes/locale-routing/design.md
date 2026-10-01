@@ -5,7 +5,7 @@ See `proposal.md` — Why. Constraints that shape this design:
 - `redirects()` in `next.config.ts` is evaluated by Next's routing layer from a
   static, build-time table — not a per-request function inspecting headers.
   `permanent: false` yields a `307`; `permanent: true` yields a `308`. This is
-  the mechanism for the `/` → `/en/` redirect, and it satisfies
+  the mechanism for the `/` → `/en` redirect, and it satisfies
   `design/i18n.md`'s "no middleware" rule, which specifically objects to
   `Accept-Language` sniffing, not to a static redirect table. This is the
   **only** interaction this capability has with `next.config.ts`.
@@ -80,7 +80,7 @@ See `proposal.md` — Why. Constraints that shape this design:
 ### A reusable locale-segment resolution pattern — no `next.config.ts` involvement, and no route implementations built by this change
 
 `next.config.ts` is Dev 1 (BOOSTER)'s file, and this capability's only
-justified interaction with it is the single, fixed `/` → `/en/` redirect.
+justified interaction with it is the single, fixed `/` → `/en` redirect.
 Nothing about fully localized segments requires touching it further.
 
 Locale-routing defines the reusable primitive that lets any future capability
