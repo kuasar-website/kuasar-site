@@ -61,8 +61,8 @@
 
 ## 5. Verification
 
-- [ ] 5.1 Create `tests/schedule/` with its own `package.json` and lockfile (`@playwright/test` at the same pin as tests/events, `esbuild`, `@axe-core/playwright`), plus `playwright.config.ts`, `build.mjs`, `serve.mjs`, `fixture.tsx`. The root `package.json` is not modified.
-- [ ] 5.2 `tests/schedule/schedule.spec.ts` (Chromium and Firefox; en and tr; 320/768/1280px), covering:
+- [x] 5.1 Create `tests/schedule/` with its own `package.json` and lockfile (`@playwright/test` at the same pin as tests/events, `esbuild`, `@axe-core/playwright`), plus `playwright.config.ts`, `build.mjs`, `serve.mjs`, `fixture.tsx`. The root `package.json` is not modified.
+- [x] 5.2 `tests/schedule/schedule.spec.ts` (Chromium and Firefox; en and tr; 320/768/1280px), covering:
   - no-JS neutral HTML;
   - hydration with no mismatch warnings;
   - built "August", opened under a December `page.clock` → December grid;
@@ -74,20 +74,20 @@
   - 0, 1 and 50 events, with no horizontal scroll;
   - reduced motion: no transition on month change;
   - axe with no violations, before and after mount.
-- [ ] 5.3 `tests/schedule/check-routes.mjs`: real `next build` and `next start` against a synthetic Strapi with 0 and 50 events. Assert:
+- [x] 5.3 `tests/schedule/check-routes.mjs`: real `next build` and `next start` against a synthetic Strapi with 0 and 50 events. Assert:
   - both routes are prerendered with `initialRevalidateSeconds: false`;
   - serving makes zero CMS requests;
   - `/en/takvim` and `/tr/schedule` return 404;
   - the sitemap has both URLs;
   - the switcher targets are correct;
   - route JS is within budget.
-- [ ] 5.4 `tests/events/check-routes.mjs`: make its synthetic Strapi return an empty, valid page for `/api/schedule-events`. Change routing only, with no assertion changes, and confirm that `events-baseline` still passes.
-- [ ] 5.5 Add `.github/workflows/tier-b-schedule.yml` per design D11 (`timeout-minutes: 10`; exactly the narrow path list in D11, with no `apps/web/app/**` or `apps/web/**` wildcard; not required). Verify by inspection that a change touching only another route directory (for example `apps/web/app/*/(events)/**`) does not match the filter. **CI gate:** this workflow covers the schedule. Tier A covers lint, typecheck, budgets and token rules. Site-wide axe and Lighthouse are not covered until `verification-browser-gates` lands; say so in the PR.
-- [ ] 5.6 Run Tier A locally (`npm run lint`, `npm run typecheck`, `npm run stylelint`, `npm run check:budgets` after a build) and the full schedule suite.
+- [x] 5.4 `tests/events/check-routes.mjs`: make its synthetic Strapi return an empty, valid page for `/api/schedule-events`. Change routing only, with no assertion changes, and confirm that `events-baseline` still passes.
+- [x] 5.5 Add `.github/workflows/tier-b-schedule.yml` per design D11 (`timeout-minutes: 10`; exactly the narrow path list in D11, with no `apps/web/app/**` or `apps/web/**` wildcard; not required). Verify by inspection that a change touching only another route directory (for example `apps/web/app/*/(events)/**`) does not match the filter. **CI gate:** this workflow covers the schedule. Tier A covers lint, typecheck, budgets and token rules. Site-wide axe and Lighthouse are not covered until `verification-browser-gates` lands; say so in the PR.
+- [x] 5.6 Run Tier A locally (`npm run lint`, `npm run typecheck`, `npm run stylelint`, `npm run check:budgets` after a build) and the full schedule suite.
 
 ## 6. Documentation and handoff
 
-- [ ] 6.1 `apps/web/components/schedule/README.md` covering:
+- [x] 6.1 `apps/web/components/schedule/README.md` covering:
   - environment variables, plus the publish-integration handoff: invalidate tag `schedule-calendar` and revalidate `/en/schedule`, `/tr/takvim` and `/sitemap.xml` on publish, unpublish, update or delete in either locale;
   - the Istanbul timezone rule and the no all-day flag limitation;
   - the D7 failure policy, including how an editor fixes a reversed `endsAt` in the admin when a build fails on it;
