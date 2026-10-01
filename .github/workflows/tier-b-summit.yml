@@ -1,0 +1,71 @@
+name: Tier B summit
+# Galactic Summit: loader/invariant and Istanbul-day unit tests, controlled-clock
+# browsers (en/tr), axe on the Summit fixture, and real production builds against
+# a synthetic Strapi. Not a required check, so the path filter sits on the
+# trigger. The list is the narrowest set that can change Summit behaviour — see
+# openspec/changes/galactic-summit/design.md D10 before widening it.
+on:
+  push:
+    branches: [change/galactic-summit]
+    paths:
+      - "apps/web/app/*/(galactic-summit)/**"
+      - "apps/web/app/sitemap.ts"
+      - "apps/web/app/globals.css"
+      - "apps/web/lib/summit/**"
+      - "apps/web/components/summit/**"
+      - "apps/web/lib/time/**"
+      - "apps/web/lib/i18n/**"
+      - "apps/web/lib/strapi/**"
+      - "apps/web/lib/media/**"
+      - "apps/web/lib/analytics/**"
+      - "apps/web/components/media/**"
+      - "apps/web/components/ui/**"
+      - "tests/summit/**"
+      - ".github/workflows/tier-b-summit.yml"
+      # Next/React upgrades change static generation and hydration.
+      - "package-lock.json"
+      - "apps/web/package.json"
+      # Node's ICU data drives Europe/Istanbul formatting.
+      - ".nvmrc"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web/app/*/(galactic-summit)/**"
+      - "apps/web/app/sitemap.ts"
+      - "apps/web/app/globals.css"
+      - "apps/web/lib/summit/**"
+      - "apps/web/components/summit/**"
+      - "apps/web/lib/time/**"
+      - "apps/web/lib/i18n/**"
+      - "apps/web/lib/strapi/**"
+      - "apps/web/lib/media/**"
+      - "apps/web/lib/analytics/**"
+      - "apps/web/components/media/**"
+      - "apps/web/components/ui/**"
+      - "tests/summit/**"
+      - ".github/workflows/tier-b-summit.yml"
+      # Next/React upgrades change static generation and hydration.
+      - "package-lock.json"
+      - "apps/web/package.json"
+      # Node's ICU data drives Europe/Istanbul formatting.
+      - ".nvmrc"
+permissions:
+  contents: read
+jobs:
+  summit-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm ci --prefix tests/summit
+      # Istanbul calendar-day placement must not depend on the runner's zone.
+      - run: TZ=UTC node --test apps/web/lib/summit/*.test.ts
+      - run: TZ=America/New_York node --test apps/web/lib/summit/*.test.ts
+      - run: npm exec --prefix tests/summit -- playwright install --with-deps chromium firefox
+      - run: npm --prefix tests/summit test
+      - run: node tests/summit/check-routes.mjs

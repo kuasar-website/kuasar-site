@@ -2,7 +2,7 @@
 
 Every entity, its fields, and where it is stored.
 
-- **Last updated:** 2026-09-27
+- **Last updated:** 2026-10-01
 - **Related:** [../docs/adr/0002-cms.md](../docs/adr/0002-cms.md), [i18n.md](i18n.md)
 
 Model for the **shape**, not for a known volume. Real content, counts and image assets are
@@ -185,7 +185,7 @@ One entry per year. **A new year must be addable without touching layout.**
 | `isCurrent` | boolean | F | Exactly one true. Past editions archive to the side |
 | `purpose` | text | L | |
 | `programme` | component[] | L | `{time, title, description}` |
-| `speakers` | relation[] | F | |
+| `speakers` | component[] | F | `{speakerName, role?, portrait?}` — repeatable `summit.speaker` |
 | `sponsors` | relation → Sponsor | F | |
 | `photos` | image[] | F | Past editions |
 | `contactAddress` | text | L | |

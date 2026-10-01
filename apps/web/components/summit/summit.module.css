@@ -87,8 +87,16 @@
 
 .title {
   color: var(--color-ink);
-  font-size: var(--text-4xl);
+  font-size: var(--text-3xl);
   font-weight: 650;
+  line-height: var(--text-3xl--line-height); /* stylelint-disable-line custom-property-pattern -- Tailwind v4 compound type token. */
+}
+
+@media (width >= 48rem) {
+  .title {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height); /* stylelint-disable-line custom-property-pattern -- Tailwind v4 compound type token. */
+  }
 }
 
 .empty {

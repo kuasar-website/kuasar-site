@@ -65,8 +65,8 @@
 
 ## 4. Documentation
 
-- [ ] 4.1 `design/content-model.md`: change the Galactic Summit `speakers` row from `relation[]` to `component[]`, `{speakerName, role?, portrait?}` (design.md, "Documentation correction"). Bump that document's "Last updated" date.
-- [ ] 4.2 `apps/web/components/summit/README.md` covering:
+- [x] 4.1 `design/content-model.md`: change the Galactic Summit `speakers` row from `relation[]` to `component[]`, `{speakerName, role?, portrait?}` (design.md, "Documentation correction"). Bump that document's "Last updated" date.
+- [x] 4.2 `apps/web/components/summit/README.md` covering:
   - environment variables;
   - the publish-integration handoff: invalidate tag `galactic-summit` and revalidate `/en/galactic-summit`, `/tr/galactic-summit` and `/sitemap.xml` on publish, unpublish, update or delete in either locale;
   - the exactly-one-current rule and the editor fix for each failure;
@@ -80,8 +80,8 @@
 
 ## 5. Verification
 
-- [ ] 5.1 Create `tests/summit/` with its own `package.json` and lockfile (`@playwright/test` 1.63.0, `esbuild` 0.28.2, `@axe-core/playwright`), plus `playwright.config.ts`, `serve.mjs`, `fixture.tsx`, `server.tsx` and `client.tsx`. The root `package.json` is not modified.
-- [ ] 5.2 `tests/summit/summit.spec.ts` (Chromium and Firefox; en and tr; 320 and 1280px), covering:
+- [x] 5.1 Create `tests/summit/` with its own `package.json` and lockfile (`@playwright/test` 1.63.0, `esbuild` 0.28.2, `@axe-core/playwright`), plus `playwright.config.ts`, `serve.mjs`, `fixture.tsx`, `server.tsx` and `client.tsx`. The root `package.json` is not modified.
+- [x] 5.2 `tests/summit/summit.spec.ts` (Chromium and Firefox; en and tr; 320 and 1280px), covering:
   - no-JS neutral HTML: no badge or time-state attribute, the date `datetime`, and the brand `lang="en"` on tr;
   - hydration without errors;
   - controlled clock: Upcoming before the Summit's Istanbul day, Live on that day, no badge after it;
@@ -100,8 +100,8 @@
   - confirm serving makes zero CMS requests, the sitemap has both URLs, and the switcher targets are correct;
   - confirm sponsors are absent from the HTML and route JS is within budget.
 - [x] 5.4 `tests/events/check-routes.mjs`: its synthetic Strapi returns an empty, valid page for `/api/galactic-summits` (routing only, no assertion changes). Confirm that `events-baseline` still passes.
-- [ ] 5.5 Add `.github/workflows/tier-b-summit.yml` per design D10 (`timeout-minutes: 10`, exactly the D10 path list, not required). Verify by inspection that a change touching only another route directory does not match. **CI gate:** this workflow plus Tier A. Site-wide axe and Lighthouse are not covered until `verification-browser-gates`; say so in the PR.
-- [ ] 5.6 Run Tier A locally (typecheck, lint, stylelint, reduced-motion, locale parity, budgets, content and media tests, build, check:budgets) and the full Summit suite. Run the events and time-state suites too.
+- [x] 5.5 Add `.github/workflows/tier-b-summit.yml` per design D10 (`timeout-minutes: 10`, exactly the D10 path list, not required). Verify by inspection that a change touching only another route directory does not match. **CI gate:** this workflow plus Tier A. Site-wide axe and Lighthouse are not covered until `verification-browser-gates`; say so in the PR.
+- [x] 5.6 Run Tier A locally (typecheck, lint, stylelint, reduced-motion, locale parity, budgets, content and media tests, build, check:budgets) and the full Summit suite. Run the events and time-state suites too.
 
 ## 6. Live acceptance (manual; check only with real evidence)
 
