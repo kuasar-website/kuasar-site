@@ -99,6 +99,8 @@ export function toSponsorshipPdf(value: unknown, context: string): string | null
   if (url.protocol !== "https:" || url.host !== MEDIA_HOST || url.username || url.password) {
     return fail(context, `"${raw}" is not on https://${MEDIA_HOST}; PDFs must never be served from r2.dev, the R2 S3 endpoint or the CMS`);
   }
+  // The file itself, never Cloudflare's image-resizer path (/cdn-cgi/image/…).
+  if (url.pathname.toLowerCase().startsWith("/cdn-cgi/")) return fail(context, `"${raw}" is an image-resizer URL; link the PDF file itself`);
   if (!url.pathname.toLowerCase().endsWith(".pdf")) return fail(context, `"${raw}" is not a .pdf file`);
   if (file.mime !== "application/pdf") return fail(context, `MIME type ${JSON.stringify(file.mime)} is not application/pdf`);
   return url.href;

@@ -112,11 +112,19 @@ for (const locale of ['en', 'tr'] as const) {
     ['a non-PDF path', { ...pdf, url: 'https://media.kuasar.org/s.png' }],
     ['a non-PDF MIME type', { ...pdf, mime: 'image/png' }],
     ['the image resizer', { ...pdf, url: 'https://media.kuasar.org/cdn-cgi/image/width=640/s.png' }],
+    // Regression: a resizer URL ending in .pdf must still be refused.
+    ['the image resizer with a .pdf path', { ...pdf, url: 'https://media.kuasar.org/cdn-cgi/image/width=640/sponsorship.pdf' }],
   ] as const) {
     test(`${locale}: sponsorship PDF on ${label} fails`, async () => {
       await assert.rejects(fetchSummitData(locale, one({ sponsorshipPdf: file })), /field "sponsorshipPdf"/);
     });
   }
+
+  test(`${locale}: a resizer-path PDF is refused as an image-resizer URL; a plain media-host PDF passes`, async () => {
+    await assert.rejects(fetchSummitData(locale, one({ sponsorshipPdf: { ...pdf, url: 'https://media.kuasar.org/cdn-cgi/image/width=640/sponsorship.pdf' } })),
+      /field "sponsorshipPdf": .*is an image-resizer URL/);
+    assert.equal((await fetchSummitData(locale, one({}))).current!.sponsorshipPdf, 'https://media.kuasar.org/sponsorship-2026.pdf');
+  });
 
   test(`${locale}: no PDF and no registration URL are null, not placeholders`, async () => {
     const data = await fetchSummitData(locale, one({ sponsorshipPdf: null, registrationUrl: null }));
