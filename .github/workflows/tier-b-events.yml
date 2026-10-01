@@ -21,7 +21,7 @@ permissions:
 jobs:
   events-baseline:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,6 +30,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm ci --prefix tests/events
-      - run: node --test tests/events/baseline.test.mjs
+      - run: node --test apps/web/lib/events/data.test.ts tests/events/baseline.test.mjs
       - run: npm exec --prefix tests/events -- playwright install --with-deps chromium firefox
       - run: npm --prefix tests/events test
+      - run: node tests/events/check-routes.mjs

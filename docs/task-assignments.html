@@ -1096,15 +1096,15 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
           <ul>
             <li>Codes are exactly <code>tr</code> and <code>en</code>, <code>en</code> default — <b>identical strings in Strapi and the App Router</b>, or lookups return nothing and look like a content bug.</li>
             <li>The segment map from <code>design/i18n.md</code> as one source of truth, read by the switcher <b>and</b> the sitemap. Turkish slugs transliterated to ASCII: <code>gorevler</code>, not <code>görevler</code>.</li>
-            <li><code>/</code> issues a fixed <b>307</b> to <code>/en/</code> — never 301 or 308, which cache permanently in browsers and CDNs you do not control. No <code>Accept-Language</code> sniffing, no middleware.</li>
+            <li><code>/</code> issues a fixed <b>307</b> to <code>/en</code> — never 301 or 308, which cache permanently in browsers and CDNs you do not control. No <code>Accept-Language</code> sniffing, no middleware.</li>
             <li>Switcher preserves the current route, resolving per-locale slugs for detail pages; shows <b>TR / EN, never flags</b>.</li>
-            <li><code>hreflang</code> alternates both ways plus <code>x-default</code> → <code>/en/</code>; self-canonical per locale; <code>sitemap.ts</code> emits <code>alternates.languages</code>.</li>
+            <li><code>hreflang</code> alternates both ways plus <code>x-default</code> → the English canonical URL; self-canonical per locale; <code>sitemap.ts</code> emits <code>alternates.languages</code>.</li>
           </ul>
         </div>
         <div class="cat__col">
           <h4>Acceptance</h4>
           <ul>
-            <li><code>curl -sI /</code> returns <b>307</b> with <code>location: /en/</code>.</li>
+            <li><code>curl -sI /</code> returns <b>307</b> with <code>location: /en</code>.</li>
             <li>Switching locale from a mission detail page lands on that mission's Turkish slug, not the home page.</li>
             <li>Where the equivalent page does not exist, the switcher goes to the other locale's home page <b>and says so</b> — it does not 404.</li>
             <li>Turkish labels do not truncate: <code>Zaman Çizelgesi</code> is nearly double <code>Timeline</code>.</li>
@@ -2537,7 +2537,7 @@ html[data-filter]:not([data-filter="all"]) .hide-when-filtered { display: none; 
   <div class="contend">
     <div class="contend__row" data-crew="d1 d3">
       <code>next.config.ts</code>
-      <p><b>Dev 1 owns it; Dev 3 needs the 307.</b> The redirect from <code>/</code> to <code>/en/</code> lives here because <code>design/i18n.md</code> deliberately refuses a middleware. Dev 3 opens a PR against Dev 1's lane rather than both editing it in the same week.</p>
+      <p><b>Dev 1 owns it; Dev 3 needs the 307.</b> The redirect from <code>/</code> to <code>/en</code> lives here because <code>design/i18n.md</code> deliberately refuses a middleware. Dev 3 opens a PR against Dev 1's lane rather than both editing it in the same week.</p>
     </div>
     <div class="contend__row" data-crew="d1 d4">
       <code>.github/workflows/</code>
@@ -3120,7 +3120,7 @@ Blocked on change/scaffold-workspace. Stop after the artifacts.</pre>
 <pre id="cb-d3">git switch -c change/locale-routing
 
 <span class="hi">/opsx:propose</span> locale-routing — path-prefixed tr and en with fully localized URL
-segments, the segment map as one source of truth, a 307 from / to /en/, and a
+segments, the segment map as one source of truth, a 307 from / to /en, and a
 language switcher that preserves the current route.
 
 <span class="em">NOT</span> page content, <span class="em">NOT</span> MDX loading (that is git-content-pipeline) and <span class="em">NOT</span> the
