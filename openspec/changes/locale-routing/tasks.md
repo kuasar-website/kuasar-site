@@ -45,10 +45,16 @@ requirement `site-shell` needs.
 ## 3. Root redirect only (next.config.ts)
 
 - [ ] 3.1 Add a single `redirects()` entry to `apps/web/next.config.ts`:
-      `/` → `/en/`, `permanent: false` (307), never `permanent: true`. This
+      `/` → `/en`, `permanent: false` (307), never `permanent: true`. This
       is the only change this capability makes to that file — no rewrites,
       no other routing logic. Coordinate this edit with Dev 1 (BOOSTER), who
-      owns the file, before merging.
+      owns the file, before merging. **Correction, 2026-09-30:** the target
+      was originally written as `/en/` (with a trailing slash); live
+      verification found this conflicts with the no-trailing-slash canonical
+      convention every real route already uses (`sectionPath()` — see
+      `design/i18n.md`), producing an unnecessary `307`→`308` hop on every
+      visit to `/`. Corrected to `/en` here and in `design/i18n.md` and this
+      change's other artifacts before the redirect itself is implemented.
 
 ## 4. Language-switcher resolution contract
 
@@ -82,11 +88,15 @@ requirement `site-shell` needs.
 ## 5. Discovery metadata
 
 - [x] 5.1 Add `hreflang` alternates for both locales plus `x-default` →
-      the `/en/` equivalent, and a self-referential `canonical`, via each
+      the English canonical URL, and a self-referential `canonical`, via each
       page's `alternates` metadata, sourced from `segments.ts`. Verify this
       on both an English and a Turkish page — `x-default` stays pointed at
-      the `/en/` URL on the Turkish page too, and `canonical` is
-      self-referential to whichever locale is actually rendering.
+      the English URL on the Turkish page too, and `canonical` is
+      self-referential to whichever locale is actually rendering. (Wording
+      tightened 2026-09-30: "the `/en/` equivalent" was ambiguous with the
+      literal bare root path; `sectionAlternates()`'s actual implementation
+      always resolves through `sectionPath()`, which is no-trailing-slash —
+      nothing about the verified behavior changed.)
 - [x] 5.2 Add `apps/web/app/sitemap.ts` emitting `alternates.languages` for
       every **published** route in both locales — corrected from an earlier
       version that iterated every *resolved* segment-map entry regardless of
@@ -108,7 +118,7 @@ requirement `site-shell` needs.
 - [ ] 6.1 End-to-end (blocked): verify the redirect once it is added to
       `next.config.ts` (task 3.1, pending Dev 1 coordination) and deployed:
       `curl -sI https://<DOMAIN>/ | grep -iE '^(HTTP|location)'` — expect
-      `307` and `location: /en/` (per `design/i18n.md`).
+      `307` and `location: /en` (per `design/i18n.md`).
 - [x] 6.2a Library-level: verified programmatically that
       `resolveSectionSwitch('missions', 'tr')` returns `{ kind: 'available',
       path: '/tr/gorevler' }` and `resolveSectionSwitch('missions', 'en')`

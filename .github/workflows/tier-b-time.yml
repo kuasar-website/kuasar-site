@@ -2,12 +2,6 @@ name: Tier B time-state
 on:
   pull_request:
     branches: [main]
-    paths:
-      - "apps/web/**"
-      - "tests/time/**"
-      - "package*.json"
-      - ".nvmrc"
-      - ".github/workflows/tier-b-time.yml"
 permissions:
   contents: read
 jobs:
@@ -16,11 +10,40 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # time-state is a required status check, so this job must always run and
+      # report — but the suite is expensive (real browsers). The paths this
+      # used to gate the workflow trigger on now gate the expensive steps
+      # below instead, so the job always exists and always reports, while
+      # still skipping the real work when none of these paths changed.
+      - name: Detect relevant changes
+        id: changes
+        run: |
+          relevant=false
+          while IFS= read -r f; do
+            case "$f" in
+              apps/web/*|tests/time/*|package*.json|.nvmrc|.github/workflows/tier-b-time.yml)
+                relevant=true ;;
+            esac
+          done < <(git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}")
+          echo "relevant=$relevant" >> "$GITHUB_OUTPUT"
+
       - uses: actions/setup-node@v4
+        if: steps.changes.outputs.relevant == 'true'
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+        if: steps.changes.outputs.relevant == 'true'
       - run: npm ci --prefix tests/time
+        if: steps.changes.outputs.relevant == 'true'
       - run: npm exec --prefix tests/time -- playwright install --with-deps chromium firefox
+        if: steps.changes.outputs.relevant == 'true'
       - run: npm run test:time
+        if: steps.changes.outputs.relevant == 'true'
+
+      - name: No relevant changes
+        if: steps.changes.outputs.relevant != 'true'
+        run: echo "No apps/web, tests/time, package*.json, .nvmrc, or workflow changes — skipping time-state suite."

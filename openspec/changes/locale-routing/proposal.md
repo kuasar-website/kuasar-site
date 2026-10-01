@@ -13,7 +13,7 @@ build into, so this has to land before anyone hard-codes a path in a component.
   truth, read by both the language switcher and `sitemap.ts`. An entry with no
   backing page (see `projects`/`projeler` below) is excluded from generated output
   until it is resolved.
-- Add a fixed `307` redirect from `/` to `/en/` (never `301`/`308` — see
+- Add a fixed `307` redirect from `/` to `/en` (never `301`/`308` — see
   `design/i18n.md` for why a permanent redirect can't be undone). No internal
   link is added that points at bare `/` — the redirect exists for incoming
   traffic, not in-app navigation.
@@ -26,7 +26,7 @@ build into, so this has to land before anyone hard-codes a path in a component.
   to the default locale's slug for that same entity, per `design/i18n.md` and
   `design/content-model.md`). This proposal does not implement the switcher's
   visible markup.
-- Add `hreflang` alternates (both locales plus `x-default` → `/en/`) and a
+- Add `hreflang` alternates (both locales plus `x-default` → the English canonical URL) and a
   self-referential `canonical` on every page, in both locales.
 - Add `sitemap.ts` and `robots.ts` emitting `alternates.languages` for every
   resolved route in both locales. The preview route's `noindex` requirement
@@ -43,7 +43,7 @@ Out of scope, by design, and owned by other capabilities:
 
 ### New Capabilities
 - `localization`: path-prefixed locale routing, the localized segment map, the
-  fixed `/` → `/en/` redirect, the language switcher and its two distinct
+  fixed `/` → `/en` redirect, the language switcher and its two distinct
   failure modes, `hreflang`/canonical/sitemap emission.
 
 ### Modified Capabilities
@@ -89,7 +89,7 @@ workspace they scaffolded)
   edit `site-shell`.
 - **Integration dependency, Dev 1 — `next.config.ts`, kept to a minimum:**
   `apps/web/next.config.ts` is Dev 1 (BOOSTER)'s file. Locale-routing requires
-  at most the single `/` → `/en/` redirect there. This proposal does **not**
+  at most the single `/` → `/en` redirect there. This proposal does **not**
   modify that file — the redirect is a pending, coordinated addition to be
   made with Dev 1, not something this change performs unilaterally. How
   individual sections get fully localized segments (e.g. `/tr/gorevler`) is

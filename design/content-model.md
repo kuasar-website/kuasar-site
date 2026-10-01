@@ -2,7 +2,7 @@
 
 Every entity, its fields, and where it is stored.
 
-- **Last updated:** 2026-08-15
+- **Last updated:** 2026-09-27
 - **Related:** [../docs/adr/0002-cms.md](../docs/adr/0002-cms.md), [i18n.md](i18n.md)
 
 Model for the **shape**, not for a known volume. Real content, counts and image assets are
@@ -113,12 +113,41 @@ must still make the direction legible ([motion.md](motion.md)).
 All are locale-enabled via Strapi 5's built-in i18n. Missing translations fall back
 **silently** to the default locale — see [i18n.md](i18n.md).
 
+## Images and alt text
+
+Every field typed **`image`** below (`image?` optional, `image[]` a gallery) is the
+`shared.image` component, not a bare media field:
+
+| Field | Type | | Notes |
+| --- | --- | --- | --- |
+| `image` | media | F | Images only. The original is stored unmodified; the site never uses Strapi's resized formats |
+| `altEn` | string | — | **Required.** English alt text |
+| `altTr` | string | — | **Required.** Turkish alt text |
+
+**Alt text is required in both locales, and the image is chosen once.** The component is
+non-localized, so an editor picks the photo once and fills both alts together, whichever
+locale they are editing in. Publishing is blocked while an attached image lacks either alt.
+An optional image left empty needs no alt; a gallery with no photos needs none either.
+
+This is the one place where per-locale text lives in explicit `…En` / `…Tr` fields rather
+than in Strapi's locale switcher. It is deliberate: a localized component would duplicate
+the image per locale and break "facts live once" above. The cost is that a third locale
+would be a schema change, which [i18n.md](i18n.md) already rules out.
+
+**Strapi's own "Alternative text" field on the uploaded file is not used by the site.**
+Filling it in the Media Library does nothing. Fill `altEn` / `altTr` on the entry.
+
+Galactic Summit speaker portraits (inside the `speakers` component) follow the same rule.
+Video (`hoverVideo`) and document (`sponsorshipPdf`) fields are not images and carry no alt
+text. How images reach visitors, including edge resizing, is in
+[ADR 0002](../docs/adr/0002-cms.md), decision 5.
+
 ## Stellar Talk
 
 | Field | Type | | Notes |
 | --- | --- | --- | --- |
 | `speakerName` | string | F | A person's name is not translated |
-| `speakerPortrait` | media | F | |
+| `speakerPortrait` | image | F | |
 | `eventNumber` | number | F | Sequential; "Stellar Talk #7" |
 | `date` | datetime | F | |
 | `title` | string | L | |
@@ -139,7 +168,7 @@ Cinematic photo layout — film or event screenings.
 | Field | Type | | Notes |
 | --- | --- | --- | --- |
 | `date` | datetime | F | |
-| `photos` | media[] | F | The layout is photography-led; one photo is the minimum |
+| `photos` | image[] | F | The layout is photography-led; one photo is the minimum |
 | `title` | string | L | |
 | `description` | text | L | Short |
 | `filmTitle` | string? | F | Film titles are not translated |
@@ -158,13 +187,13 @@ One entry per year. **A new year must be addable without touching layout.**
 | `programme` | component[] | L | `{time, title, description}` |
 | `speakers` | relation[] | F | |
 | `sponsors` | relation → Sponsor | F | |
-| `photos` | media[] | F | Past editions |
+| `photos` | image[] | F | Past editions |
 | `contactAddress` | text | L | |
 | `sponsorshipPdf` | media | F | The "Become a Partner" target |
 | `registrationUrl` | url? | F | Null disables the Register CTA |
 | `accentToken` | **enum** | F | `aurora` \| `ion` \| `violet` \| `ember` |
 | `heroTreatment` | **enum** | F | `still` \| `wash` \| `gradient` — treatments of the one Summit hero layout: a static image, an accent wash over `backgroundImage`, or an accent gradient with an optional image. Never a new layout. |
-| `backgroundImage` | media? | F | |
+| `backgroundImage` | image? | F | |
 
 The last three are the **only** place in this project where a CMS field selects a design
 token ([ADR 0002](../docs/adr/0002-cms.md), decision 7). Choosing among existing values is
@@ -219,7 +248,7 @@ the entity where that mistake is most tempting and most visible.
 | `slug` | uid | L | Localized — see [i18n.md](i18n.md) |
 | `excerpt` | text | L | |
 | `body` | rich text | L | |
-| `coverImage` | media? | F | |
+| `coverImage` | image? | F | |
 
 ## Alumni
 
@@ -232,7 +261,7 @@ Styled slightly apart from its navbar siblings.
 | `yearLeft` | number? | F | |
 | `subTeam` | enum | F | Propulsion \| Avionics \| Structures \| Software |
 | `roleHeld` | string | L | Their role at KUASAR |
-| `photo` | media? | F | **Requires consent** |
+| `photo` | image? | F | **Requires consent** |
 | `linkedinUrl` | url? | F | **Requires consent** |
 | `consentRecordedAt` | date | F | **Required** |
 | `consentSource` | string | F | **Required.** Where consent came from |
@@ -269,8 +298,8 @@ than leaving a hole.
 | Field | Type | | Notes |
 | --- | --- | --- | --- |
 | `name` | string | F | |
-| `logo` | media | F | Prefer SVG; logos sit on a dark canvas |
-| `logoLight` | media? | F | For sponsors whose mark is unreadable on dark |
+| `logo` | image | F | Prefer SVG; logos sit on a dark canvas |
+| `logoLight` | image? | F | For sponsors whose mark is unreadable on dark |
 | `url` | url | F | |
 | `since` | number? | F | |
 | `isCurrent` | boolean | F | Past sponsors still deserve credit |

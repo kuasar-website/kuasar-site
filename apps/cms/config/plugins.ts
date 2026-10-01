@@ -11,6 +11,13 @@ const allowedMediaTypes = [
   'text/csv',
 ];
 
+/**
+ * Largest single upload, in bytes. More than a full-resolution launch JPEG, and it bounds the
+ * memory of the one image operation Strapi still runs on the 512 MB Render instance (its
+ * admin thumbnail). The matching `strapi::body` limit is in config/middlewares.ts.
+ */
+export const UPLOAD_SIZE_LIMIT = 25 * 1024 * 1024;
+
 const deniedTypes = [
   'image/svg+xml',
   'application/vnd.microsoft.portable-executable',
@@ -31,7 +38,7 @@ const deniedTypes = [
  *   - **ACL is omitted entirely** — R2 does not support it, and almost every S3 example
  *     on the internet sets it.
  *
- * R2 is REQUIRED in production: Render's disk is ephemeral, so a local-disk upload
+ * R2 is REQUIRED in production: App Platform's disk is ephemeral, so a local-disk upload
  * vanishes on the next deploy and takes every photograph with it. That requirement is
  * enforced in `src/index.ts`'s `register()` lifecycle hook, not here — this file is a
  * Strapi config module, and Strapi evaluates config modules while building the admin
@@ -90,6 +97,7 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin =>
     upload: {
       config: {
         ...uploadConfig,
+        sizeLimit: UPLOAD_SIZE_LIMIT,
         security: {
           allowedTypes: allowedMediaTypes,
           deniedTypes,

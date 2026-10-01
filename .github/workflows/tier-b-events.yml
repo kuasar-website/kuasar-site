@@ -1,0 +1,36 @@
+name: Tier B events baseline
+on:
+  push:
+    branches: [change/events-showcase]
+    paths:
+      - "apps/web/**"
+      - "tests/events/**"
+      - "package*.json"
+      - ".nvmrc"
+      - ".github/workflows/tier-b-events.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "tests/events/**"
+      - "package*.json"
+      - ".nvmrc"
+      - ".github/workflows/tier-b-events.yml"
+permissions:
+  contents: read
+jobs:
+  events-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm ci --prefix tests/events
+      - run: node --test apps/web/lib/events/data.test.ts tests/events/baseline.test.mjs
+      - run: npm exec --prefix tests/events -- playwright install --with-deps chromium firefox
+      - run: npm --prefix tests/events test
+      - run: node tests/events/check-routes.mjs

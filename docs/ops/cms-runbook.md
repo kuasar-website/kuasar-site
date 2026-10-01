@@ -3,7 +3,7 @@
 **Audience: someone who has never seen this system before.** No prior context is assumed.
 If a step does not make sense, that is a bug in this document — fix it while you are here.
 
-- **Last verified:** 2026-08-16
+- **Last verified:** 2026-08-16 (media steps 3 and 5 revised 2026-09-27, not yet run against a live bucket)
 - **Related:** [../adr/0002-cms.md](../adr/0002-cms.md),
   [../adr/0001-stack.md](../adr/0001-stack.md),
   [../adr/0005-repository-visibility.md](../adr/0005-repository-visibility.md),
@@ -17,7 +17,7 @@ step 1. Once it exists, replace every occurrence in this repository.
 | Piece | Provider | Plan | Cost | What it does |
 | --- | --- | --- | --- | --- |
 | Website | Vercel | Hobby | $0 | Serves the public site. Static, rebuilt on demand |
-| CMS | Render | Starter | ~$7/mo | Strapi admin panel. Editors log in here |
+| CMS | DigitalOcean | App Platform, 512 MB container | ~$5/mo | Strapi admin panel. Editors log in here |
 | Database | Neon | Free | $0 | Postgres behind Strapi |
 | Media | Cloudflare R2 | Free tier | ~$0 | Photographs and files. No egress charges |
 | Image resizing | Cloudflare | Free tier | ~$0 | 5,000 unique transformations/mo free |
@@ -25,7 +25,7 @@ step 1. Once it exists, replace every occurrence in this repository.
 | Code + CI | GitHub | Free, **public** (step 0 — not done yet) | $0 | Unlimited Actions minutes; branch protection |
 | Media archive | Google Workspace | Club account | TBD | Shared Drive holding the original photography |
 
-**Total: roughly $7/month plus the domain.** Budget ceiling is ~$15/month — see
+**Total: roughly $5/month plus the domain.** Budget ceiling is ~$15/month — see
 [../adr/0001-stack.md](../adr/0001-stack.md) before adding anything paid.
 
 **The most important thing in this document:** if Strapi is down, *the website stays up*.
@@ -57,7 +57,7 @@ In order:
 
 1. **Audit the history for secrets.** `git log -p | grep -iE 'secret|token|password|key='`
    is a crude first pass; read anything it flags. There should be nothing — secrets live in
-   the Vercel and Render dashboards — but confirm rather than assume.
+   the Vercel and DigitalOcean dashboards — but confirm rather than assume.
 2. **Settings → General → Danger Zone → Change visibility → Public.**
 3. **Settings → Advanced Security:** switch on **secret scanning** and **push protection**.
    Both are free on public repositories, and push protection is the one that stops the
@@ -97,9 +97,6 @@ grep -rl '<DOMAIN>' --exclude-dir=.git . | xargs sed -i 's/<DOMAIN>/your-domain.
 
 Neon free tier, club account. Create a project and a database for Strapi.
 
-**Do not use Render's free Postgres.** Free databases there are capped and deleted a fixed
-period after creation — you will lose everything on a schedule you did not notice.
-
 Copy the pooled connection string. Neon's free tier includes connection pooling; use the
 pooled endpoint, not the direct one, because Strapi opens more connections than the direct
 endpoint is comfortable with.
@@ -112,6 +109,13 @@ In the Cloudflare account:
 2. Bind a **custom domain**: `media.<DOMAIN>`. Do **not** use the default `r2.dev` URL —
    it is rate-limited and explicitly not for production.
 3. Create an R2 API token scoped to that bucket. Save the access key ID and secret.
+4. Leave the bucket's **`r2.dev` public access disabled** (the default). The custom domain
+   is the only public route to the media; the site's build refuses any `r2.dev` URL anyway.
+5. On the `<DOMAIN>` zone, **enable Images → Transformations**, keeping accepted sources at
+   the default (same zone only). Without it every `/cdn-cgi/image/...` URL fails and
+   visitors get the full-size originals.
+6. Add a **cache rule** for `media.<DOMAIN>` with a long edge TTL. Uploaded files get a
+   unique name, so they never change in place.
 
 Note the account ID; the S3 endpoint is
 `https://<account-id>.r2.cloudflarestorage.com`.
@@ -139,24 +143,39 @@ folder, move it into a Shared Drive now, while somebody still has the access to 
 If there is no such Drive at all, stop and say so. Decision 6 in ADR 0002 is void without
 it, and an off-provider copy of the R2 bucket becomes necessary instead.
 
-### 4. Deploy Strapi to Render
+### 4. Deploy Strapi to DigitalOcean App Platform
 
-Create a Render **Starter** service of type **Docker** (not a Node/Nixpacks build). It does
-**not** build from source — it pulls a prebuilt image:
+Create the DigitalOcean account under the club (decision 9 of ADR 0002). If a card is
+declined, add **PayPal** as the payment method instead — that is why DigitalOcean was
+chosen over Render.
 
-- **Image:** `ghcr.io/kuasar-website/kuasar-site/cms:latest`, published to GHCR by
+Create an App Platform app from a **container image** (not from a GitHub repository — a
+source build OOMs). It does **not** build from source; it pulls a prebuilt image:
+
+- **Image:** registry type **GitHub Container Registry**, repository
+  `kuasar-website/kuasar-site/cms`, tag `latest`. Published by
   `.github/workflows/cms-deploy.yml` on every push to `main` that touches `apps/cms/**`,
   and on manual dispatch. The admin panel is compiled in that workflow, never on the
-  Starter instance — this is the fix for the 512 MB OOM below, applied ahead of time
-  rather than after a failed deploy.
-- **GHCR package:** `kuasar-site/cms`, owned by the `kuasar-website` GitHub org. Make it
-  visible to Render (public package, or a pull token in Render's registry credentials).
-- **Deploy trigger:** add the Render service's **Deploy Hook URL** to the repository as the
-  `RENDER_DEPLOY_HOOK_URL` Actions secret. The workflow's `deploy` job POSTs it after the
-  image is pushed. Without it the workflow still builds and pushes; only the automatic
-  redeploy is skipped.
-- **Do not** create the service as a Node build "to try Starter first" — the first deploy
-  then OOMs before the Docker service exists. Docker from the start.
+  instance — this is the fix for the 512 MB OOM below, applied ahead of time rather than
+  after a failed deploy.
+- **GHCR package visibility: public.** In the `kuasar-website` org, Packages → `cms` →
+  Package settings → Change visibility → Public. Leave App Platform's registry
+  credentials empty. A private package would need a personal GitHub token that breaks
+  when its owner leaves — see ADR 0002 decision 4.
+- **Size and region:** the $5/month 512 MB container, region Frankfurt (`fra`). HTTP port
+  `1337`.
+- **Deploy trigger:** App Platform does not redeploy by itself when a GHCR tag changes, so
+  the workflow's `deploy` job calls the DigitalOcean API. Add two Actions secrets to the
+  repository:
+  - `DIGITALOCEAN_APP_ID` — the app's ID, from its URL in the control panel or
+    `doctl apps list`.
+  - `DIGITALOCEAN_ACCESS_TOKEN` — API → Tokens → Generate, **custom scopes limited to
+    `app`** (read and update), not full access. Record its expiry in
+    [../HANDOVER.md](../HANDOVER.md).
+
+  Without them the workflow still builds and pushes; only the automatic redeploy fails.
+- **Do not** create the app from the GitHub repository "to try it first" — that is a
+  source build, and it OOMs. Container image from the start.
 
 Environment variables:
 
@@ -175,13 +194,13 @@ Environment variables:
 
 **The admin OOM is already handled.** Strapi's admin-panel build is memory-hungry and
 out-of-memory during build is the single most common Strapi deployment failure. Because the
-Render service runs a prebuilt image (step 4) and only ever calls `strapi start`, that
-build never runs on the 512 MB instance. If you ever see an OOM on Render, something has
-reverted the service to a source build — fix that, do **not** upsize the instance. The
+App Platform app runs a prebuilt image (step 4) and only ever calls `strapi start`, that
+build never runs on the 512 MB instance. If you ever see an OOM on App Platform, something
+has reverted the app to a source build — fix that, do **not** upsize the instance. The
 spike is at build time, not run time.
 
-Create the first admin user by hand through the Render URL (`/admin`) as soon as the
-service is live, before anyone else finds it. No Super Admin is created in code.
+Create the first admin user by hand through the App Platform URL (`/admin`) as soon as the
+app is live, before anyone else finds it. No Super Admin is created in code.
 
 ### 5. Configure the upload provider
 
@@ -195,6 +214,26 @@ local disk. Two details that cause the usual failed first attempt are already ap
 
 Your job here is just to set the `R2_*` variables (step 4 table) and, once
 `media.<DOMAIN>` is bound, `R2_PUBLIC_URL`.
+
+**Do not upload real content before `R2_PUBLIC_URL` is set.** Strapi stores each file's URL
+at upload time; without it the URL points at the raw R2 endpoint, and the site's build
+refuses such images. The fix is to re-upload them after setting the variable.
+
+Also already applied, so do not "fix" them in Settings → Media Library:
+
+- **Responsive formats, size optimisation and auto-orientation are forced off on every
+  boot** (`apps/cms/src/index.ts`). Resizing happens at Cloudflare's edge, and the original
+  is kept byte-for-byte. Strapi still makes one small admin thumbnail; the site never uses it.
+- **Rotated phone photos** get their displayed width and height recorded by
+  `apps/cms/src/extensions/upload/strapi-server.ts`, so pages do not shift when they load.
+- **Alt text lives on the entry, not on the file.** Each image field asks for an English and
+  a Turkish alt, both required to publish. Strapi's own "Alternative text" field on the file
+  is not used by the site.
+- **Uploads are capped at 25 MB.**
+
+**Prefer uploading a new file over "Replace media".** R2 has no versioning, so the replaced
+file is gone for good (the original should still be in the Shared Drive, step 3a), and the
+edge cache can keep serving the old image under the same URL until its TTL expires.
 
 Upload a test image through the Strapi Media Library and confirm it appears at
 `https://media.<DOMAIN>/...`. If the URL works but the image is missing from the admin
@@ -275,6 +314,15 @@ role, not Super Admin. Super Admin is for the two people named in
 [../HANDOVER.md](../HANDOVER.md) and nobody else — an editor who can change the content
 model can break the build.
 
+**Then check Settings → Administration Panel → Roles → Editor's Delete and Publish
+permissions are actually on.** Confirmed live, 2026-09-30: the built-in Editor role does not
+reliably ship with Delete and Publish enabled by default — Read/Create/Update were on,
+Delete/Publish were not, and had to be turned on by hand. `apps/cms`'s bootstrap code only
+asserts the Editor role exists; it does not set or verify its action permissions, on purpose
+(see `openspec/changes/cms-platform/design.md`, Risks). Verify this once per environment
+(a fresh App Platform deploy or a new database both count), not once per new editor invited
+to an already-configured environment.
+
 ### Monthly: confirm the backup is still running
 
 Takes thirty seconds. Do not skip it; a backup that stopped silently is worse than no
@@ -288,6 +336,11 @@ git log origin/content-snapshots -1 --format='%ci %s'
 If the newest commit is more than two weeks old, the scheduled workflow has stopped. The
 likeliest cause is GitHub disabling it after 60 days of repository inactivity. Re-enable
 it under the repository's Actions tab, then investigate why the repository went quiet.
+
+While you are here, read this month's **unique transformations** count on the Cloudflare
+dashboard (Images → Transformations). At **4,000 or more**, the site is approaching the free
+5,000: switch the image loader to a single output format first, and cut the width set only
+if that is not enough — the media-pipeline change's design, decision 2, has the numbers.
 
 ### Annually: verify the media system of record
 
@@ -313,10 +366,43 @@ Workspace account. Once a year, confirm all four of these in writing in
 of the R2 bucket. Do not leave it unresolved; it is the one part of the media design that
 does not verify itself.
 
+### Upgrading Strapi
+
+Upgrade with `npm run upgrade -w apps/cms` (Strapi's own upgrade tool), never by editing one
+`@strapi/*` version by hand — a partial upgrade splits the packages and the CMS stops booting.
+Take a snapshot first (step 8, manual run).
+
+**Then re-check the upload extension, every time — patch releases included.**
+`apps/cms/src/extensions/upload/strapi-server.ts` wraps a Strapi internal (the upload
+plugin's `image-manipulation.getDimensions`) so that phone photos rotated by EXIF are
+recorded with their displayed width and height. Strapi does not promise to keep that
+internal stable, so an upgrade can break it in two ways:
+
+1. **Strapi renamed or removed it.** The CMS refuses to start with an error naming
+   `strapi-server.ts`. Find where the new version records image dimensions and re-point the
+   extension; do not just delete it, or rotated photos will shift pages again.
+2. **Strapi started recording displayed dimensions itself.** Then the extension would swap
+   them back. Nothing crashes — photos just get the wrong shape.
+
+Both are caught by the same tests, which also run in Tier A:
+
+```bash
+npm run test:media
+```
+
+If the test *"Strapi alone still records STORED dimensions"* fails, case 2 has happened:
+delete the extension (and `exif-dimensions.ts` and its test) rather than "fixing" the test.
+Any other failure in `exif-dimensions.test.ts` means case 1.
+
+Finally, by hand: upload a portrait photo taken on a phone and confirm the Media Library shows
+it taller than wide. While you are in Settings → Media Library, confirm the three toggles
+`apps/cms/src/index.ts` forces off still exist under the same names; if Strapi renamed them,
+update `UPLOAD_SETTINGS` there.
+
 ### Rotating credentials
 
 When someone with access leaves, rotate in this order: Strapi admin users first (remove
-theirs), then `PREVIEW_SECRET` and `REVALIDATE_SECRET` in both Render and Vercel, then the
+theirs), then `PREVIEW_SECRET` and `REVALIDATE_SECRET` in both App Platform and Vercel, then the
 R2 API token, then the Neon connection string. Update
 [../HANDOVER.md](../HANDOVER.md) as you go.
 
@@ -356,14 +442,18 @@ Two of those will bite you during a restore, so know them before you start:
 
 | Symptom | Most likely cause |
 | --- | --- |
-| Strapi build fails on Render | The service is doing a source build. It must be a Docker service running the GHCR image from `cms-deploy.yml` (step 4) — the admin is built in CI. Do not upsize |
-| `cms-deploy.yml` builds but Render does not redeploy | `RENDER_DEPLOY_HOOK_URL` secret missing or stale. Re-copy the Deploy Hook URL from the Render service settings |
+| Strapi build fails on App Platform | The component is doing a source build. It must be a container-image component running the GHCR image from `cms-deploy.yml` (step 4) — the admin is built in CI. Do not upsize |
+| `cms-deploy.yml` builds but App Platform does not redeploy | `DIGITALOCEAN_ACCESS_TOKEN` or `DIGITALOCEAN_APP_ID` secret missing, expired or wrong. See step 4 |
+| App Platform cannot pull the image | The GHCR package was made private. Set it back to public (step 4) |
 | Upload fails with an ACL error | `ACL` is set in the provider config. R2 does not support it — remove it |
 | Images 404 at `media.<DOMAIN>` | Custom domain not bound to the bucket, or DNS not propagated |
-| Every image suddenly unoptimised | Transformation allowance exceeded. Check Cloudflare usage; 5,000 unique/mo are free |
+| Images suddenly slow or heavy (full-size files) | Transformation allowance exhausted: new sizes return 9422 and `onerror=redirect` serves the originals. Nothing is broken and nothing is charged; it resets next month. Check the count on the Cloudflare dashboard (see *Monthly*) |
+| Every image broken or full-size from the first deploy, never resized | Transformations not enabled on the zone (step 3, item 5). A `Cf-Resized` response header on a `/cdn-cgi/image/` URL shows whether resizing was attempted |
+| Site build fails with `[media] ... is not on https://media.<DOMAIN>` | Images uploaded before `R2_PUBLIC_URL` was set (step 5). Set it, re-upload the named image |
+| Site build fails with `[media] ... alt text is empty` | The named entry's image lacks its English or Turkish alt. Fill both in Strapi and republish |
 | Published change does not appear | Webhook not reaching Vercel. Check Strapi's webhook delivery log first |
 | Preview shows a blank frame | Frontend is refusing to be framed by the Strapi origin |
-| Preview 401s | `PREVIEW_SECRET` differs between Render and Vercel |
+| Preview 401s | `PREVIEW_SECRET` differs between App Platform and Vercel |
 | Site builds fail, frontend unchanged | Strapi is down. The build reads from Strapi — see ADR 0001, Consequences |
 | Dates show the wrong "upcoming" state | Something computed time on the server. All time-relative state is client-derived — ADR 0001, rule 3 |
 

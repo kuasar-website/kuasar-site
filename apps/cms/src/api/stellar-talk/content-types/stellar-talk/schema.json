@@ -22,9 +22,8 @@
       "pluginOptions": { "i18n": { "localized": false } }
     },
     "speakerPortrait": {
-      "type": "media",
-      "multiple": false,
-      "allowedTypes": ["images"],
+      "type": "component",
+      "component": "shared.image",
       "pluginOptions": { "i18n": { "localized": false } }
     },
     "eventNumber": {

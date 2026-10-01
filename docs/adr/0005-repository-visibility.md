@@ -57,7 +57,7 @@ unstarted. Do not read the present tense above as a description of the current s
 GitHub.
 
 Nothing that must stay secret was ever supposed to be in this repository. Secrets live in
-the Vercel and Render dashboards — [../ops/cms-runbook.md](../ops/cms-runbook.md) step 4
+the Vercel and DigitalOcean dashboards — [../ops/cms-runbook.md](../ops/cms-runbook.md) step 4
 lists them, and [../HANDOVER.md](../HANDOVER.md) already states they are never committed.
 Public visibility does not change that rule; it changes the penalty for breaking it.
 

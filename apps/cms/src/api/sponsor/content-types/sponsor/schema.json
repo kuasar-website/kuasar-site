@@ -22,16 +22,14 @@
       "pluginOptions": { "i18n": { "localized": false } }
     },
     "logo": {
-      "type": "media",
-      "multiple": false,
+      "type": "component",
+      "component": "shared.image",
       "required": true,
-      "allowedTypes": ["images"],
       "pluginOptions": { "i18n": { "localized": false } }
     },
     "logoLight": {
-      "type": "media",
-      "multiple": false,
-      "allowedTypes": ["images"],
+      "type": "component",
+      "component": "shared.image",
       "pluginOptions": { "i18n": { "localized": false } }
     },
     "url": {
