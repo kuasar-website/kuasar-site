@@ -48,6 +48,17 @@ export const CONTENT_TYPES = Object.freeze([
       // speakers: repeatable summit.speaker, whose own `portrait` field is a
       // *nested* shared.image component — two levels deep.
       "populate[speakers][populate][portrait][populate]=image",
+      // programme: repeatable summit.programme-item. Its own fields (time,
+      // title, description) are plain scalars with no media/relation of
+      // their own, but the component attribute itself still requires an
+      // explicit populate entry to be returned at all — Strapi's REST API
+      // does not include component/relation/media attributes by default
+      // regardless of their own nesting depth. Omitting this was a real
+      // bug (found in PR #34 review): the API silently returned no
+      // `programme` key at all, and the picker's `Array.isArray(...) : []`
+      // fallback then correctly, but misleadingly, produced an empty
+      // array that looked like "no programme items exist."
+      "populate[programme]=true",
     ]),
   }),
   Object.freeze({
@@ -65,10 +76,15 @@ export const CONTENT_TYPES = Object.freeze([
   Object.freeze({
     uid: "sponsor",
     pluralName: "sponsors",
-    // logo, logoLight: shared.image.
     populate: Object.freeze([
+      // logo, logoLight: shared.image.
       "populate[logo][populate]=image",
       "populate[logoLight][populate]=image",
+      // summits: the inverse side of Galactic Summit's `sponsors` relation
+      // (manyToMany, mappedBy "sponsors"). Same bug class as `programme`
+      // above, found in the same review: a relation attribute still needs
+      // its own populate entry even though it carries no further nesting.
+      "populate[summits]=true",
     ]),
   }),
 ]);
