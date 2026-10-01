@@ -3,9 +3,9 @@ import type { ScheduleEventType } from "../../lib/schedule/data";
 
 /**
  * Every fixed Schedule string, verbatim from the "Bilingual interface copy"
- * requirement in openspec/changes/schedule-calendar/specs. Type labels are
- * approved; the rest await bilingual sign-off (tasks.md 6.2). Change wording
- * here only — no component holds its own copy. `month` is always produced by
+ * requirement in openspec/changes/schedule-calendar/specs. All strings here,
+ * including the narrow-grid type marks, were approved in bilingual review
+ * (tasks.md 6.2, 2026-10-01). Change wording here only — no component holds its own copy. `month` is always produced by
  * formatMonth() in lib/schedule/calendar.ts.
  */
 export type ScheduleCopy = {
@@ -66,6 +66,6 @@ export const SCHEDULE_COPY: Readonly<Record<Locale, ScheduleCopy>> = {
     events: (count) => `${count} etkinlik`,
     more: (count) => `+${count} daha`,
     details: "Ayrıntılar",
-    controls: "Ay gezintisi",
+    controls: "Aylar arasında gezinme",
   },
 };

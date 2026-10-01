@@ -94,7 +94,8 @@
   - how to run the tests.
 
   Do **not** edit `docs/HANDOVER.md` or `docs/ops/cms-runbook.md` (open in #34).
-- [ ] 6.2 Have a bilingual reviewer approve the non-type copy (timezone note, empty states, control names, live-region message). The type labels are already approved. Record the reviewer in the PR.
+- [x] 6.2 Have a bilingual reviewer approve the non-type copy (timezone note, empty states, control names, live-region message). The type labels are already approved. Record the reviewer in the PR.
+  - **Evidence (2026-10-01):** approved in human bilingual review by the change owner (rertus25). The review approved every string in `components/schedule/copy.ts`: the timezone note, the empty states, the navigation, Today, live-region and Live-now strings, the type labels, the narrow-grid marks (EN T/Sc/Su/W/O, TR S/G/Z/A/D), and Event types/Etkinlik türleri, Upcoming/Yaklaşan, Past/Geçmiş and Details/Ayrıntılar. One correction was made: the Turkish controls-group label "Ay gezintisi" became "Aylar arasında gezinme".
 
 ## 7. Live acceptance (manual; check only with evidence)
 

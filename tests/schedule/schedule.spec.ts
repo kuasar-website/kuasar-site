@@ -86,6 +86,7 @@ for (const locale of ["en", "tr"] as const) {
   test(`${locale}: previous, next and today with announced, exact copy`, async ({ page }) => {
     await page.clock.install({ time: new Date("2026-11-15T09:00:00Z") });
     await page.goto(`/${locale}`);
+    await expect(page.getByRole("group", { name: locale === "tr" ? "Aylar arasında gezinme" : "Month navigation", exact: true })).toBeVisible();
     await page.getByRole("button", { name: t.next }).click();
     await expect(caption(page)).toHaveText(t.dec);
     await expect(live(page)).toHaveText(t.showing(t.dec));
