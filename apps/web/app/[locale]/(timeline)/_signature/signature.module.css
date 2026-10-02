@@ -2,7 +2,7 @@
   min-width: 0;
 }
 
-.signature[data-signature="active"] {
+.signature[data-signature="active"] .stage {
   min-height: calc(100svh - 80px);
 }
 

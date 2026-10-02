@@ -14,10 +14,11 @@ export async function loadEngine() {
   return function SignatureEngine({ scope }: { scope: RefObject<HTMLDivElement | null> }) {
     useGSAP((_, contextSafe) => {
       const root = scope.current;
+      const stage = root?.firstElementChild as HTMLElement | null;
       const section = root?.querySelector<HTMLElement>('section');
       const viewport = section?.querySelector<HTMLElement>('[role="region"]');
       const track = viewport?.querySelector<HTMLOListElement>('ol');
-      if (!root || !section || !viewport || !track) return;
+      if (!root || !stage || !section || !viewport || !track) return;
       const originalStyle = track.getAttribute('style');
       const restoreTrack = () => { if (originalStyle === null) track.removeAttribute('style'); else track.setAttribute('style', originalStyle); };
       let alive = true;
@@ -32,7 +33,7 @@ export async function loadEngine() {
         active = true;
         gsap.to(track, {
           x: () => -distance(), ease: 'none',
-          scrollTrigger: { id: 'kuasar-timeline-signature', trigger: root, pin: root,
+          scrollTrigger: { id: 'kuasar-timeline-signature', trigger: stage, pin: stage,
             start: 'top 80px', end: () => `+=${distance()}`, scrub: true, invalidateOnRefresh: true },
         });
         return () => { active = false; delete root.dataset.signature; restoreTrack(); };

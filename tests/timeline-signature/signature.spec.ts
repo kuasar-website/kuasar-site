@@ -15,7 +15,7 @@ for (const locale of ['en', 'tr']) {
     await page.keyboard.press('Escape');
     await expect(page.locator('.pin-spacer')).toHaveCount(0);
     await expect(track).toHaveCSS('transform', 'none');
-    await expect(page.getByRole('region')).toHaveCSS('overflow-x', 'auto');
+    await expect(page.locator('[role="region"]')).toHaveCSS('overflow-x', 'auto');
   });
   for (const mode of ['mobile', 'reduced', 'home', 'one', 'zero', 'hash']) {
     test(`${locale}: ${mode} never loads the animation engine`, async ({ page }) => {
@@ -56,7 +56,7 @@ for (const locale of ['en', 'tr']) {
     await page.locator('li').last().focus();
     await expect(page.locator('.pin-spacer')).toHaveCount(0);
     await expect(page.locator('li').last()).toBeFocused();
-    expect(await page.getByRole('region').evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
+    expect(await page.locator('[role="region"]').evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
   });
   test(`${locale}: failed import leaves native content`, async ({ page }) => {
     await page.route('**/chunks/engine-*', route => route.abort());
@@ -64,7 +64,7 @@ for (const locale of ['en', 'tr']) {
     await expect(page.locator('li')).toHaveCount(5);
     await page.waitForTimeout(250);
     await expect(page.locator('.pin-spacer')).toHaveCount(0);
-    await expect(page.getByRole('region')).toHaveCSS('overflow-x', 'auto');
+    await expect(page.locator('[role="region"]')).toHaveCSS('overflow-x', 'auto');
   });
   test(`${locale}: JavaScript-disabled baseline works`, async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false });

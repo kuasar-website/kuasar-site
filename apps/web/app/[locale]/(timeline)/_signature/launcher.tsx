@@ -28,10 +28,12 @@ export function TimelineSignature({ children, locale }: { children: ReactNode; l
     return () => { disposed = true; eligible.removeEventListener('change', load); window.removeEventListener('resize', load); };
   }, []);
   return <div ref={scope} className={styles.signature}>
+    <div className={styles.stage}>
     {children}
     <p className={styles.hint}>{locale === 'tr'
       ? 'Geçmişe ilerlemek için aşağı kaydırın. Normal kaydırmaya dönmek için Escape tuşuna basın.'
       : 'Scroll down to travel into the past. Press Escape to return to native scrolling.'}</p>
+    </div>
     {Engine && <Engine scope={scope} />}
   </div>;
 }
