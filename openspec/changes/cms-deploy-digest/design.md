@@ -233,7 +233,8 @@ must never be green while production serves an older CMS revision.
 
 **Rollback:** revert the PR. The old `curl` path comes back, and the app's image reference
 can be set back to tag `latest` in the dashboard. The `/_version` route is harmless if left
-behind.
+behind. Since task 4.2 (2026-10-03) the `DIGITALOCEAN_APP_ID` secret no longer exists, so a
+revert must also re-create it (the app's ID from the DigitalOcean dashboard).
 
 ## Open Questions
 
