@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { loadEvents } from "../components/events/content";
 import { scheduleConfigured } from "../components/schedule/content";
+import { summitConfigured } from "../components/summit/content";
 import { loadTimelineEntries } from "../lib/content/timeline";
 import { LOCALES, sectionPath } from "../lib/i18n/segments";
 
@@ -15,9 +16,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // The schedule route exists whenever the CMS is configured, even with zero events.
   const scheduleLanguages = Object.fromEntries(LOCALES.map(locale => [locale, new URL(sectionPath("schedule", locale), siteUrl).href]));
   const scheduleUrls = scheduleConfigured() ? LOCALES.map(locale => ({ url: scheduleLanguages[locale], alternates: { languages: scheduleLanguages } })) : [];
-  if (loadTimelineEntries().length === 0) return [...eventUrls, ...scheduleUrls];
+  // The Galactic Summit route exists whenever the CMS is configured, even with zero editions.
+  const summitLanguages = Object.fromEntries(LOCALES.map(locale => [locale, new URL(sectionPath("galactic-summit", locale), siteUrl).href]));
+  const summitUrls = summitConfigured() ? LOCALES.map(locale => ({ url: summitLanguages[locale], alternates: { languages: summitLanguages } })) : [];
+  if (loadTimelineEntries().length === 0) return [...eventUrls, ...scheduleUrls, ...summitUrls];
   const languages = Object.fromEntries(LOCALES.map((locale) => [locale, new URL(sectionPath("timeline", locale), siteUrl).href]));
-  return [...eventUrls, ...scheduleUrls, ...LOCALES.map((locale) => ({
+  return [...eventUrls, ...scheduleUrls, ...summitUrls, ...LOCALES.map((locale) => ({
     url: languages[locale],
     alternates: { languages },
   }))];
