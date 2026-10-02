@@ -27,8 +27,9 @@ and nothing SHALL be revalidated. The response and logs SHALL never contain the 
 For an authorised Strapi webhook whose event is `entry.publish`, `entry.unpublish`,
 `entry.update`, `entry.delete` or `entry.create`, the system SHALL call
 `revalidateTag(tag, 'max')` for every cache tag that the registry maps to the event's
-model uid, and SHALL call `revalidatePath` for every public path the registry maps to it,
-including `/sitemap.xml`, in both locales. After a successful webhook, the next request for
+model uid, which covers every route and the sitemap that fetched with that tag, in both
+locales. It SHALL NOT call `revalidatePath` on the fallback-false localized content routes,
+where a hard path expiry produces a persistent 404 (design D2). After a successful webhook, the next request for
 an affected page SHALL return the changed content: publish in Strapi, wait seconds, reload
 the public page, and the change is visible. For `media.update` and `media.delete`, it SHALL revalidate
 every registered tag. For a model the registry does not map, or one deliberately without
@@ -38,7 +39,7 @@ be used.
 
 #### Scenario: Publish a Schedule Event
 - **WHEN** Strapi sends an authorised `entry.publish` for `api::schedule-event.schedule-event`
-- **THEN** the `schedule-calendar` tag is revalidated with the `max` profile, along with `/en/schedule`, `/tr/takvim` and `/sitemap.xml`
+- **THEN** the `schedule-calendar` tag is revalidated with the `max` profile, covering `/en/schedule`, `/tr/takvim` and the sitemap, and no page responds 404 afterwards
 
 #### Scenario: Reload after publish shows the change
 - **WHEN** a published Schedule Event's title changes in Strapi, the webhook succeeds, and a visitor reloads `/en/schedule` a few seconds later

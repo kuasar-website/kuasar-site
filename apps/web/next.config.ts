@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 import { DEVICE_SIZES, IMAGE_SIZES, MEDIA_QUALITY } from "./lib/media/sizes.ts";
+import { DRAFT_MODE_COOKIE, previewHeaders, strapiOrigin } from "./lib/strapi/preview-headers.ts";
 
 const nextConfig: NextConfig = {
   // design/i18n.md: "/" issues a fixed redirect to "/en" (no trailing slash — matches
@@ -11,6 +12,18 @@ const nextConfig: NextConfig = {
   // only setting that yields a 307, per
   // node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/redirects.md
   // (permanent: true yields a 308, which caches indefinitely and cannot be undone).
+  // Preview only (publish-integration, design D5): responses served under Draft Mode may be
+  // framed by the Strapi admin and are never indexed. Requests without the Draft Mode
+  // cookie match nothing here, so public responses keep exactly their existing headers.
+  async headers() {
+    const origin = strapiOrigin(process.env.STRAPI_URL);
+    if (!origin) return [];
+    return [{
+      source: "/:path*",
+      has: [{ type: "cookie", key: DRAFT_MODE_COOKIE }],
+      headers: Object.entries(previewHeaders(origin)).map(([key, value]) => ({ key, value })),
+    }];
+  },
   async redirects() {
     return [
       {

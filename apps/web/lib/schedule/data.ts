@@ -1,5 +1,6 @@
 import type { Locale } from "../i18n/segments.ts";
 import { parseISO } from "../time/date.ts";
+import { strapiRead } from "../strapi/content-request.ts";
 
 /**
  * Build/revalidation-time loader for published Schedule Events
@@ -27,7 +28,7 @@ export type ScheduleEvent = {
   /** The locale the text fields are actually in (English fallback on /tr). */
   contentLocale: Locale;
 };
-export type ScheduleOptions = { origin: string; token?: string; fetcher?: typeof fetch };
+export type ScheduleOptions = { origin: string; token?: string; fetcher?: typeof fetch; /** Draft Mode only (publish-integration). */ preview?: boolean; previewToken?: string };
 type Row = Record<string, unknown>;
 
 const fail = (context: string, message: string): never => {
@@ -57,19 +58,17 @@ async function published(locale: Locale, options: ScheduleOptions): Promise<Row[
   const context = `collection (${locale})`;
   const result: Row[] = [];
   const seen = new Set<string>();
+  const read = strapiRead(SCHEDULE_CACHE_TAG, options);
   for (let page = 1, last = 1; page <= last; page++) {
     const url = new URL("/api/schedule-events", options.origin);
     url.searchParams.set("locale", locale);
-    url.searchParams.set("status", "published");
+    url.searchParams.set("status", read.status);
     url.searchParams.set("sort[0]", "documentId:asc");
     url.searchParams.set("pagination[page]", String(page));
     url.searchParams.set("pagination[pageSize]", "100");
     let response: Response;
     try {
-      response = await (options.fetcher ?? fetch)(url, {
-        cache: "force-cache", next: { tags: [SCHEDULE_CACHE_TAG], revalidate: false },
-        ...(options.token ? { headers: { Authorization: `Bearer ${options.token}` } } : {}),
-      });
+      response = await (options.fetcher ?? fetch)(url, read.init);
     } catch { return fail(context, "Strapi unreachable"); }
     if (!response.ok) return fail(context, `Strapi HTTP ${response.status}`);
     const body = object(await response.json(), context);
@@ -80,8 +79,9 @@ async function published(locale: Locale, options: ScheduleOptions): Promise<Row[
     if (page > 1 && !body.data.length && page <= last) return fail(context, "empty page before pagination ended");
     for (const value of body.data) {
       const row = object(value, context);
-      // Defence in depth: never display an accidental draft returned by a proxy/mock.
-      if (!row.publishedAt) continue;
+      // Defence in depth: never display an accidental draft on the public path. Draft
+      // versions (no publishedAt) are expected only in an authenticated Draft Mode preview.
+      if (!row.publishedAt && read.status === "published") continue;
       if (row.locale !== locale) return fail(context, "unexpected locale");
       const id = text(row.documentId, context, true)!;
       if (seen.has(id)) return fail(context, `duplicate document ${id} across pages`);

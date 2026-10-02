@@ -242,24 +242,55 @@ opposite.
 
 ### 6. Wire the publish webhook
 
-In Strapi → Settings → Webhooks, create a webhook to
-`https://<DOMAIN>/api/revalidate?secret=<REVALIDATE_SECRET>` firing on publish,
-unpublish, update and delete.
+In Strapi → Settings → Webhooks, create a webhook:
 
-Confirm end to end: publish a change, wait a few seconds, reload the public page. If the
-page does not change, the webhook is not reaching Vercel — check the webhook's delivery
-log in Strapi first, before touching any code.
+- **URL:** `https://<DOMAIN>/api/revalidate`. Never put the secret in the URL; it would
+  be written to request logs.
+- **Headers:** `Authorization` = `Bearer <REVALIDATE_SECRET>`. The same value is set as
+  `REVALIDATE_SECRET` in Vercel (Production and Preview).
+- **Events:** Entry create, update, delete, publish and unpublish; Media update and delete.
+
+The handler (`apps/web/app/api/revalidate/route.ts`) calls `revalidateTag(tag, 'max')` for
+the tags mapped to that content type in `apps/web/lib/strapi/registry.ts`. That covers
+both locales and the sitemap. It rejects calls without the header (401) and with a query
+secret.
+
+**Known open gap (publish-integration task 6.4):** with `'max'`, the **first** page view
+after a publish can still show the old content while the page regenerates, and the next
+view shows the change. `revalidatePath` is deliberately **not** used: on the current
+localized routes, it made pages 404 until the next deploy.
+
+Confirm end to end: publish a change, wait a few seconds, reload the public page (once
+more if the first view is still old; see above). If the page still doesn't change, check
+the webhook's delivery log in Strapi first, before touching any code.
 
 ### 7. Configure preview
 
-Strapi's `admin.preview` config points at `https://<DOMAIN>/api/preview`, with
-`allowedOrigins` listing the frontend URL and the shared `PREVIEW_SECRET`.
+Environment variables (names only; values are never written down anywhere else):
 
-If preview shows a blank frame, it is almost always the iframe: `apps/web` must permit
-framing from the Strapi origin on the preview route. See
+| Where | Variable | What |
+| --- | --- | --- |
+| Vercel | `PREVIEW_SECRET` | Shared preview secret, the same value as in App Platform |
+| Vercel | `STRAPI_PREVIEW_TOKEN` | A Strapi **custom** API token with `find`/`findOne` on Stellar Talk, Nebula Night, Schedule Event and Galactic Summit. It reads drafts for preview only. Never Alumni |
+| App Platform | `CLIENT_URL` | The frontend origin, e.g. `https://<DOMAIN>` |
+| App Platform | `PREVIEW_SECRET` | The same value as in Vercel |
+
+`apps/cms/config/admin.ts` enables Strapi's preview only when `CLIENT_URL` and
+`PREVIEW_SECRET` are both set. It lists `CLIENT_URL` in `allowedOrigins`, and builds
+`<CLIENT_URL>/api/preview?…` from the content type, document, locale and status only.
+`/api/preview` derives the page itself (never from the URL), turns on Next.js Draft Mode
+(`const draft = await draftMode()`), and redirects there. Draft Mode pages read drafts
+with `STRAPI_PREVIEW_TOKEN`, are `noindex`, and may be framed only by the Strapi origin.
+Public pages are unaffected. `POST /api/preview/exit` leaves Draft Mode.
+
+Drafts are readable only with an API token. The Public role gets 403 for `?status=draft`
+(`apps/cms/src/draft-guard.ts`), so preview **needs** `STRAPI_PREVIEW_TOKEN`.
+
+If preview shows a blank frame, it's almost always the iframe: check `CLIENT_URL` and the
+`STRAPI_URL` the frontend was built with. See
 [../adr/0002-cms.md](../adr/0002-cms.md), decision 8, which also records that Strapi's own
-documentation example calls `draftMode()` without awaiting it — that is the pre-Next-15
-API and will not work here.
+documentation example calls `draftMode()` without awaiting it. That's the pre-Next-15 API
+and won't work here.
 
 ### 8. Enable the snapshot export
 
@@ -491,9 +522,10 @@ Two of those will bite you during a restore, so know them before you start:
 | Every image broken or full-size from the first deploy, never resized | Transformations not enabled on the zone (step 3, item 5). A `Cf-Resized` response header on a `/cdn-cgi/image/` URL shows whether resizing was attempted |
 | Site build fails with `[media] ... is not on https://media.<DOMAIN>` | Images uploaded before `R2_PUBLIC_URL` was set (step 5). Set it, re-upload the named image |
 | Site build fails with `[media] ... alt text is empty` | The named entry's image lacks its English or Turkish alt. Fill both in Strapi and republish |
-| Published change does not appear | Webhook not reaching Vercel. Check Strapi's webhook delivery log first |
-| Preview shows a blank frame | Frontend is refusing to be framed by the Strapi origin |
+| Published change does not appear | First, reload once more: the first view after a publish can still be stale (`'max'`; known gap, step 6). Then check Strapi's webhook delivery log: a 401 means the `Authorization` header or `REVALIDATE_SECRET` is wrong or missing |
+| Preview shows a blank frame | Framing refused (the frontend only allows the Strapi origin it was built with, from `STRAPI_URL`), or the browser blocks third-party cookies in the iframe. Use Strapi's "open in new tab" preview |
 | Preview 401s | `PREVIEW_SECRET` differs between App Platform and Vercel |
+| Preview page errors with "STRAPI_PREVIEW_TOKEN is not set" | Set `STRAPI_PREVIEW_TOKEN` in Vercel (step 7) and redeploy |
 | Site builds fail, frontend unchanged | Strapi is down. The build reads from Strapi — see ADR 0001, Consequences |
 | Dates show the wrong "upcoming" state | Something computed time on the server. All time-relative state is client-derived — ADR 0001, rule 3 |
 

@@ -24,8 +24,12 @@ truthful (credibility).
   compared in constant time.
   - On Strapi entry publish, unpublish, update and delete (plus create and media
     changes), it calls `revalidateTag(tag, 'max')` for every tag mapped to the changed
-    content type, and `revalidatePath` for the mapped page paths, including
-    `/sitemap.xml`. The next request for a changed page therefore renders fresh content.
+    content type. It deliberately does **not** call `revalidatePath`: on the current
+    fallback-false localized routes, a hard path expiry produced a persistent 404.
+  - **Known unresolved acceptance gap:** with `'max'` alone, the *first* reload after a
+    publish is still stale, and the change appears on the next request. The accepted
+    requirement ("first reload shows the change") is **not met and not amended**; see
+    design.md D2 and tasks.md 6.1 and 6.4.
   - Unauthenticated, malformed or wrong-method calls are rejected.
   - It never reads content from the request beyond the event name and model.
 - **`/api/preview`** (GET): authorised by a separate shared secret.

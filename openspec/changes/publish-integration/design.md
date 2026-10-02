@@ -32,22 +32,21 @@ See proposal.md, "Why". These are the facts on `main` at `b2343ac` (2026-10-02):
   cms-platform and the domain". cms-platform is done. The production domain path isn't
   ready yet, so implementation and non-domain tests use the current Vercel deployment,
   and **domain-dependent live acceptance (section 8) stays open** until it is.
-- **Next 16 `revalidatePath`** (installed docs): from a route handler it "marks the path
-  for revalidation… done on the next visit", and "only the specified path gets fresh data
-  on the next visit". `revalidateTag(tag, 'max')` alone gives stale-while-revalidate
-  semantics. Pairing it with `revalidatePath` on the page paths is what makes the next
-  request fresh. The production-build check proves it (6.1); if it can't be proven, apply
-  stops and reports the conflict.
-- **Strapi 5.52.3 preview contract** (installed `@strapi/content-manager`
-  `preview-config`): `admin.preview = { enabled, config: { allowedOrigins, handler(uid,
-  { documentId, locale, status }) → string | null } }`. Strapi adds `allowedOrigins` to
-  its own admin `frame-src`.
-- **Spike, 2026-10-02:** a throwaway Next 16.3.1 app outside the repo, a page with
-  `dynamic = "error"` and `revalidate = false` reading `await draftMode()`.
-  - It **builds as static (○)**.
-  - Normal requests get the build-time HTML with `isEnabled=false`.
-  - With the `__prerender_bypass` cookie, each request renders fresh with
-    `isEnabled=true` and `Cache-Control: private, no-cache, no-store`.
+- **Revalidation evidence (2026-10-02, real `next build`/`next start` of this app):**
+
+  | Mode | First reload | Later reloads |
+  |---|---|---|
+  | `revalidateTag(tag, 'max')` | stale | fresh |
+  | `revalidatePath(path)` | **404** (`NoFallbackError`) | 404, persistent |
+  | `revalidateTag(tag, { expire: 0 })` | **404** | 404 |
+
+  Root cause, in the Next 16.3.1 source: a hard tag expiry makes `FileSystemCache.get`
+  return `null` for the page, and `app-page-runtime` throws `NoFallbackError` for a
+  production request on a dynamic-segment route with fallback `false` (from
+  `dynamicParams = false` on `app/[locale]/layout.tsx` or the page). The only working
+  configuration found removes `dynamicParams = false` from the shared `[locale]` layout
+  and the page. That weakens 404 handling (unknown locales render on demand and get
+  cached), so it's a locale-routing decision, outside this change.
 
   So preview needs **no change to any route's segment config**. (The spike was built with
   `--webpack`, because Turbopack rejects a `node_modules` symlink outside the project root;
@@ -98,11 +97,17 @@ their exported constants, and a unit test asserts each equals the registry's val
 nothing drifts and no loader churns. Galactic Summit's row is **reserved**; its loader is
 adopted only after #36 is on `main`, so nothing conflicts with that PR.
 
-**Why paths as well as tags:** `revalidateTag(tag, 'max')` is mandated (ADR 0001 §2) and
-marks the data stale. `revalidatePath` on each mapped page and on `/sitemap.xml` makes the
-**next** request regenerate the page, which is what the acceptance requires ("publish →
-wait seconds → reload → changed"). The merged handoff READMEs also ask for both. Test 6.1
-asserts the **first** reload after the webhook shows the change.
+**Tags only, no `revalidatePath`:** `revalidateTag(tag, 'max')` is mandated (ADR 0001
+§2) and covers every route and sitemap that fetched with the tag. `revalidatePath` is
+**not used**: on these fallback-false localized routes it produced a persistent 404
+(Context, evidence table).
+
+**Known unresolved acceptance gap:** the accepted requirement is "publish → wait seconds
+→ reload → changed". With `'max'` the first request after a publish is stale and
+triggers regeneration, and the change is visible on the next request. The production
+check measures and reports this every run, and never counts it as a pass. Closing the gap
+needs a separate decision on locale routing (`dynamicParams`) plus verification on Vercel,
+whose ISR cache differs from `next start`. Task 6.4 tracks it; the requirement is unchanged.
 
 **Events handled:**
 - `entry.create`/`update`/`publish`/`unpublish`/`delete` revalidate the model's tags and
@@ -198,8 +203,9 @@ route handlers. First-load budgets are unchanged; Tier A `check:budgets` confirm
   asserts:
   - routes stay static;
   - both handlers reject unauthenticated requests;
-  - the webhook returns 200 and the page changes after a synthetic publish (with a reload
-    to cover stale-while-revalidate);
+  - the webhook returns 200, pages never 404, and the change appears on a subsequent
+    request in both locales; first-reload freshness is measured and reported as the
+    known gap;
   - preview sets the cookie, redirects to the derived path, and shows the draft only with
     the cookie;
   - the header policy is correct on public and Draft Mode responses.
@@ -211,9 +217,9 @@ route handlers. First-load budgets are unchanged; Tier A `check:budgets` confirm
 - [Public role can read drafts: **confirmed** by 0.4] → escalated as a CMS permission
   defect that needs its own fix before editors create drafts; this capability doesn't
   depend on it.
-- [`revalidateTag(tag, 'max')` alone is stale-while-revalidate] → paired with
-  `revalidatePath` for every mapped page; 6.1 proves the first reload is fresh, otherwise
-  apply stops and reports the conflict.
+- [First reload after publish is stale with `'max'`] → known unresolved acceptance gap,
+  documented and left open (6.1, 6.4). `revalidatePath` is not a fix: it 404s these
+  routes.
 - [Third-party cookie blocking breaks iframe preview] → use the "open in new tab" preview;
   recorded in the runbook.
 - [Touching merged loaders owned by others (events: Dev 5)] → mechanical adoption of the

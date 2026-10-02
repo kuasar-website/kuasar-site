@@ -1,6 +1,7 @@
 import type { Locale } from "../i18n/segments.ts";
 import { toMediaImage, type MediaImageData, type StrapiImage } from "../media/image.ts";
 import { parseISO } from "../time/date.ts";
+import { strapiRead } from "../strapi/content-request.ts";
 
 export const EVENTS_CACHE_TAG = "events-showcase";
 type Collection = "stellar-talks" | "nebula-nights";
@@ -9,7 +10,7 @@ type Common = { id: string; title: string; date: string | null; contentLocale: L
 export type TalkData = Common & { eventNumber: number; speakerName: string; speakerPortrait: MediaImageData | null; insight: string | null; watchUrl: string | null; readUrl: string | null };
 export type NightData = Common & { description: string | null; filmTitle: string | null; photos: { id: string; image: MediaImageData }[] };
 export type EventsData = { talks: TalkData[]; nights: NightData[] };
-export type EventsOptions = { origin: string; token?: string; fetcher?: typeof fetch };
+export type EventsOptions = { origin: string; token?: string; fetcher?: typeof fetch; /** Draft Mode only (publish-integration). */ preview?: boolean; previewToken?: string };
 const fail = (context: string, message: string): never => { throw new Error(`[events] ${context}: ${message}. See docs/ops/cms-runbook.md`); };
 function object(value: unknown, context: string): Row {
   if (!value || typeof value !== "object" || Array.isArray(value)) return fail(context, "expected an object");
@@ -34,20 +35,18 @@ function link(value: unknown, context: string) {
 async function collection(name: Collection, locale: Locale, options: EventsOptions): Promise<Row[]> {
   const result: Row[] = [];
   const seen = new Set<string>();
+  const read = strapiRead(EVENTS_CACHE_TAG, options);
   for (let page = 1, last = 1; page <= last; page++) {
     const url = new URL(`/api/${name}`, options.origin);
     url.searchParams.set('locale', locale);
-    url.searchParams.set('status', 'published');
+    url.searchParams.set('status', read.status);
     url.searchParams.set('sort[0]', 'documentId:asc');
     url.searchParams.set('pagination[page]', String(page));
     url.searchParams.set('pagination[pageSize]', '100');
     url.searchParams.set('populate[' + (name === 'stellar-talks' ? 'speakerPortrait' : 'photos') + '][populate][image]', 'true');
     let response: Response;
     try {
-      response = await (options.fetcher ?? fetch)(url, {
-        cache: 'force-cache', next: { tags: [EVENTS_CACHE_TAG], revalidate: false },
-        ...(options.token ? { headers: { Authorization: `Bearer ${options.token}` } } : {}),
-      });
+      response = await (options.fetcher ?? fetch)(url, read.init);
     } catch { return fail(`${name}/${locale}`, 'Strapi unreachable'); }
     if (!response.ok) return fail(`${name}/${locale}`, `Strapi HTTP ${response.status}`);
     const body = object(await response.json(), name);
@@ -59,8 +58,9 @@ async function collection(name: Collection, locale: Locale, options: EventsOptio
     if (page > 1 && !body.data.length && page <= last) return fail(name, 'empty page before pagination ended');
     for (const value of body.data) {
       const row = object(value, name);
-      // Defence in depth: never display an accidental draft returned by a proxy/mock.
-      if (!row.publishedAt) continue;
+      // Defence in depth: never display an accidental draft on the public path. Draft
+      // versions (no publishedAt) are expected only in an authenticated Draft Mode preview.
+      if (!row.publishedAt && read.status === 'published') continue;
       if (row.locale !== locale) return fail(name, 'unexpected locale');
       const id = text(row.documentId, name, true)!;
       if (seen.has(id)) return fail(name, `duplicate document ${id} across pages`);

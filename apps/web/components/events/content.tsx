@@ -1,4 +1,5 @@
 import "server-only";
+import { isPreview, previewToken } from "../../lib/strapi/draft";
 import { cache } from "react";
 import type { Locale } from "../../lib/i18n/segments";
 import { fetchEventsData } from "../../lib/events/data";
@@ -14,7 +15,11 @@ export function eventsConfigured() {
 }
 export const loadEvents = cache(async (locale: Locale) => {
   if (!eventsConfigured()) return { talks: [], nights: [] };
-  return fetchEventsData(locale, { origin: process.env.STRAPI_URL!, token: process.env.STRAPI_API_TOKEN });
+  return fetchEventsData(locale, {
+    origin: process.env.STRAPI_URL!, token: process.env.STRAPI_API_TOKEN,
+    // Editor preview only (publish-integration): drafts via the server-only preview token.
+    preview: await isPreview(), previewToken: previewToken(),
+  });
 });
 
 /** DEV 2 may compose this server component directly; it returns null when empty. */

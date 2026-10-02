@@ -1,4 +1,5 @@
 import "server-only";
+import { isPreview, previewToken } from "../../lib/strapi/draft";
 import { cache } from "react";
 import type { Locale } from "../../lib/i18n/segments";
 import { fetchScheduleData } from "../../lib/schedule/data";
@@ -14,5 +15,9 @@ export function scheduleConfigured() {
 /** Build/revalidation only; the route is static and never fetches per request. */
 export const loadSchedule = cache(async (locale: Locale) => {
   if (!scheduleConfigured()) return [];
-  return fetchScheduleData(locale, { origin: process.env.STRAPI_URL!, token: process.env.STRAPI_API_TOKEN });
+  return fetchScheduleData(locale, {
+    origin: process.env.STRAPI_URL!, token: process.env.STRAPI_API_TOKEN,
+    // Editor preview only (publish-integration): drafts via the server-only preview token.
+    preview: await isPreview(), previewToken: previewToken(),
+  });
 });

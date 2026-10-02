@@ -1,64 +1,83 @@
 ## 0. Preconditions (verify before coding)
 
-- [ ] 0.1 Confirm against `main` that the events and schedule loaders, `next.config.ts` (no `headers()`), `apps/cms/config/admin.ts` (no `preview`) and the Strapi 5.52.3 preview contract match design.md, Context. Any drift: update this change first.
-- [ ] 0.2 Re-run the Draft Mode spike inside the real `apps/web` Turbopack build on a scratch branch that is never pushed: a static route with `dynamic = "error"` reading `draftMode()` must stay ○, serve build-time HTML without the cookie, and render per request with it. Record the result in design.md, Context.
-- [ ] 0.3 Verify `revalidateTag(tag, profile)`, `revalidatePath`, `draftMode()`, `headers()` with `has`/`missing` cookie conditions, and the `__prerender_bypass` cookie name against the installed Next 16.3.1 docs.
+- [x] 0.1 Confirm against `main` that the events and schedule loaders, `next.config.ts` (no `headers()`), `apps/cms/config/admin.ts` (no `preview`) and the Strapi 5.52.3 preview contract match design.md, Context. Any drift: update this change first.
+- [x] 0.2 Re-run the Draft Mode spike inside the real `apps/web` Turbopack build on a scratch branch that is never pushed: a static route with `dynamic = "error"` reading `draftMode()` must stay ○, serve build-time HTML without the cookie, and render per request with it. Record the result in design.md, Context.
+  - **Evidence (2026-10-02):** the real Turbopack production build of this app (tests/publish/check-routes.mjs) prerenders `/en|tr/schedule|takvim` and `/en|tr/events|etkinlikler` with `initialRevalidateSeconds: false` while their loaders read `draftMode()`. Without the cookie: static and published-only. With it: rendered per request, `private, no-store`.
+- [x] 0.3 Verify `revalidateTag(tag, profile)`, `revalidatePath`, `draftMode()`, `headers()` with `has`/`missing` cookie conditions, and the `__prerender_bypass` cookie name against the installed Next 16.3.1 docs.
 - [x] 0.4 **Security gate:** confirm whether an unauthenticated `GET /api/<plural>?status=draft` returns a draft-only entry. If it does, stop and escalate as a CMS permission defect before continuing.
   - **Evidence (2026-10-02), synthetic and local, never production:** a throwaway Postgres, with this repo's `apps/cms` (Strapi 5.52.3) booted with random throwaway secrets. Public was granted only `find`/`findOne` on Schedule Event (as in production), with one draft-only entry (`SYNTH-DRAFT-ONLY-7Q3X`) and one published entry. An unauthenticated `GET /api/schedule-events?status=draft` returned **both draft versions, including the draft-only entry**, and `GET /api/schedule-events/<id>?status=draft` returned it directly. Without `status`, only the published entry was returned. Everything was deleted afterwards.
   - **Result: drafts are publicly readable** for any collection with Public `find`. Production grants that on all seven, Alumni included. **Escalated; apply stops here pending a decision** on the CMS fix (outside this capability's design, which never relies on public draft access).
+  - **Decision (2026-10-02):** "CMS fix first". Implemented as its own change, `cms-draft-guard` (branch `change/cms-draft-guard`, `e669f92`): a document-service middleware refusing draft reads on `/api/*` unless the request uses an API token, proven by a real-Strapi check. publish-integration apply resumes after it; this capability still never relies on public draft access.
 
 ## 1. Registry and request convention
 
-- [ ] 1.1 `apps/web/lib/strapi/registry.ts`: uid → `{ tags, paths(locale), preview }` per design D2, built with `sectionPath()`. Reserve the `announcements` and `alumni-directory` entries; Sponsor has no tags or preview.
-- [ ] 1.2 `apps/web/lib/strapi/secrets.ts`: a constant-time secret comparison over equal-length buffers. It never logs or returns the secret.
-- [ ] 1.3 `apps/web/lib/strapi/content-request.ts` per design D4: `status=published`, `force-cache`, registry tags and `revalidate: false` normally; `status=draft` with `STRAPI_PREVIEW_TOKEN` and `no-store` in Draft Mode; a loud failure if the preview token is missing in Draft Mode.
-- [ ] 1.4 Unit tests: registry completeness for all seven uids, path generation in both locales, secret comparison, request init in both modes, and the missing-token failure.
+- [x] 1.1 `apps/web/lib/strapi/registry.ts`: uid → `{ tags, paths(locale), preview }` per design D2, built with `sectionPath()`. Reserve the `announcements` and `alumni-directory` entries; Sponsor has no tags or preview.
+- [x] 1.2 `apps/web/lib/strapi/secrets.ts`: a constant-time secret comparison over equal-length buffers. It never logs or returns the secret.
+- [x] 1.3 `apps/web/lib/strapi/content-request.ts` per design D4: `status=published`, `force-cache`, registry tags and `revalidate: false` normally; `status=draft` with `STRAPI_PREVIEW_TOKEN` and `no-store` in Draft Mode; a loud failure if the preview token is missing in Draft Mode.
+- [x] 1.4 Unit tests: registry completeness for all seven uids, path generation in both locales, secret comparison, request init in both modes, and the missing-token failure.
 
 ## 2. Revalidation handler
 
-- [ ] 2.1 `apps/web/app/api/revalidate/route.ts`: POST only, `Authorization: Bearer` secret, a query secret rejected, a JSON body with `event` and `uid`/`model`. Uses `revalidateTag(tag, 'max')` and `revalidatePath` from the registry, plus `/sitemap.xml`; media events cover all tags; unknown or Sponsor models return 200 with nothing revalidated. Logic sits in a pure function with injectable dependencies.
-- [ ] 2.2 Unit tests: 401 (missing, wrong, query-only secret), 405 (GET), 400 (malformed body), each event → exact tags with `'max'` and paths in both locales, the media events, Sponsor/unknown as a no-op, and no secret in any response.
+- [x] 2.1 `apps/web/app/api/revalidate/route.ts`: POST only, `Authorization: Bearer` secret, a query secret rejected, a JSON body with `event` and `uid`/`model`. Uses `revalidateTag(tag, 'max')` from the registry (all tags for media events); unknown or Sponsor models return 200 with nothing revalidated. Logic sits in a pure function with injectable dependencies. **No `revalidatePath`** (design D2: it 404s these routes).
+- [x] 2.2 Unit tests: 401 (missing, wrong, query-only secret), 405 (GET), 400 (malformed body), each event → exact tags with `'max'` and paths in both locales, the media events, Sponsor/unknown as a no-op, and no secret in any response.
 
 ## 3. Preview handler and Strapi config
 
-- [ ] 3.1 `apps/web/app/api/preview/route.ts`: GET; constant-time secret; validated `uid`, `documentId`, `locale`, `status`; a derived path asserted to start with `/en/` or `/tr/`; `const draft = await draftMode()` then enable or disable; redirect. Every other parameter is ignored. Responses carry `X-Robots-Tag: noindex` and the Strapi-only `frame-ancestors`.
-- [ ] 3.2 `apps/web/app/api/preview/exit/route.ts`: POST disables Draft Mode and redirects to the locale home.
-- [ ] 3.3 Unit tests: 401, 400 for each invalid field, and the open-redirect attempts (`url=`, `path=`, `//evil`, encoded variants) with no effect; enable for `draft`, disable for `published`; Sponsor → 400.
-- [ ] 3.4 `apps/cms/config/admin.ts`: `preview: { enabled: true, config: { allowedOrigins: [CLIENT_URL], handler } }`. The handler returns null for Sponsor or when `CLIENT_URL`/`PREVIEW_SECRET` are unset. Add a CMS unit test for the handler under `test:cms`.
+- [x] 3.1 `apps/web/app/api/preview/route.ts`: GET; constant-time secret; validated `uid`, `documentId`, `locale`, `status`; a derived path asserted to start with `/en/` or `/tr/`; `const draft = await draftMode()` then enable or disable; redirect. Every other parameter is ignored. Responses carry `X-Robots-Tag: noindex` and the Strapi-only `frame-ancestors`.
+- [x] 3.2 `apps/web/app/api/preview/exit/route.ts`: POST disables Draft Mode and redirects to the locale home.
+- [x] 3.3 Unit tests: 401, 400 for each invalid field, and the open-redirect attempts (`url=`, `path=`, `//evil`, encoded variants) with no effect; enable for `draft`, disable for `published`; Sponsor → 400.
+- [x] 3.4 `apps/cms/config/admin.ts`: `preview: { enabled: true, config: { allowedOrigins: [CLIENT_URL], handler } }`. The handler returns null for Sponsor or when `CLIENT_URL`/`PREVIEW_SECRET` are unset. Add a CMS unit test for the handler under `test:cms`.
 
 ## 4. Loader adoption (behaviour unchanged outside Draft Mode)
 
-- [ ] 4.1 `lib/events/data.ts` adopts `strapiRequest` and the registry tag; the `publishedAt` safeguard stays on outside Draft Mode. The events unit, browser and route suites stay green unchanged.
-- [ ] 4.2 `lib/schedule/data.ts`, the same; the schedule suites stay green.
+- [x] 4.1 `lib/events/data.ts` adopts `strapiRequest` and the registry tag; the `publishedAt` safeguard stays on outside Draft Mode. The events unit, browser and route suites stay green unchanged.
+- [x] 4.2 `lib/schedule/data.ts`, the same; the schedule suites stay green.
 - [ ] 4.3 `lib/summit/data.ts`, the same, **only after PR #36 is on `main`**, as a follow-up; never by copying unmerged #36 code. The Summit suites stay green.
-- [ ] 4.4 A unit test that every loader's tags equal the registry's, and that a non-draft request never carries `status=draft` or the preview token.
+- [x] 4.4 A unit test that every loader's tags equal the registry's, and that a non-draft request never carries `status=draft` or the preview token.
 
 ## 5. Framing and indexing policy
 
-- [ ] 5.1 `apps/web/next.config.ts` `headers()` per design D5: one rule, only when the `__prerender_bypass` cookie is present, adding `frame-ancestors 'self' <Strapi origin>` and `X-Robots-Tag: noindex`. No site-wide CSP or framing policy; public responses unchanged.
-- [ ] 5.2 Verify in a production build that Draft Mode and `/api/preview` responses carry exactly those two headers, and public responses carry neither.
+- [x] 5.1 `apps/web/next.config.ts` `headers()` per design D5: one rule, only when the `__prerender_bypass` cookie is present, adding `frame-ancestors 'self' <Strapi origin>` and `X-Robots-Tag: noindex`. No site-wide CSP or framing policy; public responses unchanged.
+- [x] 5.2 Verify in a production build that Draft Mode and `/api/preview` responses carry exactly those two headers, and public responses carry neither.
 
 ## 6. Verification
 
 - [ ] 6.1 `tests/publish/` (own lockfile if a browser is needed; otherwise plain Node) with `check-routes.mjs`: a real `next build` and `next start` against a synthetic Strapi serving published and draft rows. Asserts:
+  - **Status (2026-10-02): left OPEN, because the first-reload acceptance isn't met.** `tests/publish/check-routes.mjs` passes everything else:
+    - routes static with `revalidate: false`; the build requests no drafts;
+    - public requests make no CMS fetch and get unchanged headers;
+    - the revalidate handler rejects GET, missing, wrong and query-only secrets, and malformed bodies;
+    - **after the webhook, pages never 404 and the change is visible on a subsequent request (en and tr)**;
+    - preview rejects bad input without a cookie or redirect;
+    - preview redirects to a relative, derived Location, with the cookie, noindex and Strapi-only framing;
+    - drafts are shown only in Draft Mode via the preview token; concurrent public requests never see them;
+    - publish-status preview and the exit route clear Draft Mode.
+  - **Measured each run:** "KNOWN GAP (unresolved): first reload after publish was stale (en stale, tr stale); accepted requirement NOT met".
   - routes stay static with `revalidate: false`;
   - both handlers reject unauthenticated requests;
   - webhook → the **first** reload of the affected page shows the changed content (if this can't be achieved with `revalidateTag(tag, 'max')` plus `revalidatePath`, stop and report the conflict; never weaken the acceptance);
   - preview → cookie, derived redirect, draft shown only with the cookie;
   - public requests never see the draft;
   - the header policy is correct.
-- [ ] 6.2 `.github/workflows/tier-b-publish.yml`: path-filtered (`apps/web/app/api/**`, `apps/web/lib/strapi/**`, `apps/web/lib/{events,schedule,summit}/**`, `apps/web/next.config.ts`, `apps/cms/config/admin.ts`, `tests/publish/**`, the workflow, lockfiles, `.nvmrc`), `timeout-minutes: 10`, not required.
-- [ ] 6.3 Run Tier A locally and the events, schedule, Summit (if merged) and time-state suites; all green.
+- [x] 6.2 `.github/workflows/tier-b-publish.yml`: path-filtered (`apps/web/app/api/**`, `apps/web/lib/strapi/**`, `apps/web/lib/{events,schedule,summit}/**`, `apps/web/next.config.ts`, `apps/cms/config/admin.ts`, `tests/publish/**`, the workflow, lockfiles, `.nvmrc`), `timeout-minutes: 10`, not required.
+- [x] 6.3 Run Tier A locally and the events, schedule, Summit (if merged) and time-state suites; all green.
+  - **Evidence (2026-10-02, local):**
+    - unit tests 101/101: strapi libs, CMS preview URL, events and schedule loaders, events baseline;
+    - Tier A: typecheck, lint, stylelint (clean tree), reduced-motion, locale parity, budgets, content, media, build and check:budgets all pass;
+    - events browser 24/24, schedule browser 84/84, time-state 12/12;
+    - the events, schedule and publish production checks pass;
+    - publish reports the known first-reload gap (6.1, 6.4).
+- [ ] 6.4 **Known unresolved acceptance gap: the first reload after a publish shows the change.** It isn't achievable with `revalidateTag(tag, 'max')` alone, and `revalidatePath`/`{ expire: 0 }` 404 the current fallback-false localized routes (design D2, evidence). Closing it requires a separate locale-routing decision on `dynamicParams = false` (`app/[locale]/layout.tsx` plus each content page; it changes 404 handling for unknown locales), plus verification on Vercel. Not in this change. The requirement stays as accepted.
 
 ## 7. Documentation and handoff
 
-- [ ] 7.1 `docs/ops/cms-runbook.md` steps 6–7:
+- [x] 7.1 `docs/ops/cms-runbook.md` steps 6–7:
   - the header-borne webhook secret;
   - the environment names (`REVALIDATE_SECRET`, `PREVIEW_SECRET`, `STRAPI_PREVIEW_TOKEN`, `CLIENT_URL`);
   - preview token scope: find/findOne on the six public types, never Alumni unless Dev 3's preview needs it;
   - troubleshooting rows for 401, a blank frame, third-party cookies, and "page unchanged after publish: check Strapi's webhook delivery log first".
-- [ ] 7.2 `apps/web/lib/strapi/README.md`: the registry and request convention for new loaders. This is Dev 3's handoff for `announcements` 6.2 and `alumni-directory` 6.2.
-- [ ] 7.3 Update the events, schedule and (once merged) Summit READMEs' "publish-integration owner" notes to point at the registry.
+- [x] 7.2 `apps/web/lib/strapi/README.md`: the registry and request convention for new loaders. This is Dev 3's handoff for `announcements` 6.2 and `alumni-directory` 6.2.
+- [x] 7.3 Update the events, schedule and (once merged) Summit READMEs' "publish-integration owner" notes to point at the registry.
 
 ## 8. Live acceptance (manual; check only with real evidence)
 
