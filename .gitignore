@@ -30,6 +30,8 @@ apps/cms/dist/
 apps/cms/exports/
 apps/cms/types/generated/
 apps/cms/*.db
+# Build identity, baked into the image by apps/cms/Dockerfile; never committed.
+apps/cms/BUILD_COMMIT
 apps/cms/public/uploads/*
 !apps/cms/public/uploads/.gitkeep
 .strapi-cloud.json

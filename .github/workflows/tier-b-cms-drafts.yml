@@ -3,10 +3,11 @@ name: Tier B CMS drafts
 # (openspec/changes/cms-draft-guard). Boots this repository's apps/cms against a
 # throwaway Postgres service with random per-run secrets and proves: public and
 # bogus-token draft reads are refused; published, API-token and server-side reads work.
+# Also proves GET /_version serves the baked build commit (openspec/changes/cms-deploy-digest).
 # Not a required check, so the path filter sits on the trigger.
 on:
   push:
-    branches: [change/cms-draft-guard]
+    branches: [change/cms-draft-guard, change/cms-deploy-digest]
     paths:
       - "apps/cms/**"
       - "tests/cms-drafts/**"
@@ -44,7 +45,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: node --test apps/cms/src/draft-guard.test.ts
+      - run: node --test apps/cms/src/draft-guard.test.ts apps/cms/src/build-identity.test.ts
       - run: node tests/cms-drafts/check.mjs
         env:
           DATABASE_URL: postgres://postgres:throwaway@localhost:5432/cms_drafts

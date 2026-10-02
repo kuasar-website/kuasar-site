@@ -1,9 +1,20 @@
 name: CMS deploy
 
 # Builds the Strapi admin panel in CI (where there is more than 512 MB), pushes a
-# production image to GHCR (public package), and tells DigitalOcean App Platform to pull
-# it. The 512 MB App Platform container runs the image and never compiles the admin — see
-# docs/adr/0002-cms.md decision 4.
+# production image to GHCR (public package), and deploys THAT EXACT IMAGE DIGEST to
+# DigitalOcean App Platform. The 512 MB App Platform container runs the image and never
+# compiles the admin — see docs/adr/0002-cms.md decision 4.
+#
+# A green run means ALL of (openspec/changes/cms-deploy-digest, design D5):
+#   1. App Platform reached Active for the deployment this run started;
+#   2. the active deployment's CMS image digest == the digest this run built;
+#   3. the live CMS GET /_version reports commit == github.sha (what is actually serving);
+#   4. GET /_health == 204;
+#   5. unauthenticated ?status=draft == 403 (cms-draft-guard still active).
+# Anything else — Error, Canceled, Superseded, timeout or any mismatch — is a red run.
+#
+# Only main deploys. A manual run from any other branch builds the image locally, checks
+# the baked commit, and pushes and deploys nothing.
 #
 # This is a deploy path, not a merge gate. No Tier A / Tier B check asserts the CMS
 # schema (docs/adr/0004-verification.md); docs/task-assignments.html marks cms-platform
@@ -31,12 +42,15 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      digest: ${{ steps.push.outputs.digest }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: docker/setup-buildx-action@v3
 
       - name: Log in to GHCR
+        if: github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -52,32 +66,126 @@ jobs:
             type=sha,format=long
 
       - name: Build and push
+        id: push
         uses: docker/build-push-action@v6
         with:
           context: .
           file: apps/cms/Dockerfile
-          push: true
+          # Exact commit baked into /app/BUILD_COMMIT and served at /_version.
+          build-args: |
+            APP_COMMIT_SHA=${{ github.sha }}
+          # Only main pushes. Anywhere else the image is loaded locally and checked below.
+          push: ${{ github.ref == 'refs/heads/main' }}
+          load: ${{ github.ref != 'refs/heads/main' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Check the baked build identity (non-main, nothing pushed)
+        if: github.ref != 'refs/heads/main'
+        env:
+          EXPECTED: ${{ github.sha }}
+          IMAGE_REF: ${{ env.IMAGE }}:sha-${{ github.sha }}
+        run: |
+          baked="$(docker run --rm --entrypoint cat "$IMAGE_REF" /app/BUILD_COMMIT)"
+          echo "expected=$EXPECTED baked=$baked"
+          [ "$baked" = "$EXPECTED" ] || { echo "Baked commit does not match github.sha" >&2; exit 1; }
+          echo "Non-main run: image built and identity verified; nothing pushed, nothing deployed." >> "$GITHUB_STEP_SUMMARY"
+
   deploy:
     needs: build-push
+    # Production deploys only from main (push or manual run on main). Never a feature branch.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions: {}
+    env:
+      EXPECTED_DIGEST: ${{ needs.build-push.outputs.digest }}
+      EXPECTED_COMMIT: ${{ github.sha }}
+      # The App Platform service (component) name; IMAGE_DIGEST_<NAME> below must match it.
+      COMPONENT: kuasar-website-kuasar-site-cms
     steps:
-      - name: Trigger App Platform deploy
+      - name: Check deploy configuration
         env:
           TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          APP_ID: ${{ secrets.DIGITALOCEAN_APP_ID }}
+          APP_NAME: ${{ vars.DIGITALOCEAN_APP_NAME }}
         run: |
-          if [ -z "$TOKEN" ] || [ -z "$APP_ID" ]; then
-            echo "DIGITALOCEAN_ACCESS_TOKEN or DIGITALOCEAN_APP_ID is not set — skipping. Add both in repo Settings > Secrets once the App Platform app exists (docs/ops/cms-runbook.md step 4)." >&2
+          if [ -z "$TOKEN" ] || [ -z "$APP_NAME" ]; then
+            echo "DIGITALOCEAN_ACCESS_TOKEN (secret) or DIGITALOCEAN_APP_NAME (variable) is not set — see docs/ops/cms-runbook.md step 4." >&2
             exit 1
           fi
-          # App Platform does not watch GHCR tags; a new deployment re-pulls :latest.
-          curl -fsS -X POST \
-            -H "Authorization: Bearer $TOKEN" \
-            -H "Content-Type: application/json" \
-            -d '{"force_build": false}' \
-            "https://api.digitalocean.com/v2/apps/$APP_ID/deployments" > /dev/null
+          echo "$EXPECTED_DIGEST" | grep -Eqx 'sha256:[0-9a-f]{64}' || { echo "build-push produced no digest" >&2; exit 1; }
+
+      # Pinned to the v2.0.11 commit: a third-party action holding a production token.
+      # With app_name it reads the live app spec, changes ONLY this component's image to the
+      # digest below, updates the app, and waits; it fails unless the deployment is ACTIVE.
+      - name: Deploy the exact digest and wait for Active
+        id: deploy
+        uses: digitalocean/app_action/deploy@cc55bc9b848d25f9c1c9f831cf843fbab3fbfb15 # v2.0.11
+        env:
+          IMAGE_DIGEST_KUASAR_WEBSITE_KUASAR_SITE_CMS: ${{ needs.build-push.outputs.digest }}
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          app_name: ${{ vars.DIGITALOCEAN_APP_NAME }}
+
+      # Read back ONLY the two fields we need. The app JSON (spec, env, encrypted secrets)
+      # is never echoed, written to the summary, or passed through step env — this is a
+      # public repository and step env is printed in the run log.
+      - name: Verify the active digest
+        id: live
+        env:
+          TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          APP_NAME: ${{ vars.DIGITALOCEAN_APP_NAME }}
+        run: |
+          apps="$(curl -fsS --max-time 30 -H "Authorization: Bearer $TOKEN" 'https://api.digitalocean.com/v2/apps?per_page=200')"
+          live="$(printf '%s' "$apps" | jq -r --arg n "$APP_NAME" --arg c "$COMPONENT" \
+            '[.apps[]? | select(.spec.name == $n)][0] | .active_deployment.spec.services[]? | select(.name == $c) | .image.digest // empty')"
+          url="$(printf '%s' "$apps" | jq -r --arg n "$APP_NAME" '[.apps[]? | select(.spec.name == $n)][0].live_url // empty')"
+          unset apps
+          echo "expected digest: $EXPECTED_DIGEST"
+          echo "active digest:   ${live:-<none>}"
+          {
+            echo "### CMS deploy"
+            echo "- expected digest: \`$EXPECTED_DIGEST\`"
+            echo "- active digest: \`${live:-none}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          [ "$live" = "$EXPECTED_DIGEST" ] || { echo "Active deployment does not run the digest this run built" >&2; exit 1; }
+          [ -n "$url" ] || { echo "App Platform reported no live_url" >&2; exit 1; }
+          echo "url=${url%/}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify the live CMS (commit, health, draft guard)
+        env:
+          BASE: ${{ steps.live.outputs.url }}
+        run: |
+          base="$BASE"
+          echo "live URL: $base"
+
+          # /_version must report exactly this run's commit. Retried for at most 5 minutes
+          # to cover the moment App Platform reports Active while traffic is still moving.
+          deadline=$(( $(date +%s) + 300 ))
+          observed="none"
+          while :; do
+            body="$(curl -sS --max-time 10 -w '\n%{http_code}' "$base/_version" 2>/dev/null || true)"
+            code="${body##*$'\n'}"; json="${body%$'\n'*}"
+            commit="$(printf '%s' "$json" | jq -r 'if type == "object" and (.commit | type) == "string" then .commit else empty end' 2>/dev/null || true)"
+            observed="HTTP ${code:-none}, commit ${commit:-none}"
+            if [ "$code" = "200" ] && [ "$commit" = "$EXPECTED_COMMIT" ]; then break; fi
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              echo "- /_version: FAILED (expected $EXPECTED_COMMIT; last $observed)" >> "$GITHUB_STEP_SUMMARY"
+              echo "Live CMS does not serve commit $EXPECTED_COMMIT (last: $observed)" >&2
+              exit 1
+            fi
+            sleep 10
+          done
+          echo "- /_version commit: \`$commit\` (expected \`$EXPECTED_COMMIT\`)" >> "$GITHUB_STEP_SUMMARY"
+
+          health="$(curl -sS --max-time 10 -o /dev/null -w '%{http_code}' "$base/_health" || true)"
+          echo "- /_health: $health" >> "$GITHUB_STEP_SUMMARY"
+          [ "$health" = "204" ] || { echo "/_health returned $health, expected 204" >&2; exit 1; }
+
+          # Status code only; the body is discarded.
+          draft="$(curl -sS -g --max-time 10 -o /dev/null -w '%{http_code}' "$base/api/schedule-events?status=draft&pagination[pageSize]=1" || true)"
+          echo "- unauthenticated ?status=draft: $draft" >> "$GITHUB_STEP_SUMMARY"
+          [ "$draft" = "403" ] || { echo "Draft guard regression: ?status=draft returned $draft, expected 403" >&2; exit 1; }
+          echo "Green: Active + digest + commit + health + draft guard." >> "$GITHUB_STEP_SUMMARY"

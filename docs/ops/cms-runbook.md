@@ -153,9 +153,11 @@ Create an App Platform app from a **container image** (not from a GitHub reposit
 source build OOMs). It does **not** build from source; it pulls a prebuilt image:
 
 - **Image:** registry type **GitHub Container Registry**, repository
-  `kuasar-website/kuasar-site/cms`, tag `latest`. Published by
+  `kuasar-website/kuasar-site/cms`. Create the app with tag `latest`; from the first
+  workflow deploy on, the workflow **pins the service to an immutable image digest**, and
+  that digest is the deployment's source of truth. Published by
   `.github/workflows/cms-deploy.yml` on every push to `main` that touches `apps/cms/**`,
-  and on manual dispatch. The admin panel is compiled in that workflow, never on the
+  and on a manual run from `main`. The admin panel is compiled in that workflow, never on the
   instance — this is the fix for the 512 MB OOM below, applied ahead of time rather than
   after a failed deploy.
 - **GHCR package visibility: public.** In the `kuasar-website` org, Packages → `cms` →
@@ -164,16 +166,37 @@ source build OOMs). It does **not** build from source; it pulls a prebuilt image
   when its owner leaves — see ADR 0002 decision 4.
 - **Size and region:** the $5/month 512 MB container, region Frankfurt (`fra`). HTTP port
   `1337`.
-- **Deploy trigger:** App Platform does not redeploy by itself when a GHCR tag changes, so
-  the workflow's `deploy` job calls the DigitalOcean API. Add two Actions secrets to the
-  repository:
-  - `DIGITALOCEAN_APP_ID` — the app's ID, from its URL in the control panel or
-    `doctl apps list`.
-  - `DIGITALOCEAN_ACCESS_TOKEN` — API → Tokens → Generate, **custom scopes limited to
-    `app`** (read and update), not full access. Record its expiry in
+- **Deploy trigger:** App Platform does not redeploy by itself when a GHCR image changes.
+  So the workflow's `deploy` job uses DigitalOcean's official deploy action (pinned to a
+  commit) to set the service `kuasar-website-kuasar-site-cms` to **the exact digest that
+  run built**. It then waits for the deployment. Only the image reference changes; every
+  environment variable and secret is carried over. Repository settings:
+  - **Actions variable** `DIGITALOCEAN_APP_NAME` = `kuasar-cms`, the app's name.
+  - **Actions secret** `DIGITALOCEAN_ACCESS_TOKEN`: API → Tokens → Generate, **custom
+    scopes limited to `app`** (read and update), not full access. Record its expiry in
     [../HANDOVER.md](../HANDOVER.md).
 
-  Without them the workflow still builds and pushes; only the automatic redeploy fails.
+  If the service is ever renamed, change `COMPONENT` and the `IMAGE_DIGEST_…` key in the
+  workflow to match. Without the variable or token, the deploy job fails before touching
+  production.
+- **What a green CMS deploy means.** The run is green only if **all** of these held, and
+  each value is listed in the run's summary:
+  1. App Platform reached **Active**;
+  2. the active deployment runs **the digest this run built**;
+  3. the live CMS reports **this run's commit** at `GET /_version`, which proves what is
+     actually serving traffic;
+  4. `GET /_health` returns 204;
+  5. an unauthenticated `?status=draft` request still returns 403 (the draft guard).
+
+  The image carries its commit in `/app/BUILD_COMMIT`, a file and not an environment
+  variable, so App Platform settings can't fake it. `/_version` returns only
+  `{"commit": …}`, which is a public commit in a public repository. A red run means
+  production may **not** be running the merged CMS; see Troubleshooting.
+- **Only `main` deploys.** A manual run from another branch only builds the image and checks
+  its baked commit; it pushes and deploys nothing.
+- **Manual Force Rebuild and Deploy** (App → Actions) is an **emergency fallback**, not the
+  deployment path. It redeploys the **pinned digest**, not `latest`. Afterwards, check
+  `/_version`, `/_health` and `?status=draft` by hand.
 - **Do not** create the app from the GitHub repository "to try it first" — that is a
   source build, and it OOMs. Container image from the start.
 
@@ -523,7 +546,11 @@ Two of those will bite you during a restore, so know them before you start:
 | --- | --- |
 | A Content API call returns 403 "Draft content requires an API token." | A caller without an API token asked for `status=draft`. That's the intended refusal (`apps/cms/src/draft-guard.ts`). Public callers only ever get published content; preview and backups use API tokens |
 | Strapi build fails on App Platform | The component is doing a source build. It must be a container-image component running the GHCR image from `cms-deploy.yml` (step 4) — the admin is built in CI. Do not upsize |
-| `cms-deploy.yml` builds but App Platform does not redeploy | `DIGITALOCEAN_ACCESS_TOKEN` or `DIGITALOCEAN_APP_ID` secret missing, expired or wrong. See step 4 |
+| `cms-deploy.yml` deploy job fails at "Check deploy configuration" | `DIGITALOCEAN_ACCESS_TOKEN` secret or `DIGITALOCEAN_APP_NAME` variable missing. A 401/403 from DigitalOcean means the token is expired or lacks the `app` scope. See step 4 |
+| CMS deploy red: deployment not Active (Error, Canceled, Superseded or timeout) | Open App → Activity → that deployment's logs. Superseded means someone deployed during the run; re-run the workflow from `main`. Otherwise fix forward on `main`. The app may now pin the failed digest: to restore service fast, set the image to the last good digest from an earlier green run's summary (GHCR keeps `sha-<commit>` tags) |
+| CMS deploy red: digest mismatch | The service name in the workflow (`COMPONENT`, `IMAGE_DIGEST_…`) no longer matches App Platform. Fix the workflow and re-run from `main` |
+| CMS deploy red: `/_version` commit mismatch, 404 or malformed | Production isn't serving the image this run built (the old revision is still live). Check Activity. Re-run the workflow from `main`; use Force Rebuild and Deploy only as an emergency fallback, then check `/_version` by hand |
+| CMS deploy red: `/_health` not 204, or `?status=draft` not 403 | The new revision is unhealthy, or the draft guard regressed. Treat a draft 200 as a security incident: roll back to the last good digest and investigate |
 | App Platform cannot pull the image | The GHCR package was made private. Set it back to public (step 4) |
 | Upload fails with an ACL error | `ACL` is set in the provider config. R2 does not support it — remove it |
 | Images 404 at `media.<DOMAIN>` | Custom domain not bound to the bucket, or DNS not propagated |
