@@ -439,6 +439,14 @@ it taller than wide. While you are in Settings → Media Library, confirm the th
 `apps/cms/src/index.ts` forces off still exist under the same names; if Strapi renamed them,
 update `UPLOAD_SETTINGS` there.
 
+**After every upgrade, re-check that drafts stay private.** Strapi 5's Content API honours
+`?status=draft` for any caller with `find`, Public role included. `apps/cms/src/draft-guard.ts`
+restricts draft reads on `/api/*` to API tokens. Run `node tests/cms-drafts/check.mjs` with
+`DATABASE_URL` pointing at a **throwaway** Postgres database (never production). It boots
+this CMS and must report public draft reads refused (403), and API-token draft reads
+allowed. CI runs it as *Tier B CMS drafts* on any `apps/cms` change.
+
+
 ### Rotating credentials
 
 When someone with access leaves, rotate in this order: Strapi admin users first (remove
@@ -482,6 +490,7 @@ Two of those will bite you during a restore, so know them before you start:
 
 | Symptom | Most likely cause |
 | --- | --- |
+| A Content API call returns 403 "Draft content requires an API token." | A caller without an API token asked for `status=draft`. That's the intended refusal (`apps/cms/src/draft-guard.ts`). Public callers only ever get published content; preview and backups use API tokens |
 | Strapi build fails on App Platform | The component is doing a source build. It must be a container-image component running the GHCR image from `cms-deploy.yml` (step 4) — the admin is built in CI. Do not upsize |
 | `cms-deploy.yml` builds but App Platform does not redeploy | `DIGITALOCEAN_ACCESS_TOKEN` or `DIGITALOCEAN_APP_ID` secret missing, expired or wrong. See step 4 |
 | App Platform cannot pull the image | The GHCR package was made private. Set it back to public (step 4) |
