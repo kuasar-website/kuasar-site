@@ -3,8 +3,13 @@
 - [x] 0.1 DigitalOcean identifiers, confirmed by the maintainer on 2026-10-02 (names only):
   - **app name:** `kuasar-cms`, the value of the Actions variable `DIGITALOCEAN_APP_NAME`;
   - **CMS service (component) name:** `kuasar-website-kuasar-site-cms`, which gives the env key `IMAGE_DIGEST_KUASAR_WEBSITE_KUASAR_SITE_CMS` (the action upper-cases the name and turns `-` into `_`, per `deploy/images.go` `componentNameToEnvVar`).
-- [ ] 0.1a Record the **list of environment-variable keys** and their types (`SECRET` or plain) from App → Settings, kept locally for tasks 3.4 and 4.1. Never values.
-- [ ] 0.2 Create the Actions **variable** (not a secret) `DIGITALOCEAN_APP_NAME` = `kuasar-cms`. Confirm `DIGITALOCEAN_ACCESS_TOKEN` has the custom `app` read and update scopes and hasn't expired (`docs/HANDOVER.md` records its expiry). No URL variable is needed: the live URL comes from the deploy action's output.
+- [x] 0.1a Record the **list of environment-variable keys** and their types (`SECRET` or plain) from App → Settings, kept locally for tasks 3.4 and 4.1. Never values.
+  - **Baseline (2026-10-02):** read by the maintainer in the DigitalOcean UI, with no value revealed. **18 keys:**
+    - **Secret (encrypted), 11:** `DATABASE_URL`, `R2_ACCESS_KEY_ID`, `R2_ACCESS_SECRET`, `APP_KEYS`, `API_TOKEN_SALT`, `ADMIN_JWT_SECRET`, `TRANSFER_TOKEN_SALT`, `JWT_SECRET`, `ENCRYPTION_KEY`, `PREVIEW_SECRET`, `REVALIDATE_SECRET`.
+    - **Plain, 7:** `R2_BUCKET`, `R2_ENDPOINT`, `DATABASE_CLIENT`, `DATABASE_SSL`, `DATABASE_SSL_REJECT_UNAUTHORIZED`, `STRAPI_PLUGIN_I18N_INIT_LOCALE_CODE`, `CLIENT_URL`.
+  - The UI truncates `STRAPI_PLUGIN_I18N_INIT_LOCALE_C…`. The full name is the only key with that prefix that Strapi's i18n plugin reads or the repo references (`apps/cms/src/index.ts`).
+- [x] 0.2 Create the Actions **variable** (not a secret) `DIGITALOCEAN_APP_NAME` = `kuasar-cms`. Confirm `DIGITALOCEAN_ACCESS_TOKEN` has the custom `app` read and update scopes and hasn't expired (`docs/HANDOVER.md` records its expiry). No URL variable is needed: the live URL comes from the deploy action's output.
+  - **Done (2026-10-02):** the maintainer created `DIGITALOCEAN_APP_NAME` = `kuasar-cms`. Token scope and expiry are confirmed by the first real run (4.1): the deploy step fails closed on 401/403.
 
 ## 1. Build identity and `/_version`
 
@@ -62,13 +67,17 @@
   - `build-push` builds, and the baked-commit check equals the branch head SHA;
   - **nothing is pushed** to GHCR (no new `sha-` tag);
   - `deploy` is **skipped**, and there's no new deployment in DigitalOcean Activity.
-- [ ] 3.4 Configuration preservation, read-only:
+- [x] 3.4 Configuration preservation, read-only:
   - **Source check done (2026-10-02)** at the pinned commit `cc55bc9`:
     - `replaceImagesInSpec` assigns only `image.Tag` and `image.Digest`, for the component whose env key is set;
     - the PR-preview spec rewrite runs only with `deploy_pr_preview`, which isn't set;
     - it logs only the app name and the live URL;
     - a wrong `app_name` fails ("app does not exist") instead of creating an app.
-  - **Still open:** the environment-variable key list (task 0.1a), from the maintainer.
+  - **Result (2026-10-02): PASS.**
+    - **The pinned action** reads the live spec (`Apps.Get`), mutates only the target component's `image.digest`/`image.tag`, and submits that same spec (`Apps.Update`). Every `envs` entry is therefore resubmitted as returned.
+    - **DigitalOcean's app-spec reference:** SECRET values come back encrypted, and "on following submissions, the encrypted value should be used", so they're preserved.
+    - **No configuration exposed:** the workflow never reads, prints, stores or commits the spec.
+    - **Baseline:** the 0.1a key list (18 keys, 11 secret) is recorded for the post-merge comparison (4.1).
   - confirm, from the pinned action's source, that only `image.digest` and `image.tag` change in the spec it writes back;
   - confirm task 0.1a's key list is complete.
 - [ ] 3.5 OpenSpec strict validation, Tier A and the required checks (Tier A, time-state) are green. Tier B CMS drafts is green, including `/_version`.
