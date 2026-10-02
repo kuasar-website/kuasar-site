@@ -1,5 +1,8 @@
 import type { Core } from '@strapi/strapi';
 
+import { join } from 'node:path';
+
+import { BUILD_COMMIT_FILE, readBuildCommit, versionHandler } from './build-identity';
 import { assertDraftReadAllowed } from './draft-guard';
 
 const TURKISH_LOCALE = { code: 'tr', name: 'Turkish (tr)' };
@@ -166,6 +169,11 @@ export default {
       assertDraftReadAllowed(context, strapi.requestContext.get(), apiPrefix);
       return next();
     });
+    // GET /_version: the commit this image was built from, read once (src/build-identity.ts).
+    // A plain server route beside Strapi's own /_health, outside /api: no database, content,
+    // auth or environment access.
+    const commit = readBuildCommit(join(strapi.dirs.app.root, BUILD_COMMIT_FILE));
+    strapi.server.router.get('/_version', versionHandler(commit));
   },
 
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
