@@ -447,3 +447,13 @@ test("CompatibilityError is a distinct class from an ordinary Error", () => {
   assert.ok(new CompatibilityError("x") instanceof Error);
   assert.notEqual(CompatibilityError, Error);
 });
+
+
+test("both localized timeline routes share the existing L1 budget", () => {
+  for (const route of ["/en/timeline", "/tr/zaman-cizelgesi", "/[locale]/zaman-cizelgesi"]) {
+    assert.equal(matchRouteBudgetKey(route), "timeline");
+  }
+  for (const route of ["/fr/timeline", "/en/events", "/tr/gorevler"]) {
+    assert.equal(matchRouteBudgetKey(route), "default");
+  }
+});
