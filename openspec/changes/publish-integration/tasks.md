@@ -84,9 +84,25 @@
 
 Domain-dependent: these stay open until the real production domain path is ready (catalogue: "Blocked by … the domain"), even if they could be partly exercised on a Vercel URL.
 
+**Status (2026-10-03):** #38 merged as `d67bdb3` and both production deploys are verified (CMS deploy run 37073870171 green: `/_version` = `d67bdb3`, `/_health` 204, public draft 403; Vercel production `success`). 8.1 (partly), 8.2, 8.4 and 8.6 were exercised on the production Vercel deployment at `kuasar-site.vercel.app`, **before** the domain cutover: `kuasar.org` still serves the old WordPress.com site. At cutover, re-point the webhook URL (8.2) and re-check 8.4 against the real domain.
+
 - [ ] 8.1 Secrets set: the web variables in Vercel (Production and Preview) and the CMS variables in App Platform, by an account owner with two people present. Values never recorded.
-- [ ] 8.2 Strapi webhook created to `<production frontend>/api/revalidate` with the `Authorization` header, firing on entry create, update, publish, unpublish, delete and media update/delete.
+  - **Partial (2026-10-02/03), maintainer; still open:**
+    - **Done:** `REVALIDATE_SECRET`, `PREVIEW_SECRET` and `STRAPI_PREVIEW_TOKEN` added in Vercel as **Production** secrets, then production redeployed (Ready). The CMS variables (`CLIENT_URL`, `PREVIEW_SECRET`, `REVALIDATE_SECRET`) were already in the App Platform 18-key baseline (cms-deploy-digest task 0.1a). No value recorded anywhere.
+    - **Not met:** Vercel **Preview** was deliberately left unconfigured. Preview deployments without the secrets fail closed (401). And two-person presence isn't evidenced.
+    - **To close:** set the same three variables for Preview with two people present. Or change this requirement on purpose: Production-only, because the webhook and `CLIENT_URL` only target production and the draft-reading token stays out of branch builds of a public repo. Then update the runbook (step 6) and design.md to match and tick it.
+- [x] 8.2 Strapi webhook created to `<production frontend>/api/revalidate` with the `Authorization` header, firing on entry create, update, publish, unpublish, delete and media update/delete.
+  - **Done (2026-10-03), maintainer:** webhook enabled; Strapi's **Trigger** returned Success / 200. It delivers to the production Vercel deployment: the 8.4 unpublish revalidated both locales. Re-point it at the real domain at cutover (see Status above).
 - [ ] 8.3 Publish in Strapi → wait seconds → reload the public page → the change is visible. Recorded with Strapi's webhook delivery log.
-- [ ] 8.4 Unpublish → the content disappears after revalidation, in both locales.
+  - **Still open (2026-10-03):** revalidation works. An update to a published Schedule Event (`startsAt` 3 → 5 October 2026) appeared on `/en/schedule` and `/tr/takvim` in both locales with no 404. But the maintainer saw the **old** value immediately after the update. That is the known first-reload gap (6.4), so the requirement as written (the first reload shows the change) is **not met**. See 8.4 for the same behaviour observed directly in the cache headers.
+- [x] 8.4 Unpublish → the content disappears after revalidation, in both locales.
+  - **Evidence (2026-10-02 23:37 UTC):** after the test entry "KUASAR TEST – delete me" was unpublished in en and tr, with no page view in between:
+    - `/en/schedule`: the first request was 200 `x-vercel-cache: STALE` (`age` 266) and still listed the entry; the second (3 s later) was 200 `HIT` (`age` 2) with the entry gone;
+    - `/tr/takvim`: the first request was 200 `STALE` (`age` 274) with the entry; the second was 200 `HIT` (`age` 2) without it;
+    - `<html lang>` was `en` and `tr` respectively throughout, and neither route returned 404.
+
+    The settled public state is correct. The stale first response is the known gap (6.4); it is not counted against this task and is not claimed as met anywhere.
 - [ ] 8.5 Preview renders a draft inside the Strapi admin iframe in both locales; the public page doesn't show it; the "open in new tab" preview works.
-- [ ] 8.6 An unauthenticated call to each production handler is rejected (401).
+  - **Still open, blocked on DNS cutover:** App Platform's `CLIENT_URL` is already `https://kuasar.org`, but `kuasar.org` still points to the old WordPress.com site (where this site's routes, e.g. `/en` and `/api/revalidate`, return 404). Test this after `kuasar.org` points to Vercel.
+- [x] 8.6 An unauthenticated call to each production handler is rejected (401).
+  - **Evidence (2026-10-02, after the secrets redeploy):** `GET /api/revalidate` → 405 (`Allow: POST`); `POST /api/revalidate` without `Authorization` → 401; `GET /api/preview` without the secret → 401, and with a wrong secret → 401. Neither preview rejection redirects or sets a `Set-Cookie` header, so no `__prerender_bypass` Draft Mode cookie. Public `/en` and `/tr` carry no `X-Robots-Tag` and no `frame-ancestors`.

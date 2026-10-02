@@ -21,15 +21,20 @@
 
 ## C. Token / manual setup — a human, admin-panel action, not code
 
-- [ ] C.1 In the production Strapi admin panel (Settings → API Tokens), create a `custom`-type token granted `find`/`findOne` on exactly `stellar-talk`, `nebula-night`, `galactic-summit`, `schedule-event`, `announcement`, `sponsor` — no other action, no other content type, explicitly never `alumnus`.
-- [ ] C.2 Add `CONTENT_BACKUP_API_TOKEN` (the token value) and `CMS_BASE_URL` (or the reused equivalent from A.1) as GitHub repository secrets. No database credential of any kind is required or requested.
+- [x] C.1 In the production Strapi admin panel (Settings → API Tokens), create a `custom`-type token granted `find`/`findOne` on exactly `stellar-talk`, `nebula-night`, `galactic-summit`, `schedule-event`, `announcement`, `sponsor` — no other action, no other content type, explicitly never `alumnus`.
+  - **Done (2026-10-01), maintainer-confirmed:** the token was created with the intended scoped permissions. No value recorded.
+- [x] C.2 Add `CONTENT_BACKUP_API_TOKEN` (the token value) and `CMS_BASE_URL` (or the reused equivalent from A.1) as GitHub repository secrets. No database credential of any kind is required or requested.
+  - **Done (2026-10-01):** maintainer-confirmed, and GitHub lists both repository secrets (`CONTENT_BACKUP_API_TOKEN` created 18:14 UTC, `CMS_BASE_URL` 18:20 UTC). No database credential exists among the repository secrets.
 - [ ] C.3 Confirm no other permission was accidentally granted to the token beyond C.1's list (a quick re-read of the token's permission screen before saving).
 
 ## D. First live manual snapshot run — **owed, requires production access, NOT performed during planning**
 
-- [ ] D.1 Manually trigger the workflow once against production (`workflow_dispatch`), after C.1–C.2 are complete.
-- [ ] D.2 Confirm the run completes successfully and `content-snapshots` now exists on origin, containing only `content/_snapshots/**` plus its README — no stray files, no `main` history.
-- [ ] D.3 Confirm every one of the six included content types has a file, including any with zero published entries (`[]`, not missing), and that a content type known to have more than one page's worth of entries (if any exists at run time) has all of them, not just the first page.
+- [x] D.1 Manually trigger the workflow once against production (`workflow_dispatch`), after C.1–C.2 are complete.
+  - **Done (2026-10-01), maintainer:** run [36906662612](https://github.com/kuasar-website/kuasar-site/actions/runs/36906662612) (18:25 UTC, `workflow_dispatch` on `main`, after both secrets existed), and a second manual run, [36921109004](https://github.com/kuasar-website/kuasar-site/actions/runs/36921109004) (20:22 UTC).
+- [x] D.2 Confirm the run completes successfully and `content-snapshots` now exists on origin, containing only `content/_snapshots/**` plus its README — no stray files, no `main` history.
+  - **Evidence (2026-10-03, read from the repository):** both runs concluded `success`. `content-snapshots` exists on origin at `d20877c`, and its tree is exactly `README.md` plus six `content/_snapshots/*.json` files. It shares **no** history with `main` (`git merge-base` finds no common ancestor); its only two commits are the two runs' `content snapshot: <timestamp>` commits.
+- [x] D.3 Confirm every one of the six included content types has a file, including any with zero published entries (`[]`, not missing), and that a content type known to have more than one page's worth of entries (if any exists at run time) has all of them, not just the first page.
+  - **Evidence (2026-10-03, snapshot `d20877c`):** all six files are present and each is a JSON array. `announcements`, `galactic-summits`, `nebula-nights`, `sponsors` and `stellar-talks` are `[]` (zero published, not missing); `schedule-events` has 2. The export's page size is 100 (`request.mjs`), so **no content type exceeded one page at run time**. The task's conditional multi-page clause had nothing to apply to; live multi-page collection is so far proven only by the B.5 fixture test.
 
 ## E. Dump inspection for known Alumni and known draft — **owed, NOT performed during planning**
 
