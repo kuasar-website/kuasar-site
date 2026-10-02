@@ -91,9 +91,11 @@ in both locales.
 - `NEXT_PUBLIC_SITE_URL`: the site origin, used by the metadata and the sitemap.
 
 Every fetch uses `force-cache`, no time-based revalidation, and tag **`galactic-summit`**.
-`publish-integration` must invalidate that tag **and** revalidate `/en/galactic-summit`,
-`/tr/galactic-summit` and `/sitemap.xml` on publish, unpublish, update or delete in either
-locale. Until then, a rebuild publishes changes. Never add a cron.
+publish-integration's registry (`lib/strapi/registry.ts`) maps Galactic Summit to that
+tag, and `/api/revalidate` calls `revalidateTag('galactic-summit', 'max')` on publish,
+unpublish, update or delete in either locale (both locales and the sitemap are covered;
+no `revalidatePath`, which 404s these routes). Draft Mode preview reads drafts with the
+server-only `STRAPI_PREVIEW_TOKEN`. Never add a cron.
 
 ## Verification
 

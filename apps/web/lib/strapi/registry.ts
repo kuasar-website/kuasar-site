@@ -12,7 +12,6 @@ import { LOCALES, sectionPath, type Locale, type SectionKey } from "../i18n/segm
 export const CACHE_TAGS = {
   events: "events-showcase",
   schedule: "schedule-calendar",
-  /** Reserved: the Galactic Summit loader adopts it once PR #36 is on main. */
   summit: "galactic-summit",
   /** Reserved for Dev 3's announcements capability. */
   announcements: "announcements",
@@ -34,9 +33,10 @@ export const CONTENT_TYPES: Readonly<Record<string, ContentTypeEntry>> = {
   "api::sponsor.sponsor": { tags: [], section: null, preview: false },
 };
 
-export const SITEMAP_PATH = "/sitemap.xml";
-
-/** Public paths for a content type in both locales (Turkish may show English fallback). */
+/**
+ * Public paths for a content type in both locales (Turkish may show English fallback).
+ * Documentation and preview only — revalidation is tag-only (never revalidatePath).
+ */
 export function pathsFor(uid: string): string[] {
   const section = CONTENT_TYPES[uid]?.section;
   return section ? LOCALES.map((locale) => sectionPath(section, locale)) : [];
@@ -44,10 +44,6 @@ export function pathsFor(uid: string): string[] {
 
 export function allTags(): string[] {
   return [...new Set(Object.values(CONTENT_TYPES).flatMap((entry) => entry.tags))];
-}
-
-export function allPaths(): string[] {
-  return [...new Set(Object.keys(CONTENT_TYPES).flatMap(pathsFor))];
 }
 
 /** The preview target, derived only from the registry — never from request input. */

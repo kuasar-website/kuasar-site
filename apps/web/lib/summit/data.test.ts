@@ -174,3 +174,34 @@ test('Turkish overrides English by documentId; English-only falls back with its 
   const en = await fetchSummitData('en', options(mock((lang) => lang === 'en' ? [row('en', 's2026')] : [row('tr', 'tr-only', { year: 2030, isCurrent: false })])));
   assert.deepEqual(en.others, [], 'English route shows English publications only');
 });
+
+// publish-integration: Draft Mode preview reads drafts only with the preview token.
+test('preview: status=draft with the preview token, no-store, draft rows shown', async () => {
+  const seen: { status: string | null; init: RequestInit | undefined }[] = [];
+  const fetcher = (async (input, init) => {
+    const url = new URL(String(input));
+    seen.push({ status: url.searchParams.get('status'), init });
+    const page = Number(url.searchParams.get('pagination[page]'));
+    return Response.json({ data: [row(url.searchParams.get('locale')!, 'draft-only', { publishedAt: null })], meta: { pagination: { page, pageCount: 1 } } });
+  }) as typeof fetch;
+  const result = await fetchSummitData('en', { origin: 'https://cms.example', fetcher, preview: true, previewToken: 'test-preview-token' });
+  assert.equal(result.current?.id, 'draft-only');
+  assert.ok(seen.length > 0 && seen.every((s) => s.status === 'draft' && s.init?.cache === 'no-store'
+    && (s.init?.headers as Record<string, string>).Authorization === 'Bearer test-preview-token'));
+});
+
+test('public path never requests drafts and still skips rows without publishedAt', async () => {
+  const seen: string[] = [];
+  const fetcher = (async (input, init) => {
+    const url = new URL(String(input));
+    seen.push(`${url.searchParams.get('status')}|${JSON.stringify(init)}`);
+    const page = Number(url.searchParams.get('pagination[page]'));
+    return Response.json({ data: [row(url.searchParams.get('locale')!, 'draft-only', { publishedAt: null })], meta: { pagination: { page, pageCount: 1 } } });
+  }) as typeof fetch;
+  assert.deepEqual(await fetchSummitData('en', { origin: 'https://cms.example', fetcher, previewToken: 'test-preview-token' }), { current: null, others: [] });
+  assert.ok(seen.length > 0 && seen.every((s) => s.startsWith('published|') && !s.includes('test-preview-token')));
+});
+
+test('preview without a preview token fails loudly', async () => {
+  await assert.rejects(fetchSummitData('en', { origin: 'https://cms.example', fetcher: mock(() => []), preview: true }), /STRAPI_PREVIEW_TOKEN is not set/);
+});

@@ -12,8 +12,10 @@ on:
       - "apps/web/lib/strapi/**"
       - "apps/web/lib/events/**"
       - "apps/web/lib/schedule/**"
+      - "apps/web/lib/summit/**"
       - "apps/web/components/events/content.tsx"
       - "apps/web/components/schedule/content.tsx"
+      - "apps/web/components/summit/content.tsx"
       - "apps/web/next.config.ts"
       - "apps/cms/config/admin.ts"
       - "apps/cms/src/preview-url*.ts"
@@ -28,8 +30,10 @@ on:
       - "apps/web/lib/strapi/**"
       - "apps/web/lib/events/**"
       - "apps/web/lib/schedule/**"
+      - "apps/web/lib/summit/**"
       - "apps/web/components/events/content.tsx"
       - "apps/web/components/schedule/content.tsx"
+      - "apps/web/components/summit/content.tsx"
       - "apps/web/next.config.ts"
       - "apps/cms/config/admin.ts"
       - "apps/cms/src/preview-url*.ts"
@@ -50,5 +54,5 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: node --test apps/web/lib/strapi/*.test.ts apps/cms/src/preview-url.test.ts apps/web/lib/events/data.test.ts apps/web/lib/schedule/data.test.ts
+      - run: node --test apps/web/lib/strapi/*.test.ts apps/cms/src/preview-url.test.ts apps/web/lib/events/data.test.ts apps/web/lib/schedule/data.test.ts apps/web/lib/summit/data.test.ts
       - run: node tests/publish/check-routes.mjs

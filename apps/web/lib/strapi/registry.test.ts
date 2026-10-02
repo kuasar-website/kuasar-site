@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { allPaths, allTags, CACHE_TAGS, CONTENT_TYPES, pathsFor, previewPathFor } from './registry.ts';
+import { allTags, CACHE_TAGS, CONTENT_TYPES, pathsFor, previewPathFor } from './registry.ts';
 import { EVENTS_CACHE_TAG } from '../events/data.ts';
 import { SCHEDULE_CACHE_TAG } from '../schedule/data.ts';
+import { SUMMIT_CACHE_TAG } from '../summit/data.ts';
 import { PREVIEWABLE_UIDS } from '../../../cms/src/preview-url.ts';
 
 test('registry covers exactly the seven CMS collections', () => {
@@ -15,6 +16,7 @@ test('registry covers exactly the seven CMS collections', () => {
 test('merged loaders use the registry tags (no drift)', () => {
   assert.equal(EVENTS_CACHE_TAG, CACHE_TAGS.events);
   assert.equal(SCHEDULE_CACHE_TAG, CACHE_TAGS.schedule);
+  assert.equal(SUMMIT_CACHE_TAG, CACHE_TAGS.summit);
 });
 
 test('paths cover both locales; Turkish fallback means both are always revalidated', () => {
@@ -26,7 +28,6 @@ test('paths cover both locales; Turkish fallback means both are always revalidat
   assert.deepEqual(pathsFor('api::sponsor.sponsor'), []);
   assert.deepEqual(pathsFor('api::unknown.unknown'), []);
   assert.ok(allTags().includes('announcements') && allTags().includes('alumni-directory'), 'Dev 3 tags reserved');
-  assert.equal(allPaths().length, new Set(allPaths()).size);
 });
 
 test('preview targets are derived from the registry only', () => {

@@ -17,7 +17,7 @@ and nothing SHALL be revalidated. The response and logs SHALL never contain the 
 
 #### Scenario: Unauthenticated call
 - **WHEN** a request reaches `/api/revalidate` without the secret header, or with a wrong one
-- **THEN** it receives 401, and no tag or path is revalidated
+- **THEN** it receives 401, and nothing is revalidated
 
 #### Scenario: Secret in the query string only
 - **WHEN** a request sends `?secret=<correct value>` but no secret header
@@ -47,11 +47,11 @@ be used.
 
 #### Scenario: Unpublish an Announcement
 - **WHEN** Strapi sends an authorised `entry.unpublish` for `api::announcement.announcement`
-- **THEN** the reserved `announcements` tag and the News paths in both locales are revalidated, whether or not Dev 3's route exists yet
+- **THEN** the reserved `announcements` tag is revalidated with the `max` profile, covering the News pages in both locales once Dev 3's routes fetch with it, whether or not those routes exist yet
 
 #### Scenario: Turkish edit falls back to English
 - **WHEN** only the English version of a Stellar Talk is updated
-- **THEN** the revalidation covers both locales' Events paths, because the Turkish page may display English fallback
+- **THEN** the `events-showcase` tag is revalidated, which covers both locales' Events pages, because the Turkish page may display English fallback
 
 ### Requirement: No time-based freshness
 The system SHALL NOT add any cron, scheduled job, `revalidate` interval, or time-based
@@ -142,8 +142,8 @@ without a public page (Sponsor), it SHALL return null so that no preview is offe
 
 ### Requirement: Publish-integration verification
 Tier A SHALL cover:
-- route-handler unit tests: authorisation, methods, malformed input, the event → tag/path
-  mapping with `'max'`, and the open-redirect, locale and uid rejections;
+- route-handler unit tests: authorisation, methods, malformed input, the event → tag
+  mapping with `'max'` (and that `revalidatePath` is never called), and the open-redirect, locale and uid rejections;
 - registry/loader tag consistency;
 - the header policy in the built output.
 

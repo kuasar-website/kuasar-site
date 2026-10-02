@@ -19,7 +19,7 @@
 ## 2. Revalidation handler
 
 - [x] 2.1 `apps/web/app/api/revalidate/route.ts`: POST only, `Authorization: Bearer` secret, a query secret rejected, a JSON body with `event` and `uid`/`model`. Uses `revalidateTag(tag, 'max')` from the registry (all tags for media events); unknown or Sponsor models return 200 with nothing revalidated. Logic sits in a pure function with injectable dependencies. **No `revalidatePath`** (design D2: it 404s these routes).
-- [x] 2.2 Unit tests: 401 (missing, wrong, query-only secret), 405 (GET), 400 (malformed body), each event → exact tags with `'max'` and paths in both locales, the media events, Sponsor/unknown as a no-op, and no secret in any response.
+- [x] 2.2 Unit tests: 401 (missing, wrong, query-only secret), 405 (GET), 400 (malformed body), each event → exact tags with `'max'` (and `revalidatePath` never called), the media events, Sponsor/unknown as a no-op, and no secret in any response.
 
 ## 3. Preview handler and Strapi config
 
@@ -32,7 +32,8 @@
 
 - [x] 4.1 `lib/events/data.ts` adopts `strapiRequest` and the registry tag; the `publishedAt` safeguard stays on outside Draft Mode. The events unit, browser and route suites stay green unchanged.
 - [x] 4.2 `lib/schedule/data.ts`, the same; the schedule suites stay green.
-- [ ] 4.3 `lib/summit/data.ts`, the same, **only after PR #36 is on `main`**, as a follow-up; never by copying unmerged #36 code. The Summit suites stay green.
+- [x] 4.3 `lib/summit/data.ts`, the same, **only after PR #36 is on `main`**, as a follow-up; never by copying unmerged #36 code. The Summit suites stay green.
+  - **Done (2026-10-02)** after #36 merged to `main` (`108d961`, synced via a normal merge): `lib/summit/data.ts` uses `strapiRead`; `components/summit/content.tsx` passes the preview flag and token; the registry test asserts `SUMMIT_CACHE_TAG`; the Summit README points at the registry. Summit unit, browser and route suites green.
 - [x] 4.4 A unit test that every loader's tags equal the registry's, and that a non-draft request never carries `status=draft` or the preview token.
 
 ## 5. Framing and indexing policy
@@ -55,17 +56,17 @@
   - **Measured each run:** "KNOWN GAP (unresolved): first reload after publish was stale (en stale, tr stale); accepted requirement NOT met".
   - routes stay static with `revalidate: false`;
   - both handlers reject unauthenticated requests;
-  - webhook → the **first** reload of the affected page shows the changed content (if this can't be achieved with `revalidateTag(tag, 'max')` plus `revalidatePath`, stop and report the conflict; never weaken the acceptance);
+  - webhook → the **first** reload of the affected page shows the changed content (never weaken the acceptance). Not achieved with tag-only `revalidateTag(tag, 'max')`, and `revalidatePath` is unusable on these routes (design D2), so it was stopped and reported; see 6.4;
   - preview → cookie, derived redirect, draft shown only with the cookie;
   - public requests never see the draft;
   - the header policy is correct.
 - [x] 6.2 `.github/workflows/tier-b-publish.yml`: path-filtered (`apps/web/app/api/**`, `apps/web/lib/strapi/**`, `apps/web/lib/{events,schedule,summit}/**`, `apps/web/next.config.ts`, `apps/cms/config/admin.ts`, `tests/publish/**`, the workflow, lockfiles, `.nvmrc`), `timeout-minutes: 10`, not required.
-- [x] 6.3 Run Tier A locally and the events, schedule, Summit (if merged) and time-state suites; all green.
-  - **Evidence (2026-10-02, local):**
-    - unit tests 101/101: strapi libs, CMS preview URL, events and schedule loaders, events baseline;
-    - Tier A: typecheck, lint, stylelint (clean tree), reduced-motion, locale parity, budgets, content, media, build and check:budgets all pass;
-    - events browser 24/24, schedule browser 84/84, time-state 12/12;
-    - the events, schedule and publish production checks pass;
+- [x] 6.3 Run Tier A locally and the events, schedule, Summit and time-state suites; all green.
+  - **Evidence (2026-10-02, local, after syncing `main` with #36 and adopting Summit):**
+    - unit tests 179/179 in both `TZ=UTC` and `TZ=Europe/Istanbul`: strapi libs, CMS preview URL, events, schedule and Summit loaders, events baseline;
+    - Tier A: typecheck, lint, stylelint (clean tree), reduced-motion, locale parity, budgets, content, media, cms, build and check:budgets all pass;
+    - browser suites: events 24/24, schedule 84/84, Summit 124/124, time-state 12/12;
+    - the events, schedule, Summit and publish production checks pass;
     - publish reports the known first-reload gap (6.1, 6.4).
 - [ ] 6.4 **Known unresolved acceptance gap: the first reload after a publish shows the change.** It isn't achievable with `revalidateTag(tag, 'max')` alone, and `revalidatePath`/`{ expire: 0 }` 404 the current fallback-false localized routes (design D2, evidence). Closing it requires a separate locale-routing decision on `dynamicParams = false` (`app/[locale]/layout.tsx` plus each content page; it changes 404 handling for unknown locales), plus verification on Vercel. Not in this change. The requirement stays as accepted.
 
@@ -77,7 +78,7 @@
   - preview token scope: find/findOne on the six public types, never Alumni unless Dev 3's preview needs it;
   - troubleshooting rows for 401, a blank frame, third-party cookies, and "page unchanged after publish: check Strapi's webhook delivery log first".
 - [x] 7.2 `apps/web/lib/strapi/README.md`: the registry and request convention for new loaders. This is Dev 3's handoff for `announcements` 6.2 and `alumni-directory` 6.2.
-- [x] 7.3 Update the events, schedule and (once merged) Summit READMEs' "publish-integration owner" notes to point at the registry.
+- [x] 7.3 Update the events, schedule and Summit READMEs' "publish-integration owner" notes to point at the registry.
 
 ## 8. Live acceptance (manual; check only with real evidence)
 

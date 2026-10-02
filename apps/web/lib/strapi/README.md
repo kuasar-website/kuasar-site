@@ -1,7 +1,8 @@
 # Strapi: registry, request convention, revalidation and preview
 
 The contract is `openspec/changes/publish-integration/` (and `openspec/specs/publish-integration`
-after archive). This README is the handoff for every Strapi loader, including Dev 3's
+after archive). Events, schedule and Galactic Summit already follow it. This README is the handoff for every
+Strapi loader, including Dev 3's
 `announcements` and `alumni-directory`.
 
 ## For a new Strapi loader (Dev 3: announcements 6.2, alumni-directory 6.2)

@@ -7,7 +7,8 @@ and editors publish blind (ADR 0002 §8). Two Dev 3 changes are explicitly block
   base-URL environment variable, and revalidation tags. No such convention exists
   anywhere in the codebase yet".
 - The merged events-showcase and schedule-calendar READMEs, and the Galactic Summit README
-  in PR #36, each hand their cache tag and paths to "the publish-integration owner".
+  in PR #36 (merged 2026-10-02), each hand their cache tag to "the publish-integration
+  owner".
 
 The catalogue (`docs/task-assignments.html`) lists this capability under Dev 4 and as
 "Blocked by cms-platform and the domain". It is being taken over to unblock Dev 3.

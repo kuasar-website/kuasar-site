@@ -56,7 +56,7 @@ See proposal.md, "Why". These are the facts on `main` at `b2343ac` (2026-10-02):
 
 **Goals:**
 - One registry and one request convention, so revalidation, preview and every loader agree
-  on tags and paths. That convention is what Dev 3 needs.
+  on tags (and on the public and preview paths). That convention is what Dev 3 needs.
 - Fail closed: no secret means no revalidation and no preview, and nothing derived from
   untrusted input decides a redirect target.
 
@@ -78,8 +78,9 @@ delivery log, so it is **rejected even when correct**. Runbook step 6 currently 
 
 *Alternative rejected:* accepting both forms. It keeps the leak and two code paths alive.
 
-### D2. Revalidation is tag plus paths, from one registry
-`lib/strapi/registry.ts` maps each uid to `{ tags, paths(locale), preview }`:
+### D2. Revalidation is tag-only, from one registry
+`lib/strapi/registry.ts` maps each uid to `{ tags, paths(locale), preview }`. Only the tags
+drive revalidation; the paths document which pages each tag covers and feed preview:
 
 | uid | tags | public paths (both locales) | preview |
 |---|---|---|---|
@@ -90,12 +91,12 @@ delivery log, so it is **rejected even when correct**. Runbook step 6 currently 
 | `api::alumnus.alumnus` | `alumni-directory` (**reserved for Dev 3**) | `/en/alumni`, `/tr/mezunlar` | alumni path |
 | `api::sponsor.sponsor` | none (the showcase is held, and the Summit never fetches sponsors) | none | none |
 
-Every matched event also revalidates `/sitemap.xml`. Paths are built with `sectionPath()`,
-never hard-coded. The handler calls `revalidateTag(tag, 'max')` for each tag and
-`revalidatePath(path)` for each path. The registry owns the tag strings. The merged loaders keep
-their exported constants, and a unit test asserts each equals the registry's value, so
-nothing drifts and no loader churns. Galactic Summit's row is **reserved**; its loader is
-adopted only after #36 is on `main`, so nothing conflicts with that PR.
+The sitemap fetches with the same tags, so it's covered too. Paths are built with
+`sectionPath()`, never hard-coded. The handler calls `revalidateTag(tag, 'max')` for each
+tag and nothing else; it never calls `revalidatePath` (see below). The registry owns the
+tag strings. The merged loaders (events, schedule and, since #36 merged, Galactic Summit)
+keep their exported constants, and a unit test asserts each equals the registry's value,
+so nothing drifts and no loader churns.
 
 **Tags only, no `revalidatePath`:** `revalidateTag(tag, 'max')` is mandated (ADR 0001
 §2) and covers every route and sitemap that fetched with the tag. `revalidatePath` is
@@ -196,7 +197,7 @@ route handlers. First-load budgets are unchanged; Tier A `check:budgets` confirm
 ### D7. Verification
 - **Unit tests** (`node --test`), in Tier A's `test:cms`/`test:content` style, under
   `apps/web/lib/strapi/*.test.ts` and `apps/web/app/api/**/*.test.ts`. The handlers take
-  injectable `revalidateTag`, `revalidatePath`, `draftMode` and environment, so they're
+  injectable `revalidateTag`, `draftMode` and environment (no `revalidatePath`), so they're
   unit-testable without a server.
 - **Production-build check:** `tests/publish/check-routes.mjs` runs a real `next build`
   and `next start` against a synthetic Strapi that serves published **and** draft rows. It
