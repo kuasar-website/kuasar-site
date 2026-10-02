@@ -43,6 +43,15 @@ WORKDIR /app
 COPY --from=build /repo/node_modules ./node_modules
 COPY --from=build /repo/apps/cms ./
 
+# Build identity for GET /_version (openspec/changes/cms-deploy-digest, design D3). Baked
+# as a FILE so App Platform environment variables can never override it, and placed here,
+# at the end of the runtime stage, so the cached build stage is not invalidated per commit.
+# The image cannot be built without the exact 40-character commit SHA.
+ARG APP_COMMIT_SHA
+RUN printf '%s' "$APP_COMMIT_SHA" | grep -Eqx '[0-9a-f]{40}' \
+  || { echo "APP_COMMIT_SHA must be the full 40-character lower-case commit SHA" >&2; exit 1; }; \
+  printf '%s\n' "$APP_COMMIT_SHA" > /app/BUILD_COMMIT
+
 RUN chown -R node:node /app
 USER node
 

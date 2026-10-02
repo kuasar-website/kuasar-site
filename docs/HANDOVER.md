@@ -146,7 +146,16 @@ not in this repository and must never be committed.
   (`ghcr.io/kuasar-website/kuasar-site/cms`), and asks DigitalOcean App Platform to
   redeploy. App Platform runs the image; it never builds Strapi itself. Why: Strapi's
   admin build OOMs the 512 MB instance — see [adr/0002-cms.md](adr/0002-cms.md)
-  decision 4. The workflow also has a **Run workflow** button for manual redeploys.
+  decision 4. It deploys the **exact image digest** it built. **A green CMS deploy means
+  it's live:** App Platform is Active on that digest, the CMS reports the expected commit
+  at `/_version`, `/_health` is 204, and public draft reads are still 403 (runbook step
+  4). The workflow also has a **Run workflow** button for manual redeploys; it deploys
+  only from `main`. DigitalOcean's Force Rebuild and Deploy is an emergency fallback, not
+  the way to deploy.
+- The CMS deploy uses the `DIGITALOCEAN_ACCESS_TOKEN` Actions secret (runbook step 4). **Its
+  expiry is not recorded yet.** Whoever next generates or checks the token writes its expiry
+  date here. An expired or under-scoped token makes the deploy job fail with 401/403 before
+  anything changes in production.
 
 Pull requests get a Vercel preview URL. Use it; that is what it is for.
 
