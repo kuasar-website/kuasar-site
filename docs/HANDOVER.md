@@ -152,6 +152,10 @@ not in this repository and must never be committed.
   4). The workflow also has a **Run workflow** button for manual redeploys; it deploys
   only from `main`. DigitalOcean's Force Rebuild and Deploy is an emergency fallback, not
   the way to deploy.
+- The CMS deploy uses the `DIGITALOCEAN_ACCESS_TOKEN` Actions secret (runbook step 4). **Its
+  expiry is not recorded yet.** Whoever next generates or checks the token writes its expiry
+  date here. An expired or under-scoped token makes the deploy job fail with 401/403 before
+  anything changes in production.
 
 Pull requests get a Vercel preview URL. Use it; that is what it is for.
 

@@ -8,8 +8,9 @@
     - **Secret (encrypted), 11:** `DATABASE_URL`, `R2_ACCESS_KEY_ID`, `R2_ACCESS_SECRET`, `APP_KEYS`, `API_TOKEN_SALT`, `ADMIN_JWT_SECRET`, `TRANSFER_TOKEN_SALT`, `JWT_SECRET`, `ENCRYPTION_KEY`, `PREVIEW_SECRET`, `REVALIDATE_SECRET`.
     - **Plain, 7:** `R2_BUCKET`, `R2_ENDPOINT`, `DATABASE_CLIENT`, `DATABASE_SSL`, `DATABASE_SSL_REJECT_UNAUTHORIZED`, `STRAPI_PLUGIN_I18N_INIT_LOCALE_CODE`, `CLIENT_URL`.
   - The UI truncates `STRAPI_PLUGIN_I18N_INIT_LOCALE_C…`. The full name is the only key with that prefix that Strapi's i18n plugin reads or the repo references (`apps/cms/src/index.ts`).
-- [x] 0.2 Create the Actions **variable** (not a secret) `DIGITALOCEAN_APP_NAME` = `kuasar-cms`. Confirm `DIGITALOCEAN_ACCESS_TOKEN` has the custom `app` read and update scopes and hasn't expired (`docs/HANDOVER.md` records its expiry). No URL variable is needed: the live URL comes from the deploy action's output.
-  - **Done (2026-10-02):** the maintainer created `DIGITALOCEAN_APP_NAME` = `kuasar-cms`. Token scope and expiry are confirmed by the first real run (4.1): the deploy step fails closed on 401/403.
+- [x] 0.2 Create the Actions **variable** (not a secret) `DIGITALOCEAN_APP_NAME` = `kuasar-cms`. Confirm `DIGITALOCEAN_ACCESS_TOKEN` has the custom `app` read and update scopes and hasn't expired. No URL variable is needed: the workflow reads the live URL from DigitalOcean's API together with the active digest (2.3).
+  - **Done (2026-10-02):** the maintainer created `DIGITALOCEAN_APP_NAME` = `kuasar-cms`.
+  - **Token not verified before merge.** Its expiry is **not recorded anywhere**: `docs/HANDOVER.md` has no expiry for it (it now says so), and none is invented here. Nothing pre-merge exercises the token, because the feature-branch run (3.3) skips `deploy`. Its validity, scope and expiry are therefore verified by the first real run (4.1), which fails closed on 401/403 before the spec is updated. Whoever next generates or checks the token records its expiry in `docs/HANDOVER.md`.
 
 ## 1. Build identity and `/_version`
 
@@ -38,7 +39,7 @@
   3. `/_health` returns 204;
   4. unauthenticated `?status=draft` returns 403, reading the status code only.
 
-  `live_url` comes from the action output. The expected and observed values go into `$GITHUB_STEP_SUMMARY`. No secrets, spec or environment values are printed.
+  `live_url` comes from the same minimal API call as the digest, not from the action output. The expected and observed values go into `$GITHUB_STEP_SUMMARY`. No secrets, spec or environment values are printed.
 - [x] 2.4 Update the workflow's header comment: digest pinning, Active, live commit, main only.
 
 ## 3. Pre-merge checks (critical only)
@@ -80,13 +81,17 @@
     - **Baseline:** the 0.1a key list (18 keys, 11 secret) is recorded for the post-merge comparison (4.1).
   - confirm, from the pinned action's source, that only `image.digest` and `image.tag` change in the spec it writes back;
   - confirm task 0.1a's key list is complete.
-- [ ] 3.5 OpenSpec strict validation, Tier A and the required checks (Tier A, time-state) are green. Tier B CMS drafts is green, including `/_version`.
+- [x] 3.5 OpenSpec strict validation, Tier A and the required checks (Tier A, time-state) are green. Tier B CMS drafts is green, including `/_version`.
+  - **CI on PR #42 (2026-10-02), head `a58a7af`** (the branch with `main` at `ed3c70c` merged in), all green:
+    - Tier A: run [37056814895](https://github.com/kuasar-website/kuasar-site/actions/runs/37056814895) (required);
+    - time-state: run [37056822054](https://github.com/kuasar-website/kuasar-site/actions/runs/37056822054) (required);
+    - Tier B CMS drafts (`draft-guard` and `build-identity` unit tests plus the real-Strapi check, including `/_version` and `/_health`): run [37056822080](https://github.com/kuasar-website/kuasar-site/actions/runs/37056822080);
+    - Vercel preview deployment: green.
   - **Local (2026-10-02):**
     - strict validation passes;
     - Tier A passes: typecheck (including CMS `tsc`), lint, stylelint, reduced-motion, locale parity, budgets, content, media, cms, web build and `check:budgets`;
     - CMS production `strapi build` passes;
     - time-state 12/12.
-  - **Remaining:** the CI runs on the PR.
 
 ## 4. Post-merge production smoke check (critical; right after merge)
 

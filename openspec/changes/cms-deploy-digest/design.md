@@ -118,8 +118,14 @@
 
 ### D5. Post-deploy verification sequence (`deploy` job, after the action reports Active)
 
-1. **Digest:** from the action's `app` output, the active deployment's service
-   `kuasar-website-kuasar-site-cms` `image.digest` must equal `needs.build-push.outputs.digest`.
+1. **Digest:** the active deployment's service `kuasar-website-kuasar-site-cms`
+   `image.digest` must equal `needs.build-push.outputs.digest`. It is read **not** from the
+   action's `app` output but by a separate step after the action: one DigitalOcean API call
+   (`GET /v2/apps`, same token) selects the app named `DIGITALOCEAN_APP_NAME` and extracts
+   only `active_deployment`'s service `image.digest` and the app's `live_url`. The response
+   stays in a shell variable that is never printed and is unset straight after. The
+   action's `app` output (spec plus encrypted secrets) is not used at all, because passing
+   it through step `env` would print it in the public run log.
 2. **Live commit:** `GET <live_url>/_version` is polled every 10 s for at most 5 minutes,
    until it returns HTTP 200 with JSON `commit == github.sha`.
    - It fails at the deadline if the last response was unreachable, non-200, not JSON,
@@ -132,8 +138,8 @@
    - Only the status code is read; the body is discarded.
    - This also proves the guard survived the deploy.
 
-- **`live_url`** comes from the action's `app` output. The step fails if it's empty, and no
-  URL is configured by hand.
+- **`live_url`** comes from the same API call as the digest (step 1). The step fails if
+  it's empty, and no URL is configured by hand.
 - **The run summary** records the expected and live digest, the expected and live commit,
   and the three status codes. No tokens, spec or environment values are printed.
 
@@ -194,12 +200,17 @@ must never be green while production serves an older CMS revision.
 
 - **The spec round-trip could drop or alter configuration.** This is mitigated by the
   documented encrypted-secret semantics and the action's single-field edit. It's checked
-  read-only before merge (task 2.4) and against the key list after merge (task 3.1).
+  read-only before merge (task 3.4) and against the key list after merge (task 4.1).
 - **A wrong component name** is caught by the digest check (D5 step 1).
 - **The live checks fail on a slow rollout.** They're bounded at 5 minutes; a red run
   then means "investigate", which is the point.
 - **A third-party action with a production token.** It's pinned by commit SHA, and the
   token keeps its existing custom `app` scope.
+- **The token's scope and expiry are not verified before merge.** No expiry is recorded
+  anywhere, and nothing pre-merge exercises the token: the feature-branch run (task 3.3)
+  skips `deploy`. The first real run on `main` (task 4.1) is the check. It fails closed:
+  the action reads the app before updating it, so a 401/403 stops the run before the spec
+  changes.
 - **No staging app.** The first real run is production, redeploying already-live CMS code
   plus the tiny `/_version` route.
 - **Motion, first-load JS and Strapi fields:** none. No route, animation or content-type
@@ -207,16 +218,18 @@ must never be green while production serves an older CMS revision.
 
 ## Migration Plan
 
-1. **Pre-merge** (tasks 2.x):
+1. **Pre-merge** (tasks 3.1–3.5):
    - lint the workflow;
    - unit-test and integration-test `/_version`;
    - dispatch from the feature branch: build, check the baked commit, and confirm no push
      and no deploy;
-   - confirm configuration preservation, read-only.
+   - confirm configuration preservation, read-only;
+   - CI green on the PR.
 2. **Merge.** The push runs the workflow: `apps/cms/**` and the workflow file both changed.
-3. **Post-merge smoke check** (task 3.1). The workflow does the checks; a human confirms
+3. **Post-merge smoke check** (task 4.1). The workflow does the checks; a human confirms
    DigitalOcean Activity and the environment-variable key list.
-4. Remove `DIGITALOCEAN_APP_ID` only after 3.1 passes.
+4. Remove `DIGITALOCEAN_APP_ID` only after 4.1 passes (task 4.2). Until then it keeps the
+   rollback below working, because the old workflow reads it.
 
 **Rollback:** revert the PR. The old `curl` path comes back, and the app's image reference
 can be set back to tag `latest` in the dashboard. The `/_version` route is harmless if left

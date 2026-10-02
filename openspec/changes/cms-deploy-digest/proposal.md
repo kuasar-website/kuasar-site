@@ -101,8 +101,8 @@ None.
   Platform service `kuasar-website-kuasar-site-cms`.
   - The existing `DIGITALOCEAN_ACCESS_TOKEN` secret is reused (the `app` read/update
     scopes are enough).
-  - The production CMS URL comes from the deploy action's own output (`live_url`), so no
-    URL variable is needed.
+  - The production CMS URL (`live_url`) is read from DigitalOcean's API by the workflow
+    after the deploy, together with the active digest, so no URL variable is needed.
   - `DIGITALOCEAN_APP_ID` is no longer read, and can be removed after the post-merge check.
 - **DigitalOcean:** after the first run, the app's CMS image is pinned to a digest instead
   of the `latest` tag. Environment variables and secrets are carried over unchanged: the
