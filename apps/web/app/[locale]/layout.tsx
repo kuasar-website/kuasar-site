@@ -1,13 +1,13 @@
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
-import { Inter, Orbitron } from "next/font/google";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { SiteShell } from "@/components/shell/site-shell";
 import { LOCALES, type Locale } from "@/lib/i18n/segments";
 
+import { fontClassName } from "../fonts";
 import "../globals.css";
 
 // This is the ROOT layout (openspec/changes/root-document-lang). It lives under the
@@ -17,18 +17,7 @@ import "../globals.css";
 // app/layout.tsx above it: that would own <html> and could only ever say one language.
 // generateStaticParams + dynamicParams = false keep every route statically prerendered
 // for exactly LOCALES; "/" never reaches a layout (next.config.ts redirects it to /en).
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin-ext"],
-  display: "swap",
-});
-
-const orbitron = Orbitron({
-  variable: "--font-orbitron",
-  subsets: ["latin"],
-  display: "swap",
-});
+// A URL no locale route matches is served by app/global-not-found.tsx instead.
 
 /**
  * Unlike app/robots.ts and app/sitemap.ts (which only ever string-interpolate
@@ -96,10 +85,7 @@ export default async function LocaleLayout({
   }
 
   return (
-    <html
-      lang={locale}
-      className={`${inter.variable} ${orbitron.variable} h-full antialiased`}
-    >
+    <html lang={locale} className={fontClassName}>
       <body className="min-h-full flex flex-col">
         <SiteShell locale={locale}>{children}</SiteShell>
         <Analytics />

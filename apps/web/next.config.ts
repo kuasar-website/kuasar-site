@@ -30,6 +30,13 @@ const nextConfig: NextConfig = {
     imageSizes: [...IMAGE_SIZES],
     qualities: [MEDIA_QUALITY],
   },
+  // The root layout is app/[locale]/layout.tsx, so a URL that matches no locale route has
+  // no layout to render a 404 inside. app/global-not-found.tsx is that 404's own document
+  // (openspec/changes/root-document-lang). Experimental since v15.4, per
+  // node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/not-found.md.
+  experimental: {
+    globalNotFound: true,
+  },
 };
 
 export default nextConfig;
