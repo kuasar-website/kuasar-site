@@ -155,7 +155,10 @@ export function toSummitEdition(row: Row, pageLocale: Locale): SummitEdition {
   if (!Number.isInteger(row.year)) return fail(at("year"), "expected an integer year");
   if (typeof row.isCurrent !== "boolean") return fail(at("isCurrent"), "expected true or false");
   const date = text(row.date, at("date"));
-  if (date !== null && parseISO(date) === null) return fail(at("date"), "expected an ISO datetime with an offset");
+  // The spec requires an offset-bearing datetime. lib/time's parseISO also accepts a bare
+  // calendar day (YYYY-MM-DD) for other consumers, and its only other accepted shape is an
+  // instant with "T" and Z/±HH:MM — so "parses and contains T" is exactly that shape.
+  if (date !== null && (parseISO(date) === null || !date.includes("T"))) return fail(at("date"), "expected an ISO datetime with an offset");
   if (!ACCENT_TOKENS.includes(row.accentToken as AccentToken)) return fail(at("accentToken"), `unknown value ${JSON.stringify(row.accentToken)}`);
   if (!HERO_TREATMENTS.includes(row.heroTreatment as HeroTreatment)) return fail(at("heroTreatment"), `unknown value ${JSON.stringify(row.heroTreatment)}`);
   return {

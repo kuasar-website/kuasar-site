@@ -88,6 +88,9 @@ for (const locale of ['en', 'tr'] as const) {
     ['year', '2026', /field "year": expected an integer year/],
     ['isCurrent', null, /field "isCurrent": expected true or false/],
     ['date', '2026-11-07T10:00:00', /field "date": expected an ISO datetime/],
+    // Review on PR #36: a bare calendar day is not an offset-bearing datetime.
+    ['date', '2026-11-07', /field "date": expected an ISO datetime with an offset/],
+    ['date', '2026-11-07T10:00', /field "date": expected an ISO datetime with an offset/],
     ['accentToken', 'gold', /field "accentToken": unknown value "gold"/],
     ['heroTreatment', 'video', /field "heroTreatment": unknown value "video"/],
     ['registrationUrl', 'ftp://example.org', /field "registrationUrl": expected an HTTP\(S\) URL/],
@@ -124,6 +127,13 @@ for (const locale of ['en', 'tr'] as const) {
     await assert.rejects(fetchSummitData(locale, one({ sponsorshipPdf: { ...pdf, url: 'https://media.kuasar.org/cdn-cgi/image/width=640/sponsorship.pdf' } })),
       /field "sponsorshipPdf": .*is an image-resizer URL/);
     assert.equal((await fetchSummitData(locale, one({}))).current!.sponsorshipPdf, 'https://media.kuasar.org/sponsorship-2026.pdf');
+  });
+
+  test(`${locale}: offset-bearing datetimes are accepted unchanged (Z and ±HH:MM)`, async () => {
+    for (const date of ['2026-11-07T07:00:00.000Z', '2026-11-07T07:00:00Z', '2026-11-07T10:00:00+03:00', '2026-11-07T02:00-05:00']) {
+      assert.equal((await fetchSummitData(locale, one({ date }))).current!.date, date);
+    }
+    assert.equal((await fetchSummitData(locale, one({ date: null }))).current!.date, null, 'an absent date stays allowed');
   });
 
   test(`${locale}: no PDF and no registration URL are null, not placeholders`, async () => {
