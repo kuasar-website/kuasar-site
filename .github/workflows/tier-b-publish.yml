@@ -1,0 +1,58 @@
+name: Tier B publish
+# publish-integration: unit tests (registry, secrets, request convention, revalidate and
+# preview handlers, CMS preview URL, loader preview paths) and a real production build
+# against a synthetic Strapi (handler rejection, tag revalidation without 404s, Draft Mode
+# isolation, preview-only headers). The first-reload freshness is measured and reported as
+# a known open acceptance gap, never as a pass. Not a required check; path-filtered.
+on:
+  push:
+    branches: [change/publish-integration]
+    paths:
+      - "apps/web/app/api/**"
+      - "apps/web/lib/strapi/**"
+      - "apps/web/lib/events/**"
+      - "apps/web/lib/schedule/**"
+      - "apps/web/lib/summit/**"
+      - "apps/web/components/events/content.tsx"
+      - "apps/web/components/schedule/content.tsx"
+      - "apps/web/components/summit/content.tsx"
+      - "apps/web/next.config.ts"
+      - "apps/cms/config/admin.ts"
+      - "apps/cms/src/preview-url*.ts"
+      - "tests/publish/**"
+      - ".github/workflows/tier-b-publish.yml"
+      - "package-lock.json"
+      - ".nvmrc"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web/app/api/**"
+      - "apps/web/lib/strapi/**"
+      - "apps/web/lib/events/**"
+      - "apps/web/lib/schedule/**"
+      - "apps/web/lib/summit/**"
+      - "apps/web/components/events/content.tsx"
+      - "apps/web/components/schedule/content.tsx"
+      - "apps/web/components/summit/content.tsx"
+      - "apps/web/next.config.ts"
+      - "apps/cms/config/admin.ts"
+      - "apps/cms/src/preview-url*.ts"
+      - "tests/publish/**"
+      - ".github/workflows/tier-b-publish.yml"
+      - "package-lock.json"
+      - ".nvmrc"
+permissions:
+  contents: read
+jobs:
+  publish-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: node --test apps/web/lib/strapi/*.test.ts apps/cms/src/preview-url.test.ts apps/web/lib/events/data.test.ts apps/web/lib/schedule/data.test.ts apps/web/lib/summit/data.test.ts
+      - run: node tests/publish/check-routes.mjs

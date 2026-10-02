@@ -54,10 +54,10 @@ date or time (or clear it for a single point in time), and publish again.
 - `NEXT_PUBLIC_SITE_URL`: the site origin, used by the metadata and the sitemap.
 
 Every fetch uses `force-cache`, no time-based revalidation, and tag
-**`schedule-calendar`**. `publish-integration` must invalidate that tag **and** revalidate
-`/en/schedule`, `/tr/takvim` and `/sitemap.xml` on publish, unpublish, update or delete in
-either locale. Turkish may display English fallback, so invalidating only the changed
-locale is insufficient. Until then, a rebuild publishes changes. Never add a cron.
+**`schedule-calendar`**. publish-integration's registry (`lib/strapi/registry.ts`) maps
+Schedule Event to that tag, and `/api/revalidate` calls `revalidateTag('schedule-calendar', 'max')`
+on publish, unpublish, update or delete in either locale (both locales and the sitemap
+are covered; no `revalidatePath`, which 404s these routes). Never add a cron.
 
 ## Verification
 

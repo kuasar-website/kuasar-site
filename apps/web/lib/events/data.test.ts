@@ -55,3 +55,22 @@ test('HTTP and connection errors fail explicitly without leaking response/token'
 test('duplicate pagination fails instead of truncating or duplicating events', async () => {
   await assert.rejects(fetchEventsData('en', options(mock(() => [row()], 2))), /duplicate document/);
 });
+
+// publish-integration: Draft Mode preview reads drafts only with the preview token.
+test('preview: status=draft with the preview token, draft rows shown; public path unchanged', async () => {
+  const seen: string[] = [];
+  const fetcher = (async (input, init) => {
+    const url = new URL(String(input));
+    seen.push(`${url.searchParams.get('status')}|${(init as RequestInit)?.cache}|${JSON.stringify((init as RequestInit)?.headers ?? {})}`);
+    const page = Number(url.searchParams.get('pagination[page]'));
+    const draftRow = { ...row(url.searchParams.get('locale')!, 'draft-only'), publishedAt: null };
+    return Response.json({ data: url.pathname.endsWith('stellar-talks') ? [draftRow] : [], meta: { pagination: { page, pageCount: 1 } } });
+  }) as typeof fetch;
+  const preview = await fetchEventsData('en', { origin: 'https://cms.example', fetcher, preview: true, previewToken: 'test-preview-token' });
+  assert.equal(preview.talks.length, 1);
+  assert.ok(seen.every((s) => s === 'draft|no-store|{"Authorization":"Bearer test-preview-token"}'));
+  seen.length = 0;
+  const pub = await fetchEventsData('en', { origin: 'https://cms.example', fetcher, previewToken: 'test-preview-token' });
+  assert.equal(pub.talks.length, 0, 'rows without publishedAt are still skipped publicly');
+  assert.ok(seen.every((s) => s.startsWith('published|force-cache|') && !s.includes('test-preview-token')));
+});

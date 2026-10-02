@@ -27,10 +27,10 @@ No hover video is fetched/populated. Watch/read URLs are ordinary HTTP(S) links.
 
 All fetches use force-cache, indefinite revalidation and tag **events-showcase**.
 Both routes are statically generated, reject request-time APIs, disable dynamic
-fallback and have no time-based revalidation. The publish-integration owner must
-invalidate this tag AND revalidate `/en/events`, `/tr/etkinlikler`, `/sitemap.xml`,
-and any home routes using EventsSection on publish/unpublish/update/delete in either
-collection or a referenced image. Invalidating only the changed locale is insufficient
+fallback and have no time-based revalidation. publish-integration's registry
+(`lib/strapi/registry.ts`) maps both collections to this tag, and `/api/revalidate` calls
+`revalidateTag('events-showcase', 'max')` on publish/unpublish/update/delete in either
+collection or a referenced image (no `revalidatePath`: it 404s these routes). Invalidating only the changed locale is insufficient
 because Turkish may display English fallback. See docs/ops/cms-runbook.md step 6.
 This feature does not add or configure the shared webhook, secrets or CMS permissions.
 Live publishing must be checked against the deployed CMS before closing that task.
