@@ -2,7 +2,8 @@
 
 - [x] 0.1 Confirm against `main` that the `galactic-summit`, `summit.programme-item`, `summit.speaker` and `shared.image` schemas still match design.md, Context. Any drift: stop and update this change first.
 - [x] 0.2 Verify the Next.js 16 App Router APIs used (route segment config, fetch `next.tags`, client islands inside a static page) against the installed `next` docs, or context7 when available. Record any deviation in design.md before coding.
-- [ ] 0.3 If PR #35 (schedule-calendar) has merged by then, merge `origin/main` normally before section 6 and resolve the expected one-line `tests/events/check-routes.mjs` conflict by keeping both paths.
+- [x] 0.3 If PR #35 (schedule-calendar) has merged by then, merge `origin/main` normally before section 6 and resolve the expected one-line `tests/events/check-routes.mjs` conflict by keeping both paths.
+  - **Evidence (2026-10-02):** PR #35 merged as `b2343ac`. A normal merge of `origin/main` (merge commit `eb21253`) resolved the two expected conflicts by keeping both sides: `apps/web/app/sitemap.ts` (schedule and Summit URL lists) and `tests/events/check-routes.mjs` (empty `/api/schedule-events` and `/api/galactic-summits`). The Summit, schedule and events unit, browser and production-route checks, plus Tier A, pass locally.
 
 ## 1. Data loader (build/revalidation only)
 
