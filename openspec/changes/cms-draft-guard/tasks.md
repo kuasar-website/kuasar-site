@@ -21,4 +21,10 @@
 
 ## 4. Live acceptance (manual)
 
-- [ ] 4.1 After the CMS image deploys: in production, with one clearly synthetic draft-only entry (deleted afterwards), an unauthenticated `?status=draft` request returns 403, and the published reads still return 200.
+- [x] 4.1 After the CMS image deploys: in production, with one clearly synthetic draft-only entry (deleted afterwards), an unauthenticated `?status=draft` request returns 403, and the published reads still return 200.
+  - **Evidence (2026-10-02, production `https://kuasar-cms-alvwp.ondigitalocean.app`, unauthenticated, no credentials or tokens used):**
+    - **Deploy:** #39 merged as `ceaf397`; CMS deploy run 37045947550 pushed image `sha256:bb7d1969f5a9…` (= `latest`). The workflow-triggered App Platform deployment did **not** serve it: `?status=draft` still returned 200 (0 rows). After a manual **Force Rebuild and Deploy**, the guard was live.
+    - **Guard:** `GET /api/schedule-events?status=draft` and `/api/stellar-talks?status=draft` → **403** "Draft content requires an API token."; `?status=published` → 200.
+    - **Canary:** one synthetic draft-only Schedule Event, `SYNTH-CANARY-4.1 DO NOT PUBLISH`, created by an editor in the admin and never published. `?status=draft`, with and without `filters[title][$contains]=SYNTH-CANARY` → 403, canary absent. Published queries (default, `status=published`, `locale=tr`, and title-filtered) → 200 with 0 rows, canary absent.
+    - **Cleanup (2026-10-02T18:24Z):** the canary was deleted in the admin. Published queries (en, tr, title-filtered) → 200, 0 rows, canary absent; `?status=draft` still 403. The deletion of a draft can't be observed publicly by design; it was confirmed by the editor in the admin.
+    - **Not tested:** live API-token draft reads (no token was used here); covered by CI's real-Strapi check (`tests/cms-drafts/check.mjs`).
