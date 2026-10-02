@@ -87,6 +87,8 @@ const eslintConfig = defineConfig([
       "app/\\[locale\\]/*.{js,jsx,ts,tsx}",
       "app/\\[locale\\]/_*/**/*.{js,jsx,ts,tsx}",
       "app/\\[locale\\]/timeline/**/*.{js,jsx,ts,tsx}",
+      // Route-private engine shared only by the two localized timeline pages.
+      "app/\\[locale\\]/(timeline)/_signature/**/*.{js,jsx,ts,tsx}",
     ],
     rules: {
       "no-restricted-syntax": "off",

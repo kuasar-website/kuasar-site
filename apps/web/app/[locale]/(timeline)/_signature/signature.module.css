@@ -1,0 +1,29 @@
+.signature {
+  min-width: 0;
+}
+
+.signature[data-signature="active"] {
+  min-height: calc(100svh - 80px);
+}
+
+.hint {
+  display: none;
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  margin-block: calc(4 * var(--spacing));
+}
+
+.signature[data-signature="active"] .hint {
+  display: block;
+}
+
+.signature[data-signature="active"] [role="region"] {
+  overflow-x: hidden;
+  scroll-snap-type: none;
+}
+
+@media (prefers-reduced-motion: reduce), (width < 48rem) {
+  .signature .hint {
+    display: none;
+  }
+}
