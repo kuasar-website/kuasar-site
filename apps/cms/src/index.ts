@@ -1,5 +1,7 @@
 import type { Core } from '@strapi/strapi';
 
+import { assertDraftReadAllowed } from './draft-guard';
+
 const TURKISH_LOCALE = { code: 'tr', name: 'Turkish (tr)' };
 
 const REQUIRED_R2_VARS = ['R2_ENDPOINT', 'R2_BUCKET', 'R2_ACCESS_KEY_ID', 'R2_ACCESS_SECRET'] as const;
@@ -158,6 +160,12 @@ export default {
   register({ strapi }: { strapi: Core.Strapi }) {
     assertProductionMediaStorage();
     hideUsersPermissionsUserFromContentManager(strapi);
+    // Drafts are API-token-only on the Content API — see src/draft-guard.ts.
+    const apiPrefix = strapi.config.get('api.rest.prefix', '/api') as string;
+    strapi.documents.use(async (context, next) => {
+      assertDraftReadAllowed(context, strapi.requestContext.get(), apiPrefix);
+      return next();
+    });
   },
 
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {

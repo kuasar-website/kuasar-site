@@ -1,0 +1,50 @@
+name: Tier B CMS drafts
+# Draft content is readable through the Strapi Content API only with an API token
+# (openspec/changes/cms-draft-guard). Boots this repository's apps/cms against a
+# throwaway Postgres service with random per-run secrets and proves: public and
+# bogus-token draft reads are refused; published, API-token and server-side reads work.
+# Not a required check, so the path filter sits on the trigger.
+on:
+  push:
+    branches: [change/cms-draft-guard]
+    paths:
+      - "apps/cms/**"
+      - "tests/cms-drafts/**"
+      - ".github/workflows/tier-b-cms-drafts.yml"
+      - "package-lock.json"
+      - ".nvmrc"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/cms/**"
+      - "tests/cms-drafts/**"
+      - ".github/workflows/tier-b-cms-drafts.yml"
+      - "package-lock.json"
+      - ".nvmrc"
+permissions:
+  contents: read
+jobs:
+  cms-drafts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: throwaway
+          POSTGRES_DB: cms_drafts
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: node --test apps/cms/src/draft-guard.test.ts
+      - run: node tests/cms-drafts/check.mjs
+        env:
+          DATABASE_URL: postgres://postgres:throwaway@localhost:5432/cms_drafts
