@@ -52,7 +52,13 @@
   - `apps/cms/src/build-identity.test.ts` covers a valid SHA, a missing file, an empty file, malformed or short or upper-case input (→ 503 and `null`), the exact body keys, and `no-store`;
   - `tests/cms-drafts/check.mjs` writes a synthetic 40-hex `apps/cms/BUILD_COMMIT`, boots the real Strapi, asserts `/_version` returns exactly that, and removes the file;
   - add the unit test to `.github/workflows/tier-b-cms-drafts.yml`.
-- [ ] 3.3 Push the branch, then `gh workflow run cms-deploy.yml --ref change/cms-deploy-digest`:
+- [x] 3.3 Push the branch, then `gh workflow run cms-deploy.yml --ref change/cms-deploy-digest`:
+  - **Evidence (2026-10-02):** run [37055010240](https://github.com/kuasar-website/kuasar-site/actions/runs/37055010240), a manual run on `change/cms-deploy-digest` at `3645d3e`:
+    - `build-push` succeeded: the image was built with `load: true`, and "Log in to GHCR" was skipped;
+    - the baked-identity check logged `expected=3645d3e595b37ea79664ea073c4d2593cf3b618d baked=3645d3e595b37ea79664ea073c4d2593cf3b618d`;
+    - `deploy` was **skipped**;
+    - GHCR `sha-3645d3e…` → 404, so nothing was pushed.
+  - Tier B CMS drafts on `3645d3e` is green.
   - `build-push` builds, and the baked-commit check equals the branch head SHA;
   - **nothing is pushed** to GHCR (no new `sha-` tag);
   - `deploy` is **skipped**, and there's no new deployment in DigitalOcean Activity.
