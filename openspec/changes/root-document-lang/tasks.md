@@ -24,5 +24,11 @@
 - [x] 2.3 **CI gate:** Tier A covers the build, the budgets and lint. **No existing CI gate
   asserts `<html lang>`**, so 2.1 is the evidence for this requirement. Add an assertion
   when `verification-browser-gates` lands rather than implying coverage now.
-- [ ] 2.4 After merge, on production: `/` → 307 `/en`, `/en` with `lang="en"`, `/tr` with
+- [x] 2.4 After merge, on production: `/` → 307 `/en`, `/en` with `lang="en"`, `/tr` with
   `lang="tr"`, and an unknown URL → 404 with the bilingual page.
+  - **Evidence (2026-10-02, production `kuasar-site.vercel.app`):** PR #44 merged as
+    `b79ff40a14656efe64c23025997ba68bf35c6011`; Vercel production deployment `success`.
+    `/` → 307 `/en`; `/en` → 200 with server-rendered `<html lang="en">`; `/tr` → 200 with
+    `<html lang="tr">`; `/some-garbage` → 404 serving the bilingual page (`lang="en"`, Turkish
+    block `lang="tr"`, links to `/tr` and `/en`, `noindex`). Re-confirmed after #38 merged
+    (`d67bdb3`), including `/en/events` → `lang="en"` and `/tr/etkinlikler` → `lang="tr"`.
