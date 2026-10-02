@@ -95,13 +95,23 @@
 
 ## 4. Post-merge production smoke check (critical; right after merge)
 
-- [ ] 4.1 The merge's push to `main` runs the workflow. Confirm:
+- [x] 4.1 The merge's push to `main` runs the workflow. Confirm:
   - the `deploy` job waited for Active, and its summary shows the expected digest equal to the live digest, `/_version` commit equal to the merge commit, `/_health` 204 and draft 403;
   - DigitalOcean Activity shows the new deployment **Active** with that digest;
   - App → Settings shows the same environment-variable keys and types as task 0.1a.
 
   If the run is red, follow the recovery steps (design D10) and report. **A red run here is the intended signal, not a reason to bypass.**
-- [ ] 4.2 After 4.1 passes, delete the unused `DIGITALOCEAN_APP_ID` repository secret.
+  - **Evidence (2026-10-02), PASS.** PR #42 merged as `a5c9acf89646f279febef3ee98b190af9edeabad` (21:28 UTC). Its push ran CMS deploy [run 37067025084](https://github.com/kuasar-website/kuasar-site/actions/runs/37067025084), green first time, with no rerun and no manual action:
+    - the action logged `PENDING_BUILD` → `DEPLOYING` → **`ACTIVE`** (21:32:59 UTC);
+    - expected digest = active service digest = `sha256:ce7165ffae48da189738491ffc3000561cc3c0f3b43cd1cf210cb723cb8ab85f`;
+    - the live-CMS step passed: `/_version` commit = merge commit, `/_health` 204, unauthenticated `?status=draft` 403. The same three public reads, repeated by hand afterwards, returned `200 {"commit":"a5c9acf89646f279febef3ee98b190af9edeabad"}` with `Cache-Control: no-store`, `204` and `403`;
+    - the public run log contains no app spec, env entries or encrypted values.
+  - **Maintainer checks in DigitalOcean (2026-10-03):**
+    - Activity shows the deployment started 00:31:48 local time (21:31:48 UTC) as **Success / Live Deployment**, the one the workflow read with the digest above;
+    - App → Settings shows exactly **18** service-level environment variables, **11 secret (encrypted), 7 plain**, with names and categories identical to the 0.1a baseline. No value was revealed.
+  - This is also the first observation of the `DIGITALOCEAN_ACCESS_TOKEN` working with the new action (0.2): scope and validity confirmed. Its expiry is still not recorded.
+- [x] 4.2 After 4.1 passes, delete the unused `DIGITALOCEAN_APP_ID` repository secret.
+  - **Done (2026-10-03),** after 4.1 and the maintainer's confirmation. No workflow or code on `main` at `a5c9acf` referenced it. It was deleted with `gh secret delete`; the repository secrets are now `CMS_BASE_URL`, `CONTENT_BACKUP_API_TOKEN` and `DIGITALOCEAN_ACCESS_TOKEN`. It was a repository secret only, with no environment-level copy. No DigitalOcean setting was changed and no deploy was triggered.
 
 ## 5. Documentation
 
