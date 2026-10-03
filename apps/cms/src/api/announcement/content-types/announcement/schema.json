@@ -5,7 +5,7 @@
     "singularName": "announcement",
     "pluralName": "announcements",
     "displayName": "Announcement",
-    "description": "News. Slug is localized — a missing tr slug is a broken route, not a missing translation."
+    "description": "News. Slug is localized — a missing tr slug is a broken route, not a missing translation. announcementDate is the editorial date and the sort key; Strapi's publishedAt changes on every republish and is never shown or sorted on (launch/news)."
   },
   "options": {
     "draftAndPublish": true
@@ -19,6 +19,11 @@
     "pinned": {
       "type": "boolean",
       "default": false,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "announcementDate": {
+      "type": "datetime",
+      "required": true,
       "pluginOptions": { "i18n": { "localized": false } }
     },
     "title": {

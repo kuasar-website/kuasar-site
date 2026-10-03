@@ -93,6 +93,17 @@ Design: "launch/news" in design.md.
 - [x] 6.6 The sitemap lists News only once at least one announcement is published (the
       events rule). The shell navigation already linked `/en/news` and `/tr/duyurular`,
       and is unchanged.
+- [x] 6.7 **`announcementDate` is the editorial date; `publishedAt` is never used for
+      ordering or display.** Strapi 5 resets `publishedAt` (and `updatedAt`) on every
+      republish. Verified on 5.52.3: the published row is deleted and recreated, and only
+      `createdAt` survives. So an edited old announcement would jump to the top. The schema
+      gains `announcementDate` (datetime, required, non-localized). The mapper requires a
+      full date-time and drops `publishedAt`. The order is pinned, then `announcementDate`
+      newest first, then `documentId`. The page shows the date **and** 24-hour time in
+      Europe/Istanbul via the schedule's formatters, so same-day order is visible. Strapi's
+      experimental `firstPublishedAt` was considered and rejected: it's a global experimental
+      flag with a database migration. **Supersedes** the `publishedAt` wording of 2.1, 4.4
+      and 4.5 above (kept as history).
 - [ ] 6.3 **Flagged, not fixed here:** `design/i18n.md`'s incorrect claim
       that Strapi provides silent locale fallback automatically — a
       correction to that shared document is offered as a follow-up
@@ -101,7 +112,12 @@ Design: "launch/news" in design.md.
 ## 7. Verification (`launch/news`)
 
 - [x] 7.1 Unit tests: `lib/cms/announcements.test.ts`, `lib/cms/announcements-data.test.ts`
-      (Tier A `test:cms`) and `components/news/body.test.ts`. Evidence in the PR.
+      (Tier A `test:cms`), `components/news/body.test.ts` and `components/news/date.test.ts`.
+      They cover ordering: old/new, republish, same-day times, pinned, ties. Evidence in the PR.
+- [x] 7.3 `tests/news/strapi-order.mjs` (real Strapi, throwaway Postgres, in Tier B news):
+      publishing without `announcementDate` fails. After A is edited and republished, Strapi
+      gives it a newer `publishedAt` than B, yet News still lists B before A. Same-day later
+      time first, pinned first, same order on `/tr`.
 - [x] 7.2 `tests/news/check-routes.mjs`: real builds at zero and three announcements against a
       synthetic Strapi, run by `.github/workflows/tier-b-news.yml` (Tier B, not required).
       **Tier A** covers typecheck, lint, the unit tests, the build and the weight budgets.
@@ -114,3 +130,6 @@ Design: "launch/news" in design.md.
 - [ ] 8.2 Publish a test announcement in en and tr: it appears on both pages after
       revalidation (first view may be stale: publish-integration 6.4). Unpublish: it
       disappears from both. Delete the test entry.
+- [ ] 8.3 Ordering acceptance: publish two test announcements on the same day at different
+      `announcementDate` times. The page shows both times, the later one first. Edit and
+      republish the older one: its position and displayed date don't change.

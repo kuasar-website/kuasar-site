@@ -1,7 +1,6 @@
 import type { Locale } from "../i18n/segments.ts";
 import { toMediaImage, type MediaImageData } from "../media/image.ts";
 import { strapiRead } from "../strapi/content-request.ts";
-import { parseISO } from "../time/date.ts";
 import {
   mapAnnouncement,
   orderAnnouncements,
@@ -20,7 +19,8 @@ export type NewsItem = {
   readonly excerpt: string | null;
   readonly body: string | null;
   readonly pinned: boolean;
-  readonly publishedAt: string;
+  /** The editorial date-time (never Strapi's `publishedAt`; see lib/cms/announcements.ts). */
+  readonly announcementDate: string;
   /** The locale the text is actually in: `en` on /tr when Turkish is missing. */
   readonly contentLocale: Locale;
   readonly coverImage: MediaImageData | null;
@@ -72,11 +72,11 @@ async function locale(locale: Locale, options: NewsOptions): Promise<Announcemen
     if (page > 1 && !body.data.length && page <= last) return fail("announcements", "empty page before pagination ended");
     for (const value of body.data) {
       const row = object(value, "announcements");
-      // Defence in depth: a row without publishedAt is a draft and never public.
+      // Defence in depth: a row without publishedAt is a draft and never public. This is the
+      // ONLY use of publishedAt: it is never shown and never sorted on.
       if (!row.publishedAt) continue;
       if (row.locale !== locale) return fail("announcements", "unexpected locale");
       const entry = mapAnnouncement(row);
-      if (parseISO(entry.publishedAt) === null) return fail(`announcements/${entry.documentId}`, "invalid publishedAt");
       if (seen.has(entry.documentId)) return fail("announcements", `duplicate document ${entry.documentId} across pages`);
       seen.add(entry.documentId);
       result.push(entry);
@@ -106,7 +106,7 @@ export async function fetchNewsData(requested: Locale, options: NewsOptions): Pr
     excerpt: entry.excerpt,
     body: entry.body,
     pinned: entry.pinned,
-    publishedAt: entry.publishedAt,
+    announcementDate: entry.announcementDate,
     contentLocale: entry.locale,
     coverImage: toMediaImage(entry.coverImage, requested, {
       collection: "announcements", entry: entry.documentId, field: "coverImage",

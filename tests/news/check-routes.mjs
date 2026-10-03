@@ -18,12 +18,21 @@ let server;
 
 const cover = { image: { url: 'https://media.kuasar.org/news-cover.jpg', width: 1600, height: 900 }, altEn: 'Rocket on the pad', altTr: 'Rampadaki roket' };
 const BODY = '## Results\n\nWe reached **apogee**. Read [the report](https://kuasar.org/report).\n\n1. Fly\n2. Recover\n\n<script>alert(1)</script>';
+// announcementDate is the editorial order. Items 0 and 1 share a calendar day (09:00 and
+// 18:30 Istanbul); item 2 is pinned and oldest. publishedAt runs the OTHER way, as after
+// item 0 was edited and republished (Strapi 5.52.3 resets publishedAt), so ordering by
+// publishedAt would be visibly wrong. Expected order: 2 (pinned), 1 (18:30), 0 (09:00).
+const DATES = [
+  { announcementDate: '2026-09-10T06:00:00.000Z', publishedAt: '2026-10-03T07:22:45.405Z' },
+  { announcementDate: '2026-09-10T15:30:00.000Z', publishedAt: '2026-09-10T15:31:00.000Z' },
+  { announcementDate: '2026-08-01T09:00:00.000Z', publishedAt: '2026-08-01T09:01:00.000Z' },
+];
 function announcements(locale) {
   if (!count) return [];
   const rows = Array.from({ length: count }, (_, i) => ({
     documentId: `news${String(i).padStart(18, '0')}`, locale, pinned: i === count - 1,
     title: `${locale} News ${i}`, slug: `${locale}-news-${i}`, excerpt: `${locale} excerpt ${i}`,
-    body: BODY, publishedAt: `2026-09-${String(10 + i).padStart(2, '0')}T09:00:00.000Z`,
+    body: BODY, ...DATES[i],
     coverImage: i === 0 ? cover : null,
   }));
   // Turkish exists only for the first document: the rest must fall back to English on /tr.
@@ -100,8 +109,17 @@ try {
         } else {
           assert.ok(!html.includes('tr News'), '/en never shows Turkish text');
         }
-        const firstTitle = /<h2[^>]*><a href="#([^"]+)"/.exec(html)?.[1];
-        assert.equal(firstTitle, `${locale === 'tr' ? 'en' : 'en'}-news-${count - 1}`, 'the pinned announcement comes first');
+        const order = [...html.matchAll(/<h2[^>]*><a href="#([^"]+)"/g)].map(m => m[1]);
+        assert.deepEqual(order, ['en-news-2', 'en-news-1', locale === 'tr' ? 'tr-news-0' : 'en-news-0'],
+          `${path}: pinned first, then announcementDate newest first (same day: 18:30 before 09:00), never publishedAt`);
+        // The editorial date-time, localized, in Europe/Istanbul; never the system publishedAt.
+        const shown = locale === 'tr'
+          ? ['10 Eylül 2026 Perşembe · 18:30', '10 Eylül 2026 Perşembe · 09:00', '1 Ağustos 2026 Cumartesi · 12:00']
+          : ['Thursday, September 10, 2026 · 18:30', 'Thursday, September 10, 2026 · 09:00', 'Saturday, August 1, 2026 · 12:00'];
+        for (const text of shown) assert.ok(html.includes(text), `${path}: shows "${text}"`);
+        assert.ok(html.includes('dateTime="2026-09-10T15:30:00.000Z"'), `${path}: <time dateTime> is announcementDate`);
+        assert.ok(!html.includes('2026-10-03T07:22:45.405Z') && !html.includes('October 3, 2026') && !html.includes('3 Ekim 2026'),
+          `${path}: Strapi's publishedAt is never shown`);
       }
     }
     for (const path of ['/tr/news', '/en/duyurular', '/en/news/en-news-0']) {

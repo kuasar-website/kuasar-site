@@ -34,9 +34,16 @@ the preview token's scope, and a loader preview branch.
 - Zero announcements: the page exists with an explicit empty message, never a 404, and is
   left out of the sitemap until at least one is published.
 - Each announcement is a full `<article>` on the list page (cover image, pinned marker,
-  publication date in Europe/Istanbul, title, excerpt, body), with its slug as the fragment
-  id. There are **no per-slug detail routes**: with `dynamicParams = false`, a detail page
-  for an announcement published after the last deploy would 404 until the next one.
+  date and time, title, excerpt, body), with its slug as the fragment id. There are **no
+  per-slug detail routes**: with `dynamicParams = false`, a detail page for an announcement
+  published after the last deploy would 404 until the next one.
+- **Date and order: `announcementDate`, never `publishedAt`.** Editors set
+  `announcementDate` (required, shared by both locales). The page shows it as date plus
+  24-hour time in Europe/Istanbul, e.g. "Monday, October 5, 2026 · 14:30" / "5 Ekim 2026
+  Pazartesi · 14:30". The order is pinned, then `announcementDate` newest first, then
+  `documentId`. Strapi resets `publishedAt` on every republish, so sorting on it would move
+  a corrected old announcement to the top. `tests/news/strapi-order.mjs` proves this can't
+  happen.
 - `body` is editor Markdown, rendered by `body.ts` into `MissionProse` blocks. It never
   throws: anything unsupported (images, raw HTML, quotes, code, unsafe links) degrades to
   plain text, so an editor's formatting can't break a build or a revalidation.

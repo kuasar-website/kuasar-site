@@ -6,7 +6,8 @@ const ORIGIN = "https://cms.example";
 const cover = { image: { url: "https://media.kuasar.org/cover.jpg", width: 1600, height: 900 }, altEn: "Rocket", altTr: "Roket" };
 const row = (documentId: string, locale: "en" | "tr", extra: Record<string, unknown> = {}) => ({
   documentId, locale, title: `${locale} ${documentId}`, slug: `${locale}-${documentId}`,
-  excerpt: null, body: null, pinned: false, publishedAt: "2026-09-01T09:00:00.000Z", coverImage: null, ...extra,
+  excerpt: null, body: null, pinned: false, announcementDate: "2026-09-01T09:00:00.000Z",
+  publishedAt: "2026-09-01T09:00:05.000Z", coverImage: null, ...extra,
 });
 
 type Call = { url: URL; init: RequestInit & { next?: { tags: string[]; revalidate: false } } };
@@ -76,13 +77,27 @@ test("Turkish overrides English by documentId; missing Turkish falls back to Eng
   assert.deepEqual(english.map((i) => i.id).sort(), ["both", "en-only"], "English never shows Turkish-only text");
 });
 
-test("pinned first, then newest first", async () => {
+test("pinned first, then newest announcementDate first", async () => {
   const { fetcher } = fixture({ en: [[
-    row("old", "en", { publishedAt: "2026-01-01T00:00:00.000Z" }),
-    row("new", "en", { publishedAt: "2026-09-01T00:00:00.000Z" }),
-    row("pinned", "en", { pinned: true, publishedAt: "2025-01-01T00:00:00.000Z" }),
+    row("old", "en", { announcementDate: "2026-01-01T00:00:00.000Z" }),
+    row("new", "en", { announcementDate: "2026-09-01T00:00:00.000Z" }),
+    row("pinned", "en", { pinned: true, announcementDate: "2025-01-01T00:00:00.000Z" }),
   ]] });
   assert.deepEqual((await fetchNewsData("en", { origin: ORIGIN, fetcher })).map((i) => i.id), ["pinned", "new", "old"]);
+});
+
+test("a republished older announcement keeps its place; the item carries announcementDate, never publishedAt", async () => {
+  // Strapi 5.52.3 after A was edited and republished: A's publishedAt is newest, its
+  // announcementDate is not. B was announced later and stays first, in both locales.
+  const a = { announcementDate: "2026-09-01T09:00:00.000Z", publishedAt: "2026-10-03T07:22:45.405Z" };
+  const b = { announcementDate: "2026-09-20T09:00:00.000Z", publishedAt: "2026-09-20T09:00:05.000Z" };
+  const { fetcher } = fixture({ en: [[row("a", "en", a), row("b", "en", b)]], tr: [[row("a", "tr", a), row("b", "tr", b)]] });
+  for (const locale of ["en", "tr"] as const) {
+    const items = await fetchNewsData(locale, { origin: ORIGIN, fetcher });
+    assert.deepEqual(items.map((i) => i.id), ["b", "a"], locale);
+    assert.equal(items[1]?.announcementDate, a.announcementDate);
+    assert.equal("publishedAt" in (items[1] as object), false);
+  }
 });
 
 test("the cover image goes through the media contract with the visitor's alt text", async () => {

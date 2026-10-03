@@ -1,10 +1,10 @@
 import type { Locale } from "../../lib/i18n/segments";
 import type { NewsItem } from "../../lib/cms/announcements-data";
-import { formatDate } from "../../lib/time/date";
 import { MediaImage } from "../media/media-image";
 import { MissionProse } from "../missions/mission-prose";
 import { parseAnnouncementBody } from "./body";
 import { NEWS_COPY } from "./copy";
+import { formatAnnouncementDate } from "./date";
 import styles from "./news.module.css";
 
 /**
@@ -33,8 +33,9 @@ export function NewsList({ locale, items }: { locale: Locale; items: readonly Ne
                 {item.pinned && <span className={styles.pinned}>{copy.pinned}</span>}
                 <span>
                   {copy.published}{" "}
-                  {/* A publication date is never time-relative: plain server text, no client state. */}
-                  <time dateTime={item.publishedAt}>{formatDate(item.publishedAt, locale, "Europe/Istanbul")}</time>
+                  {/* The editorial announcementDate (never publishedAt). Never time-relative:
+                      plain server text, no client state. */}
+                  <time dateTime={item.announcementDate}>{formatAnnouncementDate(item.announcementDate, locale)}</time>
                 </span>
               </div>
               <h2 className={styles.title}>

@@ -14,6 +14,7 @@
  */
 
 import type { StrapiImage } from "../media/image.ts";
+import { parseISO } from "../time/date.ts";
 
 export type Locale = "en" | "tr";
 
@@ -34,7 +35,13 @@ export type AnnouncementLocaleContent = {
   /** Optional rich text (Markdown). `null` when empty. */
   readonly body: string | null;
   readonly pinned: boolean;
-  readonly publishedAt: string;
+  /**
+   * The editorial date: editor-set, required, non-localized (shared by both locales), and
+   * stable across edits. It is the only date shown and the sort key. Strapi's system
+   * `publishedAt` is deliberately NOT part of this type: Strapi 5 resets it on every
+   * republish (verified on 5.52.3), so an edited old announcement would jump to the top.
+   */
+  readonly announcementDate: string;
   readonly coverImage: AnnouncementCoverImage | null;
 };
 
@@ -76,8 +83,13 @@ export function mapAnnouncement(raw: unknown): AnnouncementLocaleContent {
   if (typeof raw.pinned !== "boolean") {
     fail(`"pinned" must be a boolean`);
   }
-  if (typeof raw.publishedAt !== "string" || raw.publishedAt.length === 0) {
-    fail(`"publishedAt" must be a non-empty string`);
+  // A full, offset-qualified instant: a date-only value would make same-day order arbitrary.
+  if (
+    typeof raw.announcementDate !== "string" ||
+    !raw.announcementDate.includes("T") ||
+    parseISO(raw.announcementDate) === null
+  ) {
+    fail(`"announcementDate" must be an ISO 8601 date-time with a time and offset`);
   }
 
   let coverImage: AnnouncementCoverImage | null = null;
@@ -104,22 +116,25 @@ export function mapAnnouncement(raw: unknown): AnnouncementLocaleContent {
     excerpt: trimmed(raw.excerpt),
     body: trimmed(raw.body),
     pinned: raw.pinned,
-    publishedAt: raw.publishedAt,
+    announcementDate: raw.announcementDate,
     coverImage,
   };
 }
 
 /**
- * Pinned entries first, then `publishedAt` descending within each group —
- * `docs/task-assignments.html` specifies only the primary grouping; the
- * secondary order is this design's own documented assumption.
+ * Pinned entries first, then `announcementDate` newest first, then `documentId` ascending,
+ * so the order is total and deterministic, including same-minute entries and both locales
+ * (both fields are shared by every locale variant). Never `publishedAt` or `updatedAt`:
+ * both move whenever an announcement is edited and republished.
  */
 export function orderAnnouncements(
   entries: readonly AnnouncementLocaleContent[],
 ): AnnouncementLocaleContent[] {
   return [...entries].sort((a, b) => {
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-    return Date.parse(b.publishedAt) - Date.parse(a.publishedAt);
+    const byDate = parseISO(b.announcementDate)! - parseISO(a.announcementDate)!;
+    if (byDate !== 0) return byDate;
+    return a.documentId < b.documentId ? -1 : a.documentId > b.documentId ? 1 : 0;
   });
 }
 
