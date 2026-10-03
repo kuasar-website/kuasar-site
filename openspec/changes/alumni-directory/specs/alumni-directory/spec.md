@@ -94,3 +94,53 @@ correct shape, for zero, one, and many entries.
 #### Scenario: Zero, one, and many entries all group without error
 - **WHEN** the input list has zero, one, or many entries
 - **THEN** grouping succeeds in every case
+
+### Requirement: Consent-audit fields are never retrievable through the Content API
+The CMS SHALL never return an alumnus's `consentRecordedAt` or `consentSource` through the
+Content API, to the Public role or to an API token, and SHALL refuse any request that
+selects, filters or sorts on them, while still requiring both before an alumnus can be
+published.
+
+#### Scenario: Public list and single reads
+- **WHEN** an unauthenticated caller requests `/api/alumni` or `/api/alumni/<documentId>` for a published alumnus
+- **THEN** the response contains the public fields and neither consent field nor its value
+
+#### Scenario: Selecting, filtering or sorting on a consent field
+- **WHEN** a caller (unauthenticated or with an API token) uses `fields`, `filters` or `sort` on `consentSource` or `consentRecordedAt`
+- **THEN** the request is refused with 400, and a correct guess is indistinguishable from a wrong one
+
+#### Scenario: Publishing still requires consent
+- **WHEN** an editor tries to publish an alumnus with no consent evidence
+- **THEN** publishing fails
+
+#### Scenario: A regression is caught at build time
+- **WHEN** the Content API returns either consent field in any alumni response
+- **THEN** the site build fails, naming the field and not printing its value
+
+### Requirement: The Alumni page lists published alumni in both locales
+The site SHALL serve `/en/alumni` and `/tr/mezunlar` as statically generated pages inside
+the shared shell, each server-rendered with `<html lang>` equal to its locale, with canonical
+and hreflang alternates, showing only published alumni grouped by `yearLeft`. On `/tr`, a
+person's Turkish `roleHeld` SHALL be used when present, and otherwise the English one with
+`lang="en"`. A LinkedIn link SHALL render only for an HTTPS `linkedin.com` URL. A photo SHALL
+render only when the consent gate allows it. The pages SHALL NOT be listed in the sitemap.
+
+#### Scenario: Zero published alumni
+- **WHEN** no alumnus is published
+- **THEN** both pages return 200 with a localized empty message, not a 404 and not an error
+
+#### Scenario: One published alumnus
+- **WHEN** exactly one alumnus is published, with an English record only
+- **THEN** both pages show one card, the Turkish page with the English role marked `lang="en"`
+
+#### Scenario: Many published alumni
+- **WHEN** more alumni are published than fit in one Strapi page, across several leaving years
+- **THEN** every one is shown, in groups ordered newest year first, alphabetical within a group, unknown year last
+
+#### Scenario: A draft is never public
+- **WHEN** an alumnus exists only as a draft
+- **THEN** neither page shows them, whether or not the visitor has a Draft Mode cookie from another section's preview
+
+#### Scenario: An invalid LinkedIn URL
+- **WHEN** an alumnus's `linkedinUrl` is `http:`, on another host, or malformed
+- **THEN** no LinkedIn link is rendered and the card is otherwise unchanged

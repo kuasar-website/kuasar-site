@@ -18,6 +18,8 @@ const cms = createServer((request, response) => {
   requests++;
   const url = new URL(request.url, 'http://localhost');
   assert.equal(url.searchParams.get('status'), 'published');
+  // Alumni (another build-time Strapi consumer) is empty in this fixture.
+  if (url.pathname === '/api/alumni') { response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify({ data: [], meta: { pagination: { page: Number(url.searchParams.get('pagination[page]')), pageCount: 0 } } })); return; }
   const locale = url.searchParams.get('locale');
   const page = Number(url.searchParams.get('pagination[page]'));
   // Deliberately cap the server at 25; the adapter must follow pageCount.

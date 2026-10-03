@@ -11,13 +11,20 @@
  * `required: true` there. Everything else below is schema-optional.
  */
 
+import type { StrapiImage } from "../media/image.ts";
 import { parseISO } from "../time/date.ts";
 
 export type Locale = "en" | "tr";
 
 export type SubTeam = "propulsion" | "avionics" | "structures" | "software";
 
-export type AlumniPhoto = { readonly url: string };
+/**
+ * `photo` is the CMS `shared.image` component (one image plus alt text in both locales),
+ * passed through unchanged for `lib/media/image.ts` `toMediaImage` to validate and render.
+ * (launch/alumni: the earlier `{ url }` shape did not match the schema, and threw on the
+ * real shape.)
+ */
+export type AlumniPhoto = StrapiImage;
 
 /**
  * Deliberately its own type, not `Omit<RawAlumnus, "consentRecordedAt" |
@@ -119,12 +126,16 @@ export function mapAlumnus(raw: unknown): PublicAlumni {
 
   let photo: AlumniPhoto | null = null;
   if (raw.photo !== undefined && raw.photo !== null) {
-    if (!isRecord(raw.photo) || typeof raw.photo.url !== "string") {
-      fail(`"photo" must be null or an object with a string "url"`);
+    if (!isRecord(raw.photo) || Array.isArray(raw.photo)) {
+      fail(`"photo" must be null or a shared.image component object`);
+    }
+    const image = raw.photo.image;
+    if (image != null && (!isRecord(image) || Array.isArray(image))) {
+      fail(`"photo.image" must be null or an object`);
     }
     // A well-formed photo is only exposed with valid consent evidence —
     // never throws for that reason, only suppresses it.
-    photo = hasValidConsentEvidence(raw) ? { url: raw.photo.url } : null;
+    photo = hasValidConsentEvidence(raw) ? (raw.photo as AlumniPhoto) : null;
   }
 
   return {

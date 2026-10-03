@@ -1,0 +1,41 @@
+name: Tier B alumni baseline
+# alumni-directory: mapper and published-only loader unit tests (including the consent
+# privacy canary), then real production builds of /en/alumni and /tr/mezunlar against a
+# synthetic Strapi: a build MUST fail if the CMS exposes a consent field; zero and four
+# alumni (published-only, no consent in any page, portraits suppressed without consent,
+# LinkedIn allow-list, grouping, Turkish fallback, metadata, lang, navigation, 404s, sitemap
+# exclusion, no request-time CMS fetches, Draft Mode isolation, budgets).
+# The real-Strapi proof that the consent fields are private is Tier B CMS drafts
+# (tests/cms-drafts/check.mjs). Not a required check; path-filtered.
+on:
+  push:
+    branches: [launch/alumni]
+    paths:
+      - "apps/web/**"
+      - "tests/alumni/**"
+      - "package*.json"
+      - ".nvmrc"
+      - ".github/workflows/tier-b-alumni.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "tests/alumni/**"
+      - "package*.json"
+      - ".nvmrc"
+      - ".github/workflows/tier-b-alumni.yml"
+permissions:
+  contents: read
+jobs:
+  alumni-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: node --test apps/web/lib/cms/alumni.test.ts apps/web/lib/cms/alumni-data.test.ts
+      - run: node tests/alumni/check-routes.mjs
