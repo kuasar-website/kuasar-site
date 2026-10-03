@@ -16,14 +16,19 @@ const VALID: Record<string, unknown> = {
   body: "Full body text.",
   pinned: false,
   publishedAt: "2026-06-01T10:00:00.000Z",
-  coverImage: { url: "https://media.example/launch.jpg" },
+  // The shared.image component, as Strapi 5 returns it with populate.
+  coverImage: {
+    image: { url: "https://media.kuasar.org/launch.jpg", width: 1600, height: 900 },
+    altEn: "Rocket on the pad",
+    altTr: "Rampadaki roket",
+  },
 };
 
 test("a well-formed Strapi response maps successfully", () => {
   const mapped = mapAnnouncement(VALID);
   assert.equal(mapped.title, "Launch success");
   assert.equal(mapped.locale, "en");
-  assert.deepEqual(mapped.coverImage, { url: "https://media.example/launch.jpg" });
+  assert.deepEqual(mapped.coverImage, VALID.coverImage);
 });
 
 test("coverImage is null when absent", () => {
@@ -31,6 +36,26 @@ test("coverImage is null when absent", () => {
   delete raw.coverImage;
   const mapped = mapAnnouncement(raw);
   assert.equal(mapped.coverImage, null);
+});
+
+test("a coverImage that is not a component object throws", () => {
+  assert.throws(() => mapAnnouncement({ ...VALID, coverImage: "x.jpg" }), /"coverImage"/);
+  assert.throws(() => mapAnnouncement({ ...VALID, coverImage: { image: "x.jpg" } }), /"coverImage.image"/);
+});
+
+test("optional excerpt and body map to null when Strapi returns null or blank", () => {
+  const mapped = mapAnnouncement({ ...VALID, excerpt: null, body: "   " });
+  assert.equal(mapped.excerpt, null);
+  assert.equal(mapped.body, null);
+  const absent = { ...VALID };
+  delete absent.excerpt;
+  delete absent.body;
+  assert.equal(mapAnnouncement(absent).excerpt, null);
+});
+
+test("a wrong-typed optional field still throws", () => {
+  assert.throws(() => mapAnnouncement({ ...VALID, excerpt: 42 }), /"excerpt"/);
+  assert.throws(() => mapAnnouncement({ ...VALID, body: { text: "x" } }), /"body"/);
 });
 
 test("a missing required field throws, naming it", () => {

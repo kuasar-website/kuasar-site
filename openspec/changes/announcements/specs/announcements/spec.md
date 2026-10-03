@@ -72,3 +72,35 @@ behavior, it does not (see `design.md`).
   required at the schema level)
 - **THEN** the system throws rather than returning a record with no
   content — a silent fallback to nothing is indistinguishable from a bug
+
+### Requirement: The News page lists published announcements in both locales
+The site SHALL serve `/en/news` and `/tr/duyurular` as statically generated pages inside
+the shared shell, each server-rendered with `<html lang>` equal to its locale and with
+canonical and hreflang alternates. The pages SHALL show only published announcements,
+pinned first and then newest first, each with its title, publication date, excerpt and
+body. On `/tr`, an announcement without a Turkish variant SHALL be shown in English with
+`lang="en"` on that announcement. `/en` SHALL NOT show a Turkish-only announcement.
+
+#### Scenario: Zero published announcements
+- **WHEN** no announcement is published, in either locale
+- **THEN** both `/en/news` and `/tr/duyurular` return 200 with a localized empty message, not a 404 and not an error, and neither appears in the sitemap
+
+#### Scenario: One published announcement
+- **WHEN** exactly one announcement is published, in English only
+- **THEN** `/en/news` shows it, and `/tr/duyurular` shows it in English with `lang="en"`, and both pages appear in the sitemap
+
+#### Scenario: Many published announcements
+- **WHEN** more announcements are published than fit in one Strapi page
+- **THEN** every one is shown, pinned first, then newest first, in both locales
+
+#### Scenario: A draft is never public
+- **WHEN** an announcement exists only as a draft
+- **THEN** neither page shows it, whether or not the visitor has a Draft Mode cookie from another section's preview
+
+#### Scenario: Editor formatting cannot break the page
+- **WHEN** an announcement body contains Markdown outside the supported subset, raw HTML, an image or an unsafe link
+- **THEN** the page still builds and renders, showing that content as escaped text and never as active HTML or a link to a non-HTTPS target
+
+#### Scenario: Publishing reaches the page without a deploy
+- **WHEN** an announcement is published or unpublished in Strapi and the webhook calls `/api/revalidate`
+- **THEN** both pages change without a deploy, with no 404 (the first view may still be stale, per publish-integration's known gap)

@@ -13,17 +13,26 @@
  * design.md, Context, for sources.
  */
 
+import type { StrapiImage } from "../media/image.ts";
+
 export type Locale = "en" | "tr";
 
-export type AnnouncementCoverImage = { readonly url: string };
+/**
+ * `coverImage` is the CMS `shared.image` component (one image plus alt text in both
+ * locales), passed through unchanged; `lib/media/image.ts` `toMediaImage` validates and
+ * renders it. (launch/news: the earlier `{ url }` shape did not match the schema.)
+ */
+export type AnnouncementCoverImage = StrapiImage;
 
 export type AnnouncementLocaleContent = {
   readonly documentId: string;
   readonly locale: Locale;
   readonly title: string;
   readonly slug: string;
-  readonly excerpt: string;
-  readonly body: string;
+  /** Optional in the schema: Strapi returns `null` when an editor leaves it empty. */
+  readonly excerpt: string | null;
+  /** Optional rich text (Markdown). `null` when empty. */
+  readonly body: string | null;
   readonly pinned: boolean;
   readonly publishedAt: string;
   readonly coverImage: AnnouncementCoverImage | null;
@@ -58,11 +67,11 @@ export function mapAnnouncement(raw: unknown): AnnouncementLocaleContent {
   if (typeof raw.slug !== "string" || raw.slug.length === 0) {
     fail(`"slug" must be a non-empty string`);
   }
-  if (typeof raw.excerpt !== "string") {
-    fail(`"excerpt" must be a string`);
+  if (raw.excerpt != null && typeof raw.excerpt !== "string") {
+    fail(`"excerpt" must be a string or null`);
   }
-  if (typeof raw.body !== "string") {
-    fail(`"body" must be a string`);
+  if (raw.body != null && typeof raw.body !== "string") {
+    fail(`"body" must be a string or null`);
   }
   if (typeof raw.pinned !== "boolean") {
     fail(`"pinned" must be a boolean`);
@@ -74,19 +83,26 @@ export function mapAnnouncement(raw: unknown): AnnouncementLocaleContent {
   let coverImage: AnnouncementCoverImage | null = null;
 
   if (raw.coverImage !== undefined && raw.coverImage !== null) {
-    if (!isRecord(raw.coverImage) || typeof raw.coverImage.url !== "string") {
-      fail(`"coverImage" must be null or an object with a string "url"`);
+    if (!isRecord(raw.coverImage) || Array.isArray(raw.coverImage)) {
+      fail(`"coverImage" must be null or a shared.image component object`);
     }
-    coverImage = { url: raw.coverImage.url };
+    const image = raw.coverImage.image;
+    if (image != null && (!isRecord(image) || Array.isArray(image))) {
+      fail(`"coverImage.image" must be null or an object`);
+    }
+    coverImage = raw.coverImage as AnnouncementCoverImage;
   }
+
+  const trimmed = (value: unknown) =>
+    typeof value === "string" && value.trim() ? value : null;
 
   return {
     documentId: raw.documentId,
     locale: raw.locale,
     title: raw.title,
     slug: raw.slug,
-    excerpt: raw.excerpt,
-    body: raw.body,
+    excerpt: trimmed(raw.excerpt),
+    body: trimmed(raw.body),
     pinned: raw.pinned,
     publishedAt: raw.publishedAt,
     coverImage,

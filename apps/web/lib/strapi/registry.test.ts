@@ -4,6 +4,7 @@ import { allTags, CACHE_TAGS, CONTENT_TYPES, pathsFor, previewPathFor } from './
 import { EVENTS_CACHE_TAG } from '../events/data.ts';
 import { SCHEDULE_CACHE_TAG } from '../schedule/data.ts';
 import { SUMMIT_CACHE_TAG } from '../summit/data.ts';
+import { NEWS_CACHE_TAG } from '../cms/announcements-data.ts';
 import { PREVIEWABLE_UIDS } from '../../../cms/src/preview-url.ts';
 
 test('registry covers exactly the seven CMS collections', () => {
@@ -17,6 +18,7 @@ test('merged loaders use the registry tags (no drift)', () => {
   assert.equal(EVENTS_CACHE_TAG, CACHE_TAGS.events);
   assert.equal(SCHEDULE_CACHE_TAG, CACHE_TAGS.schedule);
   assert.equal(SUMMIT_CACHE_TAG, CACHE_TAGS.summit);
+  assert.equal(NEWS_CACHE_TAG, CACHE_TAGS.announcements);
 });
 
 test('paths cover both locales; Turkish fallback means both are always revalidated', () => {
@@ -33,7 +35,9 @@ test('paths cover both locales; Turkish fallback means both are always revalidat
 test('preview targets are derived from the registry only', () => {
   assert.equal(previewPathFor('api::schedule-event.schedule-event', 'tr'), '/tr/takvim');
   assert.equal(previewPathFor('api::sponsor.sponsor', 'en'), null);
-  assert.equal(previewPathFor('api::announcement.announcement', 'en'), null, 'until Dev 3 ships the route');
+  // The News route exists (launch/news), but preview stays off: the preview token is not
+  // scoped to Announcement and the News loader is published-only. Enabling it is its own change.
+  assert.equal(previewPathFor('api::announcement.announcement', 'en'), null, 'preview not enabled for Announcement');
 });
 
 test('CMS previewable list agrees with the registry', () => {
