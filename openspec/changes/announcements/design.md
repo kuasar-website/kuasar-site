@@ -111,3 +111,66 @@ response shape at all.
   the same free fallback. Not fixed directly here (see Non-Goals); flagged
   prominently in `proposal.md` so it surfaces in review rather than
   drifting further.
+
+## launch/news (2026-10-03): pages and live fetch
+
+`site-shell` and `publish-integration` have merged, so the Non-Goals above about pages and
+fetching no longer apply. This section decides what was built and why. It points at
+existing decisions rather than restating them.
+
+- **Route shape.** `/en/news` and `/tr/duyurular` follow the events and schedule pattern
+  exactly: one static route folder per localized segment, `generateStaticParams` returning
+  `[{}]` only for its own locale and only when `STRAPI_URL` is set, `dynamic = "error"`,
+  `dynamicParams = false`, `revalidate = false`, and `sectionAlternates("news", …)`. A
+  Vercel production build without `STRAPI_URL` fails explicitly. Zero announcements is
+  an empty message, never a 404 (the schedule rule).
+- **Live fetch.** `lib/cms/announcements-data.ts` uses publish-integration's `strapiRead()`
+  convention (D4) with the registry tag `announcements`. Published only, every page,
+  drafts skipped, tr → en fallback via `selectAnnouncementLocale`. A Strapi publish,
+  unpublish or delete therefore reaches the page through `/api/revalidate` with no new
+  code, with the same known first-reload gap (publish-integration 6.4).
+- **No Draft Mode branch, and preview stays off.** The server-only preview token is
+  scoped to the four previewable types (publish-integration 8.1, runbook step 7). A loader
+  that followed Draft Mode would fail with 403 for any editor holding a preview cookie from
+  another section. Enabling Announcement preview is a separate change: registry,
+  `apps/cms/src/preview-url.ts` (which also triggers a CMS deploy), the token's scope, and
+  a loader branch.
+- **No detail routes yet.** Every `[locale]` route is fallback-false (`dynamicParams =
+  false`), so `/news/[slug]` would exist only for slugs present at build time, and a newly
+  published announcement's link would 404 until the next deploy (publish-integration D2).
+  The list page therefore renders each announcement in full, with its slug as the
+  fragment id. Detail routes wait for the same locale-routing decision as 6.4.
+- **The body renderer never throws** (`components/news/body.ts`). `parseMissionBody`
+  rejects unsupported Markdown because git content is checked in CI. Editor rich text
+  isn't, and a throw would fail the build or a revalidation. Supported blocks reuse
+  `MissionProse`; everything else becomes escaped text, images are dropped, and links must
+  be HTTPS or root-relative (`parseInline`).
+- **Mapper correction.** The schema makes `excerpt` and `body` optional and `coverImage` a
+  `shared.image` component, so the mapper now accepts `null` for the former and passes the
+  component to `toMediaImage` (approved host, dimensions, localized alt).
+- **The editorial date is `announcementDate`, never `publishedAt`.** Raised in review and
+  verified on Strapi 5.52.3 with a real instance:
+  - republishing an edited entry deletes and recreates its published row;
+  - so `publishedAt` and `updatedAt` jump to now, and only `createdAt` survives;
+  - ordering by `publishedAt` would move any corrected old announcement to the top and
+    show the correction date.
+
+  The schema therefore gains `announcementDate` (datetime, required, non-localized, so
+  both locales share it). The mapper requires a full date-time and doesn't carry
+  `publishedAt`; the loader reads it only to skip draft rows. The order is pinned, then
+  `announcementDate` newest first, then `documentId`, which is total and identical in
+  both locales. The page shows the date and a 24-hour time in Europe/Istanbul, using the
+  schedule's formatters (`lib/schedule/calendar.ts`), so same-day order is visible and
+  can be checked live.
+
+  Rejected alternatives:
+  - `createdAt`: the draft's creation, not the editorial date, and per-locale;
+  - Strapi's `firstPublishedAt`: only behind the global `features.future.experimental_firstPublishedAt`
+    flag, which migrates every draft-and-publish table.
+
+  Proven by `tests/news/strapi-order.mjs`. Adding the field makes this change touch
+  `apps/cms`, so merging it triggers the digest-verified CMS deploy.
+- **Motion:** none. **First-load JS:** the News routes are Server Components with no
+  client code of their own; the measured figures are in the PR. **Strapi:** one new
+  field, `announcementDate` (datetime, required, non-localized). No migration is needed:
+  there are 0 announcements.

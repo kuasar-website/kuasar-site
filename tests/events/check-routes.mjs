@@ -23,8 +23,8 @@ const cms = createServer((request, response) => {
   const locale = url.searchParams.get('locale');
   const page = Number(url.searchParams.get('pagination[page]'));
   // Deliberately cap the server at 25; the adapter must follow pageCount.
-  // The schedule and the Galactic Summit (other build-time Strapi consumers) are empty in this fixture.
-  const otherConsumer = ['/api/schedule-events', '/api/galactic-summits'].includes(url.pathname);
+  // The schedule, the Galactic Summit and News (other build-time Strapi consumers) are empty in this fixture.
+  const otherConsumer = ['/api/schedule-events', '/api/galactic-summits', '/api/announcements'].includes(url.pathname);
   const amount = otherConsumer ? 0 : locale === 'tr' ? Math.floor(count / 2) : count;
   const rows = Array.from({ length: amount }, (_, i) => ({ documentId: `event-${i}`, locale,
     publishedAt: '2026-01-01T00:00:00Z', title: `${locale} Fixture ${i}`, eventNumber: i + 1,

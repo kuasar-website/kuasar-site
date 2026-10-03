@@ -1,0 +1,55 @@
+name: Tier B news baseline
+# announcements (News): mapper, ordering, date formatting, published-only loader and body
+# renderer unit tests; real production builds of /en/news and /tr/duyurular at zero and
+# three announcements against a synthetic Strapi (published-only, drafts never public,
+# Turkish fallback, announcementDate ordering incl. same-day times and a republished item,
+# localized date + time, media, escaped Markdown, metadata, lang, navigation, 404s, sitemap,
+# no request-time CMS fetches, budgets); and a real-Strapi check that republishing (which
+# resets Strapi's publishedAt) never reorders News. Not a required check; path-filtered.
+on:
+  push:
+    branches: [launch/news]
+    paths:
+      - "apps/web/**"
+      - "apps/cms/src/api/announcement/**"
+      - "tests/news/**"
+      - "package*.json"
+      - ".nvmrc"
+      - ".github/workflows/tier-b-news.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "apps/cms/src/api/announcement/**"
+      - "tests/news/**"
+      - "package*.json"
+      - ".nvmrc"
+      - ".github/workflows/tier-b-news.yml"
+permissions:
+  contents: read
+jobs:
+  news-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: throwaway
+          POSTGRES_DB: news_order
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: node --test apps/web/lib/cms/announcements.test.ts apps/web/lib/cms/announcements-data.test.ts apps/web/components/news/body.test.ts apps/web/components/news/date.test.ts
+      - run: node tests/news/strapi-order.mjs
+        env:
+          DATABASE_URL: postgres://postgres:throwaway@localhost:5432/news_order
+      - run: node tests/news/check-routes.mjs

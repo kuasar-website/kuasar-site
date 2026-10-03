@@ -59,15 +59,77 @@
       addition `git-content-pipeline` made, needed independently here for
       the same reason), and `package.json`'s new `test:cms` line.
 
-## 6. Explicitly blocked — not attempted
+## 6. Pages and live fetch (`launch/news`, 2026-10-03)
 
-- [ ] 6.1 **Blocked by `site-shell`:** `app/[locale]/(news)/` list and
-      detail pages. No `app/[locale]/` directory exists yet; not created
-      here even as a placeholder.
-- [ ] 6.2 **Blocked by `publish-integration`:** the live fetch function,
-      its base-URL environment variable, and revalidation tags. No such
-      convention exists anywhere in the codebase yet; not invented here.
+`site-shell` and `publish-integration` have both merged, so the two blockers below are gone.
+Design: "launch/news" in design.md.
+
+- [x] 6.1 `app/[locale]/(news)/` **list** pages, `/en/news` and `/tr/duyurular`. Each is a
+      static Server Component in the events/schedule shape (`components/news/page.tsx`,
+      `dynamic = "error"`, `dynamicParams = false`, `revalidate = false`), with canonical
+      and hreflang via `sectionAlternates("news", …)`. Each announcement renders in full as
+      an `<article id={slug}>`: cover image, pinned marker, publication date, title, excerpt,
+      body. Zero announcements show an explicit empty message, never a 404.
+- [ ] 6.1a **Deferred, not blocked by missing code:** per-slug detail routes. With
+      `dynamicParams = false` on every `[locale]` route, a detail page for an announcement
+      published after the last deploy would 404 until the next deploy. That's the same
+      fallback-false constraint as publish-integration design D2 and its task 6.4.
+      Revisit with that locale-routing decision. Until then the list page carries the
+      whole announcement, so nothing is unreachable.
+- [x] 6.2 Live fetch: `lib/cms/announcements-data.ts` `fetchNewsData()` uses
+      `strapiRead(NEWS_CACHE_TAG)` (publish-integration's convention): published only,
+      `STRAPI_URL` plus optional `STRAPI_API_TOKEN`, force-cache, tag `announcements`
+      (= `CACHE_TAGS.announcements`, asserted in `registry.test.ts`), every pagination page,
+      drafts skipped, tr → en fallback via `selectAnnouncementLocale`, ordered via
+      `orderAnnouncements`. **No Draft Mode branch**: Announcement preview stays off
+      (design.md, "launch/news").
+- [x] 6.4 `mapAnnouncement` corrected to the actual schema. `excerpt` and `body` are
+      optional and Strapi returns `null` for them. `coverImage` is the `shared.image`
+      component (`{ image, altEn, altTr }`), not `{ url }`, and is rendered through
+      `toMediaImage`. Tests updated and extended.
+- [x] 6.5 `body` (editor Markdown) is rendered by `components/news/body.ts` into
+      `MissionProse` blocks. It never throws: unsupported Markdown, images, raw HTML and
+      unsafe links degrade to escaped text.
+- [x] 6.6 The sitemap lists News only once at least one announcement is published (the
+      events rule). The shell navigation already linked `/en/news` and `/tr/duyurular`,
+      and is unchanged.
+- [x] 6.7 **`announcementDate` is the editorial date; `publishedAt` is never used for
+      ordering or display.** Strapi 5 resets `publishedAt` (and `updatedAt`) on every
+      republish. Verified on 5.52.3: the published row is deleted and recreated, and only
+      `createdAt` survives. So an edited old announcement would jump to the top. The schema
+      gains `announcementDate` (datetime, required, non-localized). The mapper requires a
+      full date-time and drops `publishedAt`. The order is pinned, then `announcementDate`
+      newest first, then `documentId`. The page shows the date **and** 24-hour time in
+      Europe/Istanbul via the schedule's formatters, so same-day order is visible. Strapi's
+      experimental `firstPublishedAt` was considered and rejected: it's a global experimental
+      flag with a database migration. **Supersedes** the `publishedAt` wording of 2.1, 4.4
+      and 4.5 above (kept as history).
 - [ ] 6.3 **Flagged, not fixed here:** `design/i18n.md`'s incorrect claim
       that Strapi provides silent locale fallback automatically — a
       correction to that shared document is offered as a follow-up
       decision, not made unilaterally as part of this capability.
+
+## 7. Verification (`launch/news`)
+
+- [x] 7.1 Unit tests: `lib/cms/announcements.test.ts`, `lib/cms/announcements-data.test.ts`
+      (Tier A `test:cms`), `components/news/body.test.ts` and `components/news/date.test.ts`.
+      They cover ordering: old/new, republish, same-day times, pinned, ties. Evidence in the PR.
+- [x] 7.3 `tests/news/strapi-order.mjs` (real Strapi, throwaway Postgres, in Tier B news):
+      publishing without `announcementDate` fails. After A is edited and republished, Strapi
+      gives it a newer `publishedAt` than B, yet News still lists B before A. Same-day later
+      time first, pinned first, same order on `/tr`.
+- [x] 7.2 `tests/news/check-routes.mjs`: real builds at zero and three announcements against a
+      synthetic Strapi, run by `.github/workflows/tier-b-news.yml` (Tier B, not required).
+      **Tier A** covers typecheck, lint, the unit tests, the build and the weight budgets.
+      **No CI gate checks a live CMS;** that is task 8.1.
+
+## 8. After merge (live; manual)
+
+- [ ] 8.1 Production: `/en/news` and `/tr/duyurular` return 200 with `lang="en"`/`lang="tr"`
+      and the empty state (0 published today), and the shell navigation reaches them.
+- [ ] 8.2 Publish a test announcement in en and tr: it appears on both pages after
+      revalidation (first view may be stale: publish-integration 6.4). Unpublish: it
+      disappears from both. Delete the test entry.
+- [ ] 8.3 Ordering acceptance: publish two test announcements on the same day at different
+      `announcementDate` times. The page shows both times, the later one first. Edit and
+      republish the older one: its position and displayed date don't change.

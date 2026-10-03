@@ -1,0 +1,65 @@
+.empty {
+  color: var(--color-ink-body);
+  font-size: var(--text-lg);
+  padding-block: var(--space-section-tight);
+  padding-inline: calc(var(--spacing) * 6);
+}
+
+.list {
+  display: grid;
+  gap: var(--space-section-tight);
+  list-style: none;
+  margin: 0;
+  max-inline-size: 48rem;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  padding-block: var(--space-section-tight);
+  padding-inline: calc(var(--spacing) * 6);
+}
+
+.article {
+  border-block-start: 1px solid var(--color-border);
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+  padding-block-start: calc(var(--spacing) * 8);
+  scroll-margin-block-start: calc(var(--spacing) * 8);
+}
+
+.cover img {
+  block-size: auto;
+  inline-size: 100%;
+}
+
+.meta {
+  color: var(--color-ink-muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--text-sm);
+  gap: calc(var(--spacing) * 3);
+}
+
+.pinned {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.title {
+  color: var(--color-ink);
+  font-size: var(--text-3xl);
+  font-weight: 650;
+}
+
+.title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.title a:hover,
+.title a:focus-visible {
+  text-decoration: underline;
+}
+
+.excerpt {
+  color: var(--color-ink-body);
+  font-size: var(--text-lg);
+}
