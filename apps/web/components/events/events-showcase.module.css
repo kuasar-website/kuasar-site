@@ -7,6 +7,15 @@
   overflow-wrap: anywhere;
 }
 
+/* The Events page's zero-content message (components/events/page.tsx), matching the
+   schedule's empty state. The showcase itself still renders nothing when empty. */
+.empty {
+  color: var(--color-ink-body);
+  font-size: var(--text-lg);
+  padding-block: var(--space-section-tight);
+  padding-inline: calc(var(--spacing) * 6);
+}
+
 .heading {
   color: var(--color-ink);
   font-size: var(--text-3xl);

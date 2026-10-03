@@ -74,10 +74,19 @@ try {
       assert.equal((html.match(/<article\b/g) ?? []).length, count * 2);
       assert.equal((html.match(/<time\b/g) ?? []).length, count * 2);
       assert.doesNotMatch(html, /data-time-state=|<video\b/);
+      assert.match(html, new RegExp(`<html[^>]*\\blang="${locale}"`), `${path} server-renders lang="${locale}"`);
+      const empty = locale === 'tr' ? 'Henüz etkinlik yok.' : 'No events yet.';
+      assert.equal(html.includes(empty), !count, `${path}: the empty message shows only when there are no events`);
       if (count) {
         assert.ok(html.includes('https://media.kuasar.org/cdn-cgi/image/'));
         if (locale === 'tr') { assert.ok(html.includes('tr Fixture 0')); assert.ok(html.includes('en Fixture 49')); }
       }
+    }
+    // The home page composes EventsSection and must keep hiding it when there are no events.
+    for (const home of ['/en', '/tr']) {
+      const html = await (await fetch(`http://127.0.0.1:4178${home}`)).text();
+      assert.equal(html.includes('id="events"'), count > 0, `${home}: the Events section renders only when there are events`);
+      assert.ok(!html.includes('No events yet.') && !html.includes('Henüz etkinlik yok.'), `${home}: never shows the page-only empty message`);
     }
     assert.equal((await fetch('http://127.0.0.1:4178/tr/events')).status, 404);
     assert.equal((await fetch('http://127.0.0.1:4178/en/etkinlikler')).status, 404);
@@ -87,5 +96,5 @@ try {
     await run(resolve(root, 'scripts/checks/budgets.mjs'), [], root);
     await stop();
   }
-  console.log('Events production routes passed: empty/fifty, pagination/fallback, media, metadata, shell, switcher, sitemap, static requests and budgets.');
+  console.log('Events production routes passed: empty/fifty, empty message, home hides the empty section, pagination/fallback, media, metadata, lang, shell, switcher, sitemap, static requests and budgets.');
 } finally { await stop(); await new Promise(resolve => cms.close(resolve)); }
