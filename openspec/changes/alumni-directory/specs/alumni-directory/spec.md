@@ -123,7 +123,14 @@ the shared shell, each server-rendered with `<html lang>` equal to its locale, w
 and hreflang alternates, showing only published alumni grouped by `yearLeft`. On `/tr`, a
 person's Turkish `roleHeld` SHALL be used when present, and otherwise the English one with
 `lang="en"`. A LinkedIn link SHALL render only for an HTTPS `linkedin.com` URL. A photo SHALL
-render only when the consent gate allows it. The pages SHALL NOT be listed in the sitemap.
+render only when the consent gate allows it. The pages SHALL NOT be listed in the sitemap,
+SHALL be served with page-level robots metadata `noindex` (and `nofollow`), and SHALL NOT
+be disallowed in `robots.txt`, so crawlers can read the directive. No other public page
+SHALL gain `noindex` from this.
+
+#### Scenario: The directory is reachable but not indexable
+- **WHEN** a crawler or visitor fetches `/en/alumni` or `/tr/mezunlar`
+- **THEN** the page returns 200, is linked from the navigation in its locale, contains `<meta name="robots" content="noindex, nofollow"/>`, is absent from `sitemap.xml`, and `robots.txt` does not block it
 
 #### Scenario: Zero published alumni
 - **WHEN** no alumnus is published

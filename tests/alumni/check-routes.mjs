@@ -99,6 +99,11 @@ try {
       assert.match(html, new RegExp(`<html[^>]*\\blang="${locale}"`), `${path} server-renders lang="${locale}"`);
       assert.ok(html.includes(`rel="canonical" href="${SITE}${path}"`), `${path} canonical`);
       assert.ok(html.includes(`href="${SITE}${other}"`), `${path} hreflang alternate`);
+      for (const [lang, target] of [['en', '/en/alumni'], ['tr', '/tr/mezunlar'], ['x-default', '/en/alumni']]) {
+        assert.ok(html.includes(`<link rel="alternate" hrefLang="${lang}" href="${SITE}${target}"/>`), `${path} hreflang ${lang}`);
+      }
+      // Reachable, never indexed: page-level robots metadata (sitemap exclusion alone isn't enough).
+      assert.equal((html.match(/<meta name="robots"[^>]*>/g) ?? []).join(''), '<meta name="robots" content="noindex, nofollow"/>', `${path}: exactly one robots meta, noindex`);
       assert.ok(html.includes(`href="${path}"`), `${path}: the shell navigation links here`);
       assert.ok(!html.includes('DRAFT-ONLY-ALUMNUS'), `${path}: a draft is never public`);
       assert.doesNotMatch(html, /consentRecordedAt|consentSource/, `${path}: no consent field anywhere in the page or its payload`);
@@ -129,6 +134,15 @@ try {
     assert.ok((await (await get('/tr')).text()).includes('href="/tr/mezunlar"'), 'Turkish home navigation links to Alumni');
     const sitemap = await (await get('/sitemap.xml')).text();
     assert.ok(!sitemap.includes(`${SITE}/en/alumni`) && !sitemap.includes(`${SITE}/tr/mezunlar`), 'Alumni is deliberately not in the sitemap');
+    // robots.txt must let crawlers fetch Alumni, or they could never read the noindex.
+    const robotsTxt = await (await get('/robots.txt')).text();
+    assert.doesNotMatch(robotsTxt, /Disallow:\s*\/(en\/alumni|tr\/mezunlar|en\/?$|tr\/?$|\s*$)/m, 'robots.txt does not block Alumni');
+    // noindex is Alumni-only: no other public page gains it.
+    for (const path of ['/en', '/tr', '/en/events', '/tr/etkinlikler', '/en/about', '/tr/hakkimizda', '/en/schedule', '/tr/takvim']) {
+      const r = await get(path);
+      if (r.status !== 200) continue; // unconfigured-section routes are out of scope here
+      assert.doesNotMatch(await r.text(), /<meta name="robots"[^>]*noindex/, `${path} must not be noindex`);
+    }
     assert.equal(requests, atBuild, 'visiting built pages must not fetch Strapi');
     // Under another section's Draft Mode cookie, Alumni still serves published content.
     const enter = await get(`/api/preview?${new URLSearchParams({ secret: PREVIEW_SECRET, uid: 'api::schedule-event.schedule-event', documentId: 'abcdefghijklmnopqrstuvwx', locale: 'en', status: 'draft' })}`);

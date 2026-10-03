@@ -112,6 +112,12 @@
       gate is unchanged.
 - [x] 6.7 Alumni is deliberately **not** in the sitemap (design.md, "launch/alumni"), and
       not in the content snapshot (ADR 0002, unchanged).
+- [x] 6.8 **Page-level `noindex`**, because sitemap exclusion alone doesn't stop indexing of
+      pages linked from the navigation (raised in review). Both pages emit
+      `<meta name="robots" content="noindex, nofollow"/>`. `robots.txt` deliberately doesn't
+      block them, so crawlers can read the directive. Asserted in
+      `tests/alumni/check-routes.mjs`: the exact tag on both pages, no other public page
+      `noindex`, and `robots.txt` not blocking Alumni.
 
 ## 7. Verification (`launch/alumni`)
 

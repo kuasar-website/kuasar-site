@@ -12,7 +12,15 @@ export function alumniParams(locale: string, expected: Locale) {
 }
 export async function alumniMetadata(params: AlumniPageProps["params"], expected: Locale): Promise<Metadata> {
   if ((await params).locale !== expected || !alumniConfigured()) notFound();
-  return { title: `${ALUMNI_COPY[expected].heading} | KUASAR`, alternates: sectionAlternates("alumni", expected) };
+  return {
+    title: `${ALUMNI_COPY[expected].heading} | KUASAR`,
+    alternates: sectionAlternates("alumni", expected),
+    // A directory of named former members: reachable from the navigation, never indexed
+    // (openspec/changes/alumni-directory, "launch/alumni"). Sitemap exclusion alone doesn't
+    // stop indexing. robots.txt must NOT block this route, or crawlers can't read the
+    // directive. nofollow: the page's only own links are personal LinkedIn profiles.
+    robots: { index: false, follow: false },
+  };
 }
 /** The route exists with zero alumni: an explicit empty message, never a 404. */
 export async function AlumniPage({ params, locale }: AlumniPageProps & { locale: Locale }) {

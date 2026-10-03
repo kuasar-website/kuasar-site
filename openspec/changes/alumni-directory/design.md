@@ -163,10 +163,22 @@ dedicated endpoint.
   shared across locale variants by Strapi.
 - **Draft Mode.** No preview branch. Alumni preview stays off, and the preview token is
   never scoped to Alumni (runbook step 7).
-- **Sitemap.** Deliberately excluded. ADR 0002's erasure promise is "unpublish; gone within
-  one revalidation", and a sitemap actively advertises named former members to crawlers
-  whose caches outlive an unpublish. The page stays reachable from the navigation.
-  Revisit only with a deliberate decision.
+- **Indexing: out of the sitemap AND page-level `noindex`** (corrected after review; the
+  first version relied on sitemap exclusion alone).
+  - **Sitemap exclusion alone doesn't prevent indexing.** The main navigation links to
+    `/en/alumni` and `/tr/mezunlar` from every page, so crawlers discover them anyway.
+  - Both pages therefore emit `<meta name="robots" content="noindex, nofollow"/>`
+    (`robots: { index: false, follow: false }` in `alumniMetadata`, the Next.js Metadata
+    API). `nofollow` is deliberate: the page's only own links are personal LinkedIn
+    profiles, and the navigation links are on every other page anyway.
+  - **`robots.txt` must not block these routes.** A crawler has to fetch the page to read
+    `noindex`; a blocked URL can still be indexed from external links, without its
+    content. `app/robots.ts` allows `/` and stays that way.
+  - Why: ADR 0002's erasure promise is "unpublish; gone within one revalidation".
+    Unpublishing a person removes them from the live directory. `noindex` applies to the
+    directory from launch. It **can't** guarantee immediate removal from every search
+    engine's cache if anything was indexed before; that needs the engine's own removal tools.
+  - The pages stay reachable from the navigation. Revisit only with a deliberate decision.
 - **Motion:** none. **First-load JS:** Server Components only, measured in the PR.
   **Strapi:** no new field. Two attributes gain `private: true` (no migration), which
   triggers a CMS deploy on merge.

@@ -51,9 +51,19 @@ scoped to Alumni.
 - The LinkedIn link renders only for an HTTPS `linkedin.com` URL (`safeLinkedInUrl`);
   anything else is dropped silently, never shown.
 - Zero alumni: an explicit empty message, never a 404.
-- **Not in the sitemap, deliberately.** ADR 0002's erasure promise is "unpublish; gone
-  within one revalidation". Actively advertising a directory of named former members to
-  search engines works against that. The page stays reachable from the navigation.
+- **Never indexed: out of the sitemap AND page-level `noindex`.** Both pages emit
+  `<meta name="robots" content="noindex, nofollow"/>` (`robots` in `alumniMetadata`).
+  - **Why both:** sitemap exclusion alone doesn't stop indexing, because the navigation
+    links here and crawlers find it anyway. ADR 0002's erasure promise is "unpublish; gone
+    within one revalidation", and an index of named former members works against that.
+  - **`nofollow`:** the page's only own links are personal LinkedIn profiles. The
+    navigation links are on every other page, so discovery loses nothing.
+  - **`robots.txt` must never block `/en/alumni` or `/tr/mezunlar`.** A crawler that can't
+    fetch the page can't read the `noindex`, and may still index the bare URL from links.
+  - Unpublishing a person removes them from the live directory at the next revalidation.
+    `noindex` applies from launch. It can't guarantee immediate removal from a search
+    engine's cache if anything was already indexed.
+  - The page stays reachable from the navigation.
 
 ## Tests
 
