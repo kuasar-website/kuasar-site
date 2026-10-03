@@ -4,13 +4,16 @@
 //
 // The symbol is the SECOND "A" of the KUASAR wordmark, the tall rocket-shaped A between S
 // and R, taken as its exact <path> from apps/web/public/brand/kuasar-wordmark.svg (the
-// glyph under the plain `<!-- A -->` comment). It is drawn in --color-ink on a
-// --color-space-950 square, both read from apps/web/app/globals.css, so it stays visible in
-// light and dark browser UI. Outputs, in Next.js App Router metadata-file conventions:
+// glyph under the plain `<!-- A -->` comment). It is drawn in --color-ink-inverted (the
+// brand's colour for the wordmark on light, design/brand.md; read from
+// apps/web/app/globals.css) on a pure white square. There is no light background token, and
+// --color-ink is an off-white text colour, so white is not invented. The white square keeps
+// the black rocket visible on dark browser UI too. Outputs, in Next.js App Router
+// metadata-file conventions:
 //   apps/web/app/icon.svg        vector favicon (<link rel="icon" type="image/svg+xml">)
 //   apps/web/app/favicon.ico     16, 32 and 48 px PNG-in-ICO fallback (/favicon.ico)
 //   apps/web/app/apple-icon.png  180 x 180 Apple touch icon
-// Re-run after any change to the wordmark or those two tokens, and commit the outputs.
+// Re-run after any change to the wordmark or that token, and commit the outputs.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
@@ -54,8 +57,8 @@ function token(name) {
     return Math.round((c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055) * 255).toString(16).padStart(2, '0');
   }).join('')}`;
 }
-const background = token('space-950');
-const ink = token('ink');
+const background = '#ffffff';
+const ink = token('ink-inverted');
 
 // --- Layout: a square viewBox centred on the glyph; the glyph is 72% of the height, so
 // ~14% padding top and bottom, which keeps the rocket legible at 16 px.
