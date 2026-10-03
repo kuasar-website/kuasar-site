@@ -11,7 +11,12 @@ const VALID: Record<string, unknown> = {
   subTeam: "avionics",
   roleHeld: "Avionics Lead",
   linkedinUrl: "https://linkedin.com/in/example",
-  photo: { url: "https://media.example/ada.jpg" },
+  // The shared.image component, as Strapi 5 returns it with populate.
+  photo: {
+    image: { url: "https://media.kuasar.org/ada.jpg", width: 800, height: 800 },
+    altEn: "Ada Lovelace",
+    altTr: "Ada Lovelace",
+  },
   consentRecordedAt: "2024-06-01",
   consentSource: "Signed consent form, June 2024",
 };
@@ -19,8 +24,22 @@ const VALID: Record<string, unknown> = {
 test("a well-formed record with valid consent maps with its photo included", () => {
   const mapped = mapAlumnus(VALID);
   assert.equal(mapped.name, "Ada Lovelace");
-  assert.deepEqual(mapped.photo, { url: "https://media.example/ada.jpg" });
+  assert.deepEqual(mapped.photo, VALID.photo);
   assert.equal(mapped.subTeam, "avionics");
+});
+
+test("a photo whose image is not an object throws", () => {
+  assert.throws(() => mapAlumnus({ ...VALID, photo: { image: "ada.jpg" } }), /"photo.image"/);
+});
+
+test("the Content API's actual shape — consent fields private, so absent — keeps the record and drops the photo", () => {
+  const fromApi = { ...VALID };
+  delete fromApi.consentRecordedAt;
+  delete fromApi.consentSource;
+  const mapped = mapAlumnus(fromApi);
+  assert.equal(mapped.photo, null);
+  assert.equal(mapped.name, "Ada Lovelace");
+  assert.equal(mapped.linkedinUrl, "https://linkedin.com/in/example");
 });
 
 test("a record with no photo maps with photo: null, everything else intact", () => {

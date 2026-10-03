@@ -5,7 +5,7 @@
     "singularName": "alumnus",
     "pluralName": "alumni",
     "displayName": "Alumni",
-    "description": "Former members. consentRecordedAt and consentSource are required at publish — an editor physically cannot publish a portrait without recording where consent came from."
+    "description": "Former members. consentRecordedAt and consentSource are required at publish — an editor physically cannot publish a portrait without recording where consent came from. Both are private: visible in the admin, never returned or filterable through the Content API (launch/alumni)."
   },
   "options": {
     "draftAndPublish": true
@@ -51,11 +51,13 @@
     "consentRecordedAt": {
       "type": "date",
       "required": true,
+      "private": true,
       "pluginOptions": { "i18n": { "localized": false } }
     },
     "consentSource": {
       "type": "string",
       "required": true,
+      "private": true,
       "pluginOptions": { "i18n": { "localized": false } }
     }
   }

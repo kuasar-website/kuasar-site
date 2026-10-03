@@ -1,0 +1,79 @@
+.empty {
+  color: var(--color-ink-body);
+  font-size: var(--text-lg);
+  padding-block: var(--space-section-tight);
+  padding-inline: calc(var(--spacing) * 6);
+}
+
+.directory {
+  display: grid;
+  gap: var(--space-section-tight);
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  padding-block: var(--space-section-tight);
+  padding-inline: calc(var(--spacing) * 6);
+}
+
+.heading {
+  color: var(--color-ink);
+  font-size: var(--text-2xl);
+  font-weight: 650;
+  margin-block-end: calc(var(--spacing) * 6);
+}
+
+.list {
+  display: grid;
+  gap: calc(var(--spacing) * 6);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.card {
+  border-block-start: 1px solid var(--color-border);
+  display: flex;
+  gap: calc(var(--spacing) * 4);
+  padding-block-start: calc(var(--spacing) * 4);
+}
+
+.photo {
+  flex-shrink: 0;
+  inline-size: 6rem;
+}
+
+.photo img {
+  aspect-ratio: 1;
+  block-size: auto;
+  inline-size: 100%;
+  object-fit: cover;
+}
+
+.details {
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+  min-inline-size: 0;
+}
+
+.name {
+  color: var(--color-ink);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.role {
+  color: var(--color-ink-body);
+}
+
+.meta {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.link {
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  inline-size: fit-content;
+  text-underline-offset: 0.2em;
+}

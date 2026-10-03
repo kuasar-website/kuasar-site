@@ -106,3 +106,79 @@ and requires no additional field.
   wrong if the schema itself has a bug relative to intent → flagged here
   explicitly rather than silently preferring one source, so it's visible
   in review.
+
+## launch/alumni (2026-10-03): pages, live fetch, and closing the consent-field exposure
+
+`site-shell` and `publish-integration` have merged, so the Non-Goals about pages and fetching
+no longer apply. This section points at existing decisions rather than restating them.
+
+### The exposure
+
+Production grants the Public role `find` on Alumni (`apps/cms/src/draft-guard.ts`; the
+permission lives in the database, not in code). Strapi returns every non-private attribute,
+so a published alumnus's `consentRecordedAt` and `consentSource` were in the raw public API
+response. The mapper's type-level exclusion protected the page, not the API. Proven, not
+assumed: the extended `tests/cms-drafts/check.mjs` showed an unauthenticated
+`GET /api/alumni` returning both values before the change.
+
+### Decision: `private: true` on both fields
+
+| Option | Closes the API exposure | Manual production step | Portraits |
+| --- | --- | --- | --- |
+| **`private: true` (chosen)** | Yes, for every Content API caller, including `fields`, `filters` and `sort` (refused with 400, so no blind inference) | None: code-only, shipped by the digest-verified CMS deploy (cms-deploy-digest) | Not shown (below) |
+| Remove Public `find`, read with a server-only token | Yes | Yes: a Public role change, a new scoped token, a Vercel variable and a redeploy; until then every build fails | Gated as before |
+| A middleware that strips and denies the keys for anonymous callers | Only if every filter, sort and populate path is caught (new security code) | A token, for portraits | Gated, with a token |
+
+`private` is Strapi's own mechanism. It's the smallest change, it needs no production step,
+and it's the only option that also closes inference through query filters. It doesn't touch
+the admin (editors still see and edit the fields), and `required` still blocks publishing
+without them (asserted in the same real-Strapi check).
+
+### Consequence: portraits are not shown
+
+`mapAlumnus` exposes a photo only with consent evidence it can check itself (the decisions
+above), and the Content API now never sends that evidence. Every card therefore renders
+without a photo. That is the mapper's defined safe behaviour, and `design/content-model.md`
+asks for the photo to be "genuinely optional". The gate is kept exactly as specified rather
+than weakened to trust the CMS implicitly.
+
+**Open question (task 8.3):** how to show portraits without re-exposing the fields. One
+option: a non-private, derived `portraitConsent` boolean set by a lifecycle hook from the
+private fields, which would be a schema change. Another: a server-only token reading a
+dedicated endpoint.
+
+### Other decisions
+
+- **Privacy canary.** The loader fails the build if any response contains a consent key, so
+  a future schema edit that drops `private` is caught loudly instead of passing silently
+  through the mapper.
+- **Mapper correction.** `photo` is the `shared.image` component, not `{ url }`. The old
+  check threw on the real shape, so the first published portrait would have failed every
+  build. It is now passed to `toMediaImage` (approved host, dimensions, localized alt).
+- **LinkedIn.** Rendered only for an HTTPS URL on `linkedin.com` or a subdomain, without
+  credentials. Anything else is dropped silently. The schema's own `^https?://` regex
+  allows `http:` and any host.
+- **Locale.** The Turkish record supplies `roleHeld` (the only localized field). Without
+  one, the English record is shown with `lang="en"` on the role. Non-localized fields are
+  shared across locale variants by Strapi.
+- **Draft Mode.** No preview branch. Alumni preview stays off, and the preview token is
+  never scoped to Alumni (runbook step 7).
+- **Indexing: out of the sitemap AND page-level `noindex`** (corrected after review; the
+  first version relied on sitemap exclusion alone).
+  - **Sitemap exclusion alone doesn't prevent indexing.** The main navigation links to
+    `/en/alumni` and `/tr/mezunlar` from every page, so crawlers discover them anyway.
+  - Both pages therefore emit `<meta name="robots" content="noindex, nofollow"/>`
+    (`robots: { index: false, follow: false }` in `alumniMetadata`, the Next.js Metadata
+    API). `nofollow` is deliberate: the page's only own links are personal LinkedIn
+    profiles, and the navigation links are on every other page anyway.
+  - **`robots.txt` must not block these routes.** A crawler has to fetch the page to read
+    `noindex`; a blocked URL can still be indexed from external links, without its
+    content. `app/robots.ts` allows `/` and stays that way.
+  - Why: ADR 0002's erasure promise is "unpublish; gone within one revalidation".
+    Unpublishing a person removes them from the live directory. `noindex` applies to the
+    directory from launch. It **can't** guarantee immediate removal from every search
+    engine's cache if anything was indexed before; that needs the engine's own removal tools.
+  - The pages stay reachable from the navigation. Revisit only with a deliberate decision.
+- **Motion:** none. **First-load JS:** Server Components only, measured in the PR.
+  **Strapi:** no new field. Two attributes gain `private: true` (no migration), which
+  triggers a CMS deploy on merge.

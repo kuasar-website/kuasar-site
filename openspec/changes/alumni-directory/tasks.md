@@ -80,14 +80,63 @@
       `apps/web/lib/strapi/fetch.ts` was created or modified. Confirmed
       via `git status`/`git diff --stat`.
 
-## 6. Explicitly blocked — not attempted
+## 6. Pages, live fetch and the consent-field exposure (`launch/alumni`, 2026-10-03)
 
-- [ ] 6.1 **Blocked by `site-shell`:** `app/[locale]/(alumni)/` pages and
-      the card's JSX/CSS. No `app/[locale]/` directory exists yet; not
-      created here, not even as a placeholder.
-- [ ] 6.2 **Blocked by `publish-integration`:** live fetch function, base
-      URL, revalidation tags. No such convention exists anywhere in the
-      codebase yet; not invented here.
-- [ ] 6.3 **Blocked, needs both above:** the "unpublishing removes them
-      within one revalidation" acceptance criterion — cannot be verified
-      without a live page and a real revalidation path.
+`site-shell` and `publish-integration` have merged. Design: "launch/alumni" in design.md.
+
+- [x] 6.1 `app/[locale]/(alumni)/` pages, `/en/alumni` and `/tr/mezunlar`, in the
+      events/schedule/news shape (static, `dynamicParams = false`, `revalidate = false`,
+      `sectionAlternates("alumni", …)`), and the card UI (`components/alumni/`): grouped by
+      `yearLeft` via `groupAndOrderAlumni`, localized `roleHeld` and sub-team labels, years,
+      an HTTPS `linkedin.com` link only, and an explicit empty state. The photo is optional
+      and renders only when `mapAlumnus` lets it through.
+- [x] 6.2 Live fetch: `lib/cms/alumni-data.ts` `fetchAlumniData()` via `strapiRead()` with
+      tag `alumni-directory` (= `CACHE_TAGS.alumni`, asserted in its test): published only,
+      every page, drafts skipped, Turkish record for `roleHeld` with silent English
+      fallback. **No Draft Mode branch.**
+- [ ] 6.3 The "unpublishing removes them within one revalidation" criterion. Covered by the
+      shared `/api/revalidate` path (tag `alumni-directory`). Still to verify live after
+      merge (8.2).
+- [x] 6.4 **The consent-field exposure is closed.** `consentRecordedAt` and `consentSource`
+      are `private: true` in the alumnus schema. Real Strapi 5.52.3 (`tests/cms-drafts/
+      check.mjs`, extended) proves they're absent from Public and API-token list,
+      single-entry and `populate=*` responses. A `fields`, `filters` or `sort` on them is
+      refused with 400, and right and wrong filter guesses are indistinguishable. They stay
+      readable server-side, and publishing without them still fails. Before the change,
+      the same check showed an unauthenticated `GET /api/alumni` returning both values.
+- [x] 6.5 A privacy canary in the loader: a consent key in any Content API response fails
+      the build, naming the field and never printing its value. Proved end to end by a build
+      that must fail in `tests/alumni/check-routes.mjs`.
+- [x] 6.6 `mapAlumnus` corrected to the actual schema: `photo` is the `shared.image`
+      component (it threw on the real shape), rendered through `toMediaImage`. The consent
+      gate is unchanged.
+- [x] 6.7 Alumni is deliberately **not** in the sitemap (design.md, "launch/alumni"), and
+      not in the content snapshot (ADR 0002, unchanged).
+- [x] 6.8 **Page-level `noindex`**, because sitemap exclusion alone doesn't stop indexing of
+      pages linked from the navigation (raised in review). Both pages emit
+      `<meta name="robots" content="noindex, nofollow"/>`. `robots.txt` deliberately doesn't
+      block them, so crawlers can read the directive. Asserted in
+      `tests/alumni/check-routes.mjs`: the exact tag on both pages, no other public page
+      `noindex`, and `robots.txt` not blocking Alumni.
+
+## 7. Verification (`launch/alumni`)
+
+- [x] 7.1 Unit tests: `lib/cms/alumni.test.ts` and `lib/cms/alumni-data.test.ts` (Tier A
+      `test:cms`).
+- [x] 7.2 `tests/alumni/check-routes.mjs` (Tier B alumni, `.github/workflows/tier-b-alumni.yml`)
+      and the extended `tests/cms-drafts/check.mjs` (Tier B CMS drafts, which runs on any
+      `apps/cms` change). Neither is a required gate. **Tier A** covers typecheck, lint, the
+      unit tests, the build and budgets. **No CI gate checks production Strapi;** that is 8.1.
+
+## 8. After merge (live; manual)
+
+- [ ] 8.1 The CMS deploy that this merge triggers is green (digest, `/_version`, `/_health`,
+      draft 403). Then, in production, an unauthenticated
+      `GET /api/alumni?fields[0]=consentSource` returns 400, and the list contains no
+      consent key once a record exists.
+- [ ] 8.2 `/en/alumni` and `/tr/mezunlar` return 200 with the correct `lang` and the empty
+      state, reachable from the navigation. Publish a test alumnus (en and tr role): it
+      appears with no consent field anywhere and no photo. Unpublish: it disappears from
+      both. Delete it.
+- [ ] 8.3 **Product decision, not a bug:** how portraits can be shown again without
+      re-exposing the consent fields (design.md, "launch/alumni", Open question).
