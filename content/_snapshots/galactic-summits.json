@@ -1,1 +1,25 @@
-[]
+[
+  {
+    "accentToken": "aurora",
+    "backgroundImage": null,
+    "contactAddress": null,
+    "date": "2026-10-21T22:45:00.000Z",
+    "documentId": "vpas47if3riyzsqza91doryc",
+    "heroTreatment": "still",
+    "isCurrent": false,
+    "locale": "en",
+    "location": null,
+    "photos": [],
+    "programme": [],
+    "purpose": null,
+    "registrationUrl": null,
+    "speakers": [],
+    "sponsors": [
+      {
+        "documentId": "ndhsliwzq3bkdw31grqy1tb6"
+      }
+    ],
+    "sponsorshipPdf": null,
+    "year": 2099
+  }
+]

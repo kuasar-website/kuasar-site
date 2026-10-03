@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "blurb": null,
+    "documentId": "ndhsliwzq3bkdw31grqy1tb6",
+    "isCurrent": false,
+    "locale": "en",
+    "logo": {
+      "altEn": "test",
+      "altTr": "test",
+      "url": "https://media.kuasar.org/54988351895_23b2f37bc6_w_bbc316a71a.jpg"
+    },
+    "logoLight": null,
+    "name": "Mavera ",
+    "since": null,
+    "summits": [
+      {
+        "documentId": "vpas47if3riyzsqza91doryc"
+      }
+    ],
+    "url": "https://maveraexample.com"
+  }
+]
