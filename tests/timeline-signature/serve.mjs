@@ -15,7 +15,7 @@ await build({ entryPoints: { client: 'tests/timeline-signature/client.tsx' }, ou
 const { render } = await import(pathToFileURL(`${dir}/server.cjs`).href);
 const globalsPath = resolve('apps/web/app/globals.css');
 const globals = await web('postcss')([web('@tailwindcss/postcss')({ base: resolve('apps/web') })]).process(await readFile(globalsPath, 'utf8'), { from: globalsPath });
-const css = globals.css + await readFile(`${dir}/server.css`, 'utf8') + '\n main { padding: 32px; } #after { display:block; padding-block:40px; } button { border:1px solid currentColor; padding:8px; margin-bottom:24px; }';
+const css = globals.css + await readFile(`${dir}/server.css`, 'utf8') + await readFile(`${dir}/browser/client.css`, 'utf8') + '\n main { padding: 32px; } #after { display:block; padding-block:40px; } button { border:1px solid currentColor; padding:8px; margin-bottom:24px; }';
 createServer(async (request, response) => {
   const url = new URL(request.url, 'http://127.0.0.1:4182');
   if (url.pathname === '/fixture.css') { response.setHeader('Content-Type', 'text/css'); response.end(css); return; }

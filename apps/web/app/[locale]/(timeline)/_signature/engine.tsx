@@ -2,12 +2,15 @@
 
 import type { RefObject } from "react";
 
-/** Invoked by the eligibility effect, never during server rendering. */
+/** Invoked by the eligibility effect, never during server rendering.
+ * Keep vendors in this already-deferred module's group for shared compression;
+ * the launcher must retain its ordinary lazy import of this module.
+ */
 export async function loadEngine() {
   const [gsap, ScrollTrigger, useGSAP] = await Promise.all([
-    import('gsap').then(module => module.gsap),
-    import('gsap/ScrollTrigger').then(module => module.ScrollTrigger),
-    import('@gsap/react').then(module => module.useGSAP),
+    import(/* webpackMode: "eager" */ 'gsap').then(module => module.gsap),
+    import(/* webpackMode: "eager" */ 'gsap/ScrollTrigger').then(module => module.ScrollTrigger),
+    import(/* webpackMode: "eager" */ '@gsap/react').then(module => module.useGSAP),
   ]);
   gsap.registerPlugin(ScrollTrigger, useGSAP);
 
