@@ -1,19 +1,70 @@
 [
   {
-    "date": "2026-10-05T23:00:00.000Z",
-    "documentId": "fue1m0kofry06ctqw9n984yd",
-    "eventNumber": 2,
+    "date": "2026-05-14T15:00:00.000Z",
+    "documentId": "iw9xgu1d3mzq9nsttj19xymr",
+    "eventNumber": 3,
     "hoverVideo": null,
-    "insight": null,
+    "insight": "At the third Stellar Talks event, we were joined by Sırrı Oğuz, Pyrotechnic Systems Manager at NASA Johnson Space Center. The insights he shared with us regarding NASA projects, the systems used in these projects, space missions, and his experiences were invaluable.\n\nDon't forget to learn how to use LS-DYNA and stay connected with space! 💫",
     "locale": "en",
     "readUrl": null,
-    "speakerName": "Mavera Speaker",
+    "speakerName": "Sırrı Oğuz",
     "speakerPortrait": {
-      "altEn": "test",
-      "altTr": "test",
-      "url": "https://media.kuasar.org/54988351895_23b2f37bc6_w_bbc316a71a.jpg"
+      "altEn": "Sırrı Oğuz",
+      "altTr": "Sırrı Oğuz",
+      "url": "https://media.kuasar.org/Ekran_goeruentuesue_2026_10_04_170051_c2eacbfb0b.png"
     },
-    "title": "Mavera Talk",
+    "title": "Stellar Talks - S1E3",
+    "watchUrl": null
+  },
+  {
+    "date": "2026-04-29T16:00:00.000Z",
+    "documentId": "m5tl26110e5p405q0i3sn1yx",
+    "eventNumber": 2,
+    "hoverVideo": null,
+    "insight": "Ömer Ataş was at Koç University for the second Stellar Talks event. He informed students about the National Space Program, the Astronaut and Science Mission, and systems engineering, while inspiring them through his own career journey!🛰️",
+    "locale": "en",
+    "readUrl": null,
+    "speakerName": "Ömer Ataş",
+    "speakerPortrait": {
+      "altEn": "Omer Atas",
+      "altTr": "Ömer Ataş",
+      "url": "https://media.kuasar.org/omer_91d5fbb42c.png"
+    },
+    "title": "Stellar Talks - S1E2",
+    "watchUrl": null
+  },
+  {
+    "date": "2026-10-19T17:00:00.000Z",
+    "documentId": "nw2ms3slmi6njuztt2d1iot3",
+    "eventNumber": 4,
+    "hoverVideo": null,
+    "insight": "First Stellar Talks event of season 2026 Fall.",
+    "locale": "en",
+    "readUrl": null,
+    "speakerName": "TBA",
+    "speakerPortrait": {
+      "altEn": "TBA",
+      "altTr": "DSB",
+      "url": "https://media.kuasar.org/3135715_25a2c8d13e.png"
+    },
+    "title": "Stellar Talks - S2E1",
+    "watchUrl": null
+  },
+  {
+    "date": "2026-03-25T16:00:00.000Z",
+    "documentId": "x64p0h8v70owzxhk5dhw8rda",
+    "eventNumber": 1,
+    "hoverVideo": null,
+    "insight": "The first guest of our Stellar Talks event was Denizhan Akbal, one of our biggest supporters.\n\nA Koç University graduate who founded and manages DPFlow, Denizhan shared with us his career journey from his university years to the industry, his experiences in aerospace, the challenges he encountered, and the story behind his startup. He also shared valuable advice for those aspiring to pursue a career in this field! 🚀",
+    "locale": "en",
+    "readUrl": null,
+    "speakerName": "Denizhan Akbal",
+    "speakerPortrait": {
+      "altEn": "Denizhan Akbal",
+      "altTr": "Denizhan Akbal",
+      "url": "https://media.kuasar.org/denizhan_77683684f5.png"
+    },
+    "title": "Stellar Talks - S1E1",
     "watchUrl": null
   }
 ]

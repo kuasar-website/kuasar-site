@@ -1,25 +1,48 @@
 [
   {
     "accentToken": "aurora",
-    "backgroundImage": null,
+    "backgroundImage": {
+      "altEn": "c",
+      "altTr": "c",
+      "url": "https://media.kuasar.org/SAVE_1_976fd27968.png"
+    },
     "contactAddress": null,
-    "date": "2026-10-21T22:45:00.000Z",
-    "documentId": "vpas47if3riyzsqza91doryc",
+    "date": "2026-11-07T07:00:00.000Z",
+    "documentId": "gei4norzx4zbakwgtvb6gvfc",
     "heroTreatment": "still",
-    "isCurrent": false,
+    "isCurrent": true,
     "locale": "en",
-    "location": null,
+    "location": "Koç University SGKM Conference Hall",
     "photos": [],
     "programme": [],
     "purpose": null,
-    "registrationUrl": null,
+    "registrationUrl": "https://docs.google.com/forms/d/e/1FAIpQLSc5ozxzdP1ot69-kbcDSjpPTnARQXzn0hf_AWU2TQb1oquIZw/viewform?usp=dialog",
     "speakers": [],
-    "sponsors": [
-      {
-        "documentId": "ndhsliwzq3bkdw31grqy1tb6"
-      }
-    ],
+    "sponsors": [],
     "sponsorshipPdf": null,
-    "year": 2099
+    "year": 2026
+  },
+  {
+    "accentToken": "aurora",
+    "backgroundImage": {
+      "altEn": "c",
+      "altTr": "c",
+      "url": "https://media.kuasar.org/SAVE_1_976fd27968.png"
+    },
+    "contactAddress": null,
+    "date": "2026-11-07T07:00:00.000Z",
+    "documentId": "gei4norzx4zbakwgtvb6gvfc",
+    "heroTreatment": "still",
+    "isCurrent": true,
+    "locale": "tr",
+    "location": "Koç University SGKM Conference Hall",
+    "photos": [],
+    "programme": [],
+    "purpose": "Galactic Summit 2026, Koç Üniversitesinde gerçekleştirilen ilk Uzay ve Havacılık zirvesidir.",
+    "registrationUrl": "https://docs.google.com/forms/d/e/1FAIpQLSc5ozxzdP1ot69-kbcDSjpPTnARQXzn0hf_AWU2TQb1oquIZw/viewform?usp=dialog",
+    "speakers": [],
+    "sponsors": [],
+    "sponsorshipPdf": null,
+    "year": 2026
   }
 ]
