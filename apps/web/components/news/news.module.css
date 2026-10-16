@@ -1,8 +1,13 @@
+/* Centred, with the 1.5rem gutter the page has always had. */
+.page {
+  inline-size: min(calc(100% - 3rem), 66rem);
+  margin-inline: auto;
+}
+
 .empty {
   color: var(--color-ink-body);
   font-size: var(--text-lg);
   padding-block: var(--space-section-tight);
-  padding-inline: calc(var(--spacing) * 6);
 }
 
 .list {
@@ -10,24 +15,44 @@
   gap: var(--space-section-tight);
   list-style: none;
   margin: 0;
-  max-inline-size: 48rem;
   min-inline-size: 0;
   overflow-wrap: anywhere;
-  padding-block: var(--space-section-tight);
-  padding-inline: calc(var(--spacing) * 6);
+  padding: var(--space-section-tight) 0;
 }
 
 .article {
+  align-items: start;
   border-block-start: 1px solid var(--color-border);
   display: grid;
-  gap: calc(var(--spacing) * 4);
+  gap: calc(var(--spacing) * 6);
   padding-block-start: calc(var(--spacing) * 8);
   scroll-margin-block-start: calc(var(--spacing) * 8);
+}
+
+/*
+ * The cover is shown whole, never cropped: covers are often designed posters with text near
+ * the edges. The image keeps the full frame width and its own ratio until it reaches the
+ * height cap, after which object-fit: contain letterboxes it, centred, on the surface colour.
+ * Its box is still reserved from the stored width and height before the bytes arrive.
+ */
+.cover {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  display: grid;
 }
 
 .cover img {
   block-size: auto;
   inline-size: 100%;
+  max-block-size: min(70svh, 30rem);
+  object-fit: contain;
+}
+
+.text {
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+  max-inline-size: var(--container-prose);
+  min-inline-size: 0;
 }
 
 .meta {
@@ -62,4 +87,12 @@
 .excerpt {
   color: var(--color-ink-body);
   font-size: var(--text-lg);
+}
+
+@media (width >= 48rem) {
+  /* About 42% cover, 58% text. */
+  .has-cover {
+    gap: calc(var(--spacing) * 8);
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
 }

@@ -13,6 +13,10 @@ import styles from "./news.module.css";
  * [locale] uses dynamicParams = false, so a detail page for an announcement published after
  * the last deploy would 404 until the next one (publish-integration design D2). See
  * openspec/changes/announcements/design.md, "launch/news".
+ *
+ * From md up, an article with a cover is two columns: the cover on the left, the text on the
+ * right. The cover is shown whole, never cropped: editors upload designed posters with text
+ * near the edges, so it is letterboxed inside a height-capped frame (news.module.css).
  */
 export function NewsList({ locale, items }: { locale: Locale; items: readonly NewsItem[] }) {
   const copy = NEWS_COPY[locale];
@@ -23,26 +27,35 @@ export function NewsList({ locale, items }: { locale: Locale; items: readonly Ne
         const blocks = parseAnnouncementBody(item.body);
         return (
           <li key={item.id}>
-            <article id={item.slug} className={styles.article} lang={item.contentLocale}>
+            <article
+              id={item.slug}
+              className={item.coverImage ? `${styles.article} ${styles["has-cover"]}` : styles.article}
+              lang={item.contentLocale}
+            >
               {item.coverImage && (
                 <div className={styles.cover}>
-                  <MediaImage image={item.coverImage} sizes="(min-width: 768px) 48rem, 100vw" />
+                  <MediaImage
+                    image={item.coverImage}
+                    sizes="(min-width: 68rem) 27rem, (min-width: 48rem) 40vw, calc(100vw - 3rem)"
+                  />
                 </div>
               )}
-              <div className={styles.meta} lang={locale}>
-                {item.pinned && <span className={styles.pinned}>{copy.pinned}</span>}
-                <span>
-                  {copy.published}{" "}
-                  {/* The editorial announcementDate (never publishedAt). Never time-relative:
-                      plain server text, no client state. */}
-                  <time dateTime={item.announcementDate}>{formatAnnouncementDate(item.announcementDate, locale)}</time>
-                </span>
+              <div className={styles.text}>
+                <div className={styles.meta} lang={locale}>
+                  {item.pinned && <span className={styles.pinned}>{copy.pinned}</span>}
+                  <span>
+                    {copy.published}{" "}
+                    {/* The editorial announcementDate (never publishedAt). Never time-relative:
+                        plain server text, no client state. */}
+                    <time dateTime={item.announcementDate}>{formatAnnouncementDate(item.announcementDate, locale)}</time>
+                  </span>
+                </div>
+                <h2 className={styles.title}>
+                  <a href={`#${item.slug}`}>{item.title}</a>
+                </h2>
+                {item.excerpt && <p className={styles.excerpt}>{item.excerpt}</p>}
+                {blocks.length > 0 && <MissionProse parsed={{ blocks, gallery: [] }} />}
               </div>
-              <h2 className={styles.title}>
-                <a href={`#${item.slug}`}>{item.title}</a>
-              </h2>
-              {item.excerpt && <p className={styles.excerpt}>{item.excerpt}</p>}
-              {blocks.length > 0 && <MissionProse parsed={{ blocks, gallery: [] }} />}
             </article>
           </li>
         );

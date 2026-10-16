@@ -5,6 +5,7 @@ import { sectionAlternates } from "../../lib/i18n/metadata";
 import { loadNews, newsConfigured } from "./content";
 import { NEWS_COPY } from "./copy";
 import { NewsList } from "./news-list";
+import styles from "./news.module.css";
 
 export type NewsPageProps = { params: Promise<{ locale: string }> };
 export function newsParams(locale: string, expected: Locale) {
@@ -18,8 +19,8 @@ export async function newsMetadata(params: NewsPageProps["params"], expected: Lo
 export async function NewsPage({ params, locale }: NewsPageProps & { locale: Locale }) {
   if ((await params).locale !== locale || !newsConfigured()) notFound();
   const items = await loadNews(locale);
-  return <>
-    <h1 className="px-6 pt-16 text-4xl font-semibold text-ink">{NEWS_COPY[locale].heading}</h1>
+  return <div className={styles.page}>
+    <h1 className="pt-16 text-4xl font-semibold text-ink">{NEWS_COPY[locale].heading}</h1>
     <NewsList locale={locale} items={items} />
-  </>;
+  </div>;
 }
