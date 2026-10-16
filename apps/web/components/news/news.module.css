@@ -55,6 +55,15 @@
   min-inline-size: 0;
 }
 
+/*
+ * MissionProse's root carries the 4rem top margin Missions uses between sections; here it
+ * would leave 5rem between the excerpt and the body. Overridden for News only (this selector
+ * outranks .prose): with the 1rem .text gap, the body starts 1.75rem below the excerpt.
+ */
+.body > div {
+  margin-block-start: calc(var(--spacing) * 3);
+}
+
 .meta {
   color: var(--color-ink-muted);
   display: flex;

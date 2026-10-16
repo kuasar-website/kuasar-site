@@ -54,7 +54,11 @@ export function NewsList({ locale, items }: { locale: Locale; items: readonly Ne
                   <a href={`#${item.slug}`}>{item.title}</a>
                 </h2>
                 {item.excerpt && <p className={styles.excerpt}>{item.excerpt}</p>}
-                {blocks.length > 0 && <MissionProse parsed={{ blocks, gallery: [] }} />}
+                {blocks.length > 0 && (
+                  <div className={styles.body}>
+                    <MissionProse parsed={{ blocks, gallery: [] }} />
+                  </div>
+                )}
               </div>
             </article>
           </li>
