@@ -30,7 +30,7 @@ order tasks around. Both locales are covered in every content task.
 - [x] 4.2 `npm run build -w cms` (Strapi admin and TypeScript)
 - [x] 4.3 `npm run test:content-backup`, `npm run test:cms`, the CMS unit tests (`apps/cms/src/**/*.test.ts`)
 - [x] 4.4 Tier A steps locally; Tier A in CI on the pull request
-- [ ] 4.5 Manual `cms-deploy.yml` run from `change/project-platform-cms`: builds the image and checks its baked commit; pushes and deploys nothing
+- [x] 4.5 Manual `cms-deploy.yml` run from `change/project-platform-cms`: builds the image and checks its baked commit; pushes and deploys nothing (run 39028188906 at `e79fc3d`: build-push succeeded, deploy skipped)
 
 **CI gate:** none covers the CMS schema (`docs/adr/0004-verification.md`). `test:content-backup`
 is not run by any CI workflow today; it protects the backup only when run by hand (design
