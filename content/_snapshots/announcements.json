@@ -1,7 +1,12 @@
 [
   {
+    "announcementDate": "2026-10-05T07:00:00.000Z",
     "body": "7 Kasım 2026'da başlayacak Uzay ve Havacılık zirvemiz Galactic Summit, 5-12 Ekim tarihleri arasında Koç Üniversitesi öğrencilerinin kayıtlarına açıldı. Düzenlediğimiz ilk zirve olmasına yönelik sizlere özel ücretsiz olan katılımcı başvurularınızı kontenjan dolmadan yapmayı unutmayın!\n\n![Adsız tasarım (5).png](https://media.kuasar.org/Adsiz_tasarim_5_ffaa463fcb.png)",
-    "coverImage": null,
+    "coverImage": {
+      "altEn": "kuasar",
+      "altTr": "kuasar",
+      "url": "https://media.kuasar.org/Adsiz_tasarim_5_ffaa463fcb.png"
+    },
     "documentId": "a62fxj01fzhydm7frb2e3cyw",
     "excerpt": "Dil: Tr",
     "locale": "tr",
