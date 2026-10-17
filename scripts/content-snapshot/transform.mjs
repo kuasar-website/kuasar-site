@@ -106,6 +106,8 @@ const EXPECTED = {
   "schedule-event": ["startsAt", "endsAt", "type", "location", "title", "description", "url"],
   announcement: ["pinned", "announcementDate", "title", "slug", "excerpt", "body", "coverImage"],
   sponsor: ["name", "logo", "logoLight", "url", "since", "isCurrent", "blurb", "summits"],
+  "platform-project": ["title", "summary", "coverImage", "startYear", "endYear", "projectStatus", "applicationUrl"],
+  "project-platform": ["intro", "whatsappUrl", "whatsappLabel", "features"],
 };
 
 function pickStellarTalk(raw, locale) {
@@ -227,6 +229,42 @@ function pickSponsor(raw, locale) {
   };
 }
 
+function pickPlatformProject(raw, locale) {
+  warnUnexpectedKeys(raw, EXPECTED["platform-project"], "platform-project");
+  return {
+    documentId: raw.documentId,
+    locale,
+    title: raw.title ?? null,
+    summary: raw.summary ?? null,
+    coverImage: reduceImage(raw.coverImage),
+    startYear: raw.startYear ?? null,
+    endYear: raw.endYear ?? null,
+    // The editor's current/past classification. Never derived from the years.
+    projectStatus: raw.projectStatus ?? null,
+    applicationUrl: raw.applicationUrl ?? null,
+  };
+}
+
+function pickFeature(feature) {
+  return {
+    title: feature?.title ?? null,
+    description: feature?.description ?? null,
+  };
+}
+
+function pickProjectPlatform(raw, locale) {
+  warnUnexpectedKeys(raw, EXPECTED["project-platform"], "project-platform");
+  return {
+    documentId: raw.documentId,
+    locale,
+    intro: raw.intro ?? null,
+    whatsappUrl: raw.whatsappUrl ?? null,
+    whatsappLabel: raw.whatsappLabel ?? null,
+    // In the editor's order, per locale: the order is content, not presentation.
+    features: Array.isArray(raw.features) ? raw.features.map(pickFeature) : [],
+  };
+}
+
 /** @type {Record<string, (raw: object, locale: "en" | "tr") => object>} */
 export const PICKERS = Object.freeze({
   "stellar-talk": pickStellarTalk,
@@ -235,6 +273,8 @@ export const PICKERS = Object.freeze({
   "schedule-event": pickScheduleEvent,
   announcement: pickAnnouncement,
   sponsor: pickSponsor,
+  "platform-project": pickPlatformProject,
+  "project-platform": pickProjectPlatform,
 });
 
 /**

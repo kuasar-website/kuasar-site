@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { buildRequestUrl } from "./request.mjs";
+import { buildRequestUrl, buildSingleTypeRequestUrl } from "./request.mjs";
 
 const FIXTURE_TYPE = Object.freeze({
   uid: "announcement",
@@ -45,4 +45,32 @@ test("buildRequestUrl includes the requested locale and page", () => {
 test("buildRequestUrl includes every populate fragment for the content type", () => {
   const url = buildRequestUrl("https://cms.example.org", FIXTURE_TYPE, "en", 1);
   assert.match(url, /populate\[coverImage\]\[populate\]=image/);
+});
+
+const SINGLE_FIXTURE_TYPE = Object.freeze({
+  uid: "project-platform",
+  kind: "single",
+  singularName: "project-platform",
+  pluralName: "project-platforms",
+  populate: Object.freeze(["populate[features]=true"]),
+});
+
+test("buildSingleTypeRequestUrl's signature has no parameter capable of requesting drafts", () => {
+  assert.equal(
+    buildSingleTypeRequestUrl.length,
+    3,
+    "buildSingleTypeRequestUrl must take exactly (cmsBaseUrl, contentType, locale)",
+  );
+});
+
+test("buildSingleTypeRequestUrl is published-only, per locale, unpaginated and populated", () => {
+  for (const locale of ["en", "tr"]) {
+    const url = buildSingleTypeRequestUrl("https://cms.example.org/", SINGLE_FIXTURE_TYPE, locale);
+    assert.match(url, /^https:\/\/cms\.example\.org\/api\/project-platform\?/);
+    assert.match(url, /(?:\?|&)status=published(?:&|$)/);
+    assert.ok(!url.includes("status=draft"));
+    assert.match(url, new RegExp(`locale=${locale}`));
+    assert.ok(!url.includes("pagination"));
+    assert.match(url, /populate\[features\]=true/);
+  }
 });

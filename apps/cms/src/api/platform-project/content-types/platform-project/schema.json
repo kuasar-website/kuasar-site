@@ -1,0 +1,59 @@
+{
+  "kind": "collectionType",
+  "collectionName": "platform_projects",
+  "info": {
+    "singularName": "platform-project",
+    "pluralName": "platform-projects",
+    "displayName": "Platform Project",
+    "description": "A non-rocket space or aerospace project on the Project Platform page. KUASAR's rocket Missions stay in git and are never entered here. projectStatus is the editor's classification (current or past), never derived from the years. applicationUrl, when set, is the only application link (project-platform-cms)."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "summary": {
+      "type": "text",
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "coverImage": {
+      "type": "component",
+      "component": "shared.image",
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "startYear": {
+      "type": "integer",
+      "required": true,
+      "min": 1900,
+      "max": 2100,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "endYear": {
+      "type": "integer",
+      "min": 1900,
+      "max": 2100,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "projectStatus": {
+      "type": "enumeration",
+      "enum": ["current", "past"],
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "applicationUrl": {
+      "type": "string",
+      "regex": "^https://\\S+$",
+      "pluginOptions": { "i18n": { "localized": false } }
+    }
+  }
+}

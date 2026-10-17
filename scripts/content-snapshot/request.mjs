@@ -36,3 +36,20 @@ export function buildRequestUrl(cmsBaseUrl, contentType, locale, page) {
   ];
   return `${base}/api/${contentType.pluralName}?${params.join("&")}`;
 }
+
+/**
+ * Builds the request URL for one single type in one locale. A single type has
+ * one document per locale and no pagination. `status=published` is a literal
+ * here too, for the same reason as above: there is no parameter that could
+ * request drafts.
+ *
+ * @param {string} cmsBaseUrl - e.g. "https://cms.kuasar.org" (no trailing slash)
+ * @param {{ singularName: string, populate: readonly string[] }} contentType
+ * @param {"en" | "tr"} locale
+ * @returns {string}
+ */
+export function buildSingleTypeRequestUrl(cmsBaseUrl, contentType, locale) {
+  const base = cmsBaseUrl.replace(/\/+$/, "");
+  const params = ["status=published", `locale=${encodeURIComponent(locale)}`, ...contentType.populate];
+  return `${base}/api/${contentType.singularName}?${params.join("&")}`;
+}

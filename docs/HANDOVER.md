@@ -194,7 +194,7 @@ workflow → **Run workflow**. Do that before a Strapi upgrade or a big editing 
 rather than hoping the schedule lands at a convenient moment.
 
 The export is a plain HTTP client against Strapi's own REST API, using a dedicated, scoped
-API token (`CONTENT_BACKUP_API_TOKEN`) granted read access to exactly the six backed-up
+API token (`CONTENT_BACKUP_API_TOKEN`) granted read access to exactly the eight backed-up
 content types — never a database connection or credential of any kind. See
 [ops/cms-runbook.md](ops/cms-runbook.md) step 8 for the exact secrets and how to provision
 the token.
