@@ -468,6 +468,18 @@ frontend page for the type ships, in that change.
   Publishing controls the entry, not the file.
 - **Never upload a confidential or internal document as a Resource,** or to the Media
   Library at all. Only files that may be public.
+- **Unpublishing or deleting a Resource does not remove its file.** The file stays in the
+  Media Library and at its `media.<DOMAIN>` URL. To withdraw a file for good (it holds
+  confidential or personal data, was uploaded by mistake, or must not stay public):
+  1. Unpublish the Resource, or delete it, as appropriate.
+  2. Delete the file in the Media Library. This is what removes it from R2.
+  3. If the original was also put in the media archive (step 3a), remove it there as
+     required.
+  4. Request the old `media.<DOMAIN>` URL and confirm it no longer returns the file. The
+     edge cache (step 3, item 6) can keep serving it until its TTL expires. This runbook has
+     no cache-purge procedure, so if it is still served, whoever holds the Cloudflare
+     account ([../HANDOVER.md](../HANDOVER.md)) must clear it before the file counts as
+     withdrawn.
 - **Keep the original file in the media archive** (the Shared Drive, step 3a). The content
   snapshot stores the file's URL, original name and type, never the file, so the archive is
   the only other copy.
