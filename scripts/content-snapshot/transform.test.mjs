@@ -433,3 +433,23 @@ test("reduceEntry for project-platform keeps features in the editor's order", ()
   assert.equal(entry.whatsappUrl, "https://chat.whatsapp.com/DummyInvite0");
   assert.equal(entry.locale, "tr");
 });
+
+test("reduceEntry for resource keeps title, description and the file's URL, original name and MIME type only", () => {
+  const entry = reduceEntry(
+    "resource",
+    {
+      documentId: "res-1",
+      title: "Avionics training",
+      description: "Slides from the autumn session.",
+      file: { id: 5, name: "avionics.pdf", url: "https://media.kuasar.org/avionics.pdf", mime: "application/pdf", size: 812.4, hash: "abc", provider: "aws-s3" },
+    },
+    "en",
+  );
+  assert.deepEqual(entry, {
+    description: "Slides from the autumn session.",
+    documentId: "res-1",
+    file: { mime: "application/pdf", name: "avionics.pdf", url: "https://media.kuasar.org/avionics.pdf" },
+    locale: "en",
+    title: "Avionics training",
+  });
+});

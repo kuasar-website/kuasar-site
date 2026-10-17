@@ -342,7 +342,7 @@ Actions secrets make it work:
 
 | Secret | What it is |
 | --- | --- |
-| `CONTENT_BACKUP_API_TOKEN` | A Strapi **custom**-type API token (Settings → API Tokens), granted `find`/`findOne` on exactly the eight exported content types below (`find` only on Project Platform, a single type, which has no `findOne`) — no other action, no other content type, and explicitly **never** Alumni |
+| `CONTENT_BACKUP_API_TOKEN` | A Strapi **custom**-type API token (Settings → API Tokens), granted `find`/`findOne` on exactly the nine exported content types below (`find` only on Project Platform, a single type, which has no `findOne`) — no other action, no other content type, and explicitly **never** Alumni |
 | `CMS_BASE_URL` | The production Strapi host |
 
 Neither secret exists yet as of this writing — create the token and add both secrets before
@@ -369,9 +369,9 @@ repository is public** (see
 Both are argued in [../adr/0002-cms.md](../adr/0002-cms.md), *Known debt: KVKK*. Neither may
 be relaxed to make restores easier.
 
-**Exactly eight content types are exported** — Stellar Talk, Nebula Night, Galactic Summit,
-Schedule Event, Announcement, Sponsor, Platform Project and Project Platform — in both `en`
-and `tr`. Alumni is the one CMS content type not among them. Project Platform is a single
+**Exactly nine content types are exported** — Stellar Talk, Nebula Night, Galactic Summit,
+Schedule Event, Announcement, Sponsor, Platform Project, Project Platform and Resource — in
+both `en` and `tr`. Alumni is the one CMS content type not among them. Project Platform is a single
 type: its file holds at most one entry per locale, and a locale with nothing published is
 simply absent (`[]` when neither locale is published), never an error. A missing token
 permission is a 403, which fails the whole run and writes nothing.
@@ -422,7 +422,8 @@ A new content type must not hold production content that the backup cannot see. 
 schema, its exporter support and the token scope therefore ship in one pull request, and
 the steps after merge happen **in this order**, each one checked before the next. The
 first use is Project Platform and Platform Project
-(`openspec/changes/project-platform-cms/`, whose `tasks.md` records the dates).
+(`openspec/changes/project-platform-cms/`, whose `tasks.md` records the dates); the second
+is Resource (`openspec/changes/resources-cms/`, which records its own).
 
 1. **Merge between Tuesday and Thursday**, never close to the Monday 03:00 UTC snapshot.
    Merging to `main` deploys the CMS (`cms-deploy.yml`); wait for that run to go green.
@@ -459,6 +460,37 @@ frontend page for the type ships, in that change.
 - The Project Platform entry's header in the admin shows the first text field
   (`whatsappUrl`). To show something else, a Super Admin can change it under the entry's
   "Configure the view" (stored in the database, not in code).
+
+**Editing notes for Resource** (`design/content-model.md`):
+
+- **A file is public the moment it is uploaded** to the Media Library, at its
+  `media.<DOMAIN>` URL, even while its Resource is a draft or after it is unpublished.
+  Publishing controls the entry, not the file.
+- **Never upload a confidential or internal document as a Resource,** or to the Media
+  Library at all. Only files that may be public.
+- **Unpublishing or deleting a Resource does not remove its file.** The file stays in the
+  Media Library and at its `media.<DOMAIN>` URL. To withdraw a file for good (it holds
+  confidential or personal data, was uploaded by mistake, or must not stay public):
+  1. Unpublish the Resource, or delete it, as appropriate.
+  2. Delete the file in the Media Library. This is what removes it from R2.
+  3. If the original was also put in the media archive (step 3a), remove it there as
+     required.
+  4. Request the old `media.<DOMAIN>` URL and confirm it no longer returns the file. The
+     edge cache (step 3, item 6) can keep serving it until its TTL expires. This runbook has
+     no cache-purge procedure, so if it is still served, whoever holds the Cloudflare
+     account ([../HANDOVER.md](../HANDOVER.md)) must clear it before the file counts as
+     withdrawn.
+- **Keep the original file in the media archive** (the Shared Drive, step 3a). The content
+  snapshot stores the file's URL, original name and type, never the file, so the archive is
+  the only other copy.
+- **A revised file is a new upload, never "Replace media".** Replacing overwrites the R2
+  object for good and the edge cache can keep serving the old one. Upload the new file and
+  select it on the Resource instead.
+- **Pick the file in the language of the entry.** A Turkish file goes on the `tr` version,
+  an English file on `en`. A document that exists in one language only gets that locale
+  only: English-only Resources reach `/tr` as English through the usual fallback.
+- The file picker offers only documents (PDF, Word and other Office files, text, CSV);
+  images and videos cannot be selected.
 
 ### Monthly: confirm the backup is still running
 
@@ -578,6 +610,9 @@ Two of those will bite you during a restore, so know them before you start:
   verification above.
 - **Project Platform is a single type**: restore it by filling the one entry per locale,
   keeping `features` in the order the snapshot lists them (the order is content).
+- **Resource files are not in the dump.** Each entry records its file's URL, original file
+  name and type. If the Media Library still has the file, select it by that URL; if not,
+  re-upload the original from the media archive, found by its name.
 - **Alumni will be missing entirely, and no dump anywhere has them.** You will have to
   re-enter the records by hand from the club's own membership records; the portraits are in
   the media Shared Drive. This is deliberate and is explained in

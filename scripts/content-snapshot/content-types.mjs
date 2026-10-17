@@ -3,9 +3,9 @@
  * The fixed, hardcoded allowlist of content types this backup exports, and
  * the exact `populate` parameters each one needs — see
  * openspec/changes/content-backup/design.md, "Completeness," which this
- * list was built against field-by-field, and
+ * list was built against field-by-field,
  * openspec/changes/project-platform-cms/design.md for the two Project
- * Platform types. `alumnus` is the one schema under apps/cms/src/api/ that
+ * Platform types, and openspec/changes/resources-cms/design.md for Resource. `alumnus` is the one schema under apps/cms/src/api/ that
  * is deliberately absent: this is the
  * structural half of Alumni's exclusion (the other half is that the API
  * token this script authenticates with is never granted permission on it
@@ -15,7 +15,7 @@
  * query fragment, not a generic query-builder — the set of content types
  * and their nesting depth is small and fixed, so writing them out plainly
  * is more directly reviewable against the schema audit than a generic
- * serializer would be. Review this file again whenever any of the eight
+ * serializer would be. Review this file again whenever any of the nine
  * schemas or apps/cms/src/components/** changes.
  *
  * `kind` is the Strapi content-type kind. A "collection" is read page by page
@@ -116,6 +116,13 @@ export const CONTENT_TYPES = Object.freeze([
     // are plain scalars, but the component attribute still needs its own
     // populate entry to be returned at all (the PR #34 lesson above).
     populate: Object.freeze(["populate[features]=true"]),
+  }),
+  Object.freeze({
+    uid: "resource",
+    kind: "collection",
+    pluralName: "resources",
+    // file: a direct, localized media field (allowedTypes: files), no component wrapper.
+    populate: Object.freeze(["populate[file]=true"]),
   }),
 ]);
 
