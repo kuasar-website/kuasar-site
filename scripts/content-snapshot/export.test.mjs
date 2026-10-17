@@ -14,10 +14,21 @@ function emptyPage() {
   return jsonResponse({ data: [], meta: { pagination: { page: 1, pageCount: 1, total: 0 } } });
 }
 
+/**
+ * Strapi's "nothing published" for any URL: an empty page for a collection,
+ * and 404 NotFoundError for the single type (a single type is never paginated).
+ */
+function nothingPublished(url) {
+  if (new URL(url).pathname === "/api/project-platform") {
+    return { ok: false, status: 404, json: async () => ({ data: null, error: { status: 404, name: "NotFoundError", message: "Not Found", details: {} } }) };
+  }
+  return emptyPage();
+}
+
 test("collectSnapshots throws when required env vars are missing, before any request", async () => {
-  await assert.rejects(() => collectSnapshots({}, async () => emptyPage()), /CMS_BASE_URL/);
+  await assert.rejects(() => collectSnapshots({}, async (url) => nothingPublished(url)), /CMS_BASE_URL/);
   await assert.rejects(
-    () => collectSnapshots({ CMS_BASE_URL: "https://cms.example.org" }, async () => emptyPage()),
+    () => collectSnapshots({ CMS_BASE_URL: "https://cms.example.org" }, async (url) => nothingPublished(url)),
     /CONTENT_BACKUP_API_TOKEN/,
   );
 });
@@ -25,9 +36,9 @@ test("collectSnapshots throws when required env vars are missing, before any req
 test("collectSnapshots produces [] for every content type when nothing is published", async () => {
   const snapshots = await collectSnapshots(
     { CMS_BASE_URL: "https://cms.example.org", CONTENT_BACKUP_API_TOKEN: "fixture" },
-    async () => emptyPage(),
+    async (url) => nothingPublished(url),
   );
-  assert.equal(snapshots.size, 6);
+  assert.equal(snapshots.size, 8);
   for (const [, entries] of snapshots) {
     assert.deepEqual(entries, []);
   }
@@ -36,7 +47,7 @@ test("collectSnapshots produces [] for every content type when nothing is publis
 test("collectSnapshots orders combined entries by documentId, then locale, regardless of API order", async () => {
   const fetchImpl = async (url) => {
     const parsed = new URL(url);
-    if (!parsed.pathname.includes("/api/sponsors")) return emptyPage();
+    if (!parsed.pathname.includes("/api/sponsors")) return nothingPublished(url);
     const locale = parsed.searchParams.get("locale");
     // Returned out of documentId order on purpose, to prove the export sorts.
     const data =
@@ -66,7 +77,7 @@ test("collectSnapshots rejects (aborting the whole run) if any single content ty
       sponsorCallCount += 1;
       return { ok: false, status: 503, json: async () => ({}) };
     }
-    return emptyPage();
+    return nothingPublished(url);
   };
 
   await assert.rejects(
@@ -87,8 +98,8 @@ test("collectSnapshots end to end: a real, non-empty Sponsor record survives int
   const fetchImpl = async (url) => {
     requestedUrls.push(url);
     const parsed = new URL(url);
-    if (!parsed.pathname.includes("/api/sponsors")) return emptyPage();
-    if (parsed.searchParams.get("locale") !== "en") return emptyPage();
+    if (!parsed.pathname.includes("/api/sponsors")) return nothingPublished(url);
+    if (parsed.searchParams.get("locale") !== "en") return nothingPublished(url);
     return jsonResponse({
       data: [
         {
@@ -134,8 +145,8 @@ test("collectSnapshots end to end: a real, non-empty Galactic Summit programme s
   const fetchImpl = async (url) => {
     requestedUrls.push(url);
     const parsed = new URL(url);
-    if (!parsed.pathname.includes("/api/galactic-summits")) return emptyPage();
-    if (parsed.searchParams.get("locale") !== "en") return emptyPage();
+    if (!parsed.pathname.includes("/api/galactic-summits")) return nothingPublished(url);
+    if (parsed.searchParams.get("locale") !== "en") return nothingPublished(url);
     return jsonResponse({
       data: [
         {
@@ -181,5 +192,74 @@ test("writeSnapshots writes one file per content type, including an empty array 
     assert.deepEqual(JSON.parse(announcementsRaw), [{ documentId: "a", locale: "en" }]);
   } finally {
     await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("collectSnapshots end to end: Project Platform with a locale that has nothing published, and a Platform Project with a cover", async () => {
+  const urls = [];
+  const fetchImpl = async (url) => {
+    urls.push(url);
+    const parsed = new URL(url);
+    const locale = parsed.searchParams.get("locale");
+    if (parsed.pathname === "/api/project-platform" && locale === "en") {
+      return jsonResponse({
+        data: {
+          documentId: "pp-1",
+          intro: "Intro",
+          whatsappUrl: "https://chat.whatsapp.com/DummyInvite0",
+          whatsappLabel: "Join",
+          features: [{ title: "Project Sharing", description: "d" }],
+        },
+        meta: {},
+      });
+    }
+    if (parsed.pathname === "/api/platform-projects" && locale === "tr") {
+      const data = [{
+        documentId: "proj-1",
+        title: "Örnek proje",
+        summary: "Özet",
+        coverImage: { image: { url: "https://media.kuasar.org/c.png" }, altEn: "Cover", altTr: "Kapak" },
+        startYear: 2025,
+        endYear: null,
+        projectStatus: "current",
+        applicationUrl: null,
+      }];
+      return jsonResponse({ data, meta: { pagination: { page: 1, pageCount: 1, total: 1 } } });
+    }
+    return nothingPublished(url);
+  };
+
+  const snapshots = await collectSnapshots(
+    { CMS_BASE_URL: "https://cms.example.org", CONTENT_BACKUP_API_TOKEN: "fixture" },
+    fetchImpl,
+  );
+
+  assert.deepEqual(snapshots.get("project-platforms"), [{
+    documentId: "pp-1",
+    features: [{ description: "d", title: "Project Sharing" }],
+    intro: "Intro",
+    locale: "en",
+    whatsappLabel: "Join",
+    whatsappUrl: "https://chat.whatsapp.com/DummyInvite0",
+  }], "tr had nothing published, so it is absent rather than an error");
+  assert.deepEqual(snapshots.get("platform-projects").map((p) => [p.documentId, p.locale, p.projectStatus, p.coverImage.url]), [
+    ["proj-1", "tr", "current", "https://media.kuasar.org/c.png"],
+  ]);
+  assert.ok(urls.some((u) => u.includes("/api/project-platform?") && u.includes("populate[features]=true")));
+  assert.ok(urls.some((u) => u.includes("/api/platform-projects?") && u.includes("populate[coverImage][populate]=image")));
+});
+
+test("a backup token without permission on a new type fails the whole run, and nothing is written", async () => {
+  const forbidden = { ok: false, status: 403, json: async () => ({ data: null, error: { status: 403, name: "ForbiddenError" } }) };
+  for (const path of ["/api/project-platform", "/api/platform-projects"]) {
+    const fetchImpl = async (url) => (new URL(url).pathname === path ? forbidden : nothingPublished(url));
+    let snapshots;
+    await assert.rejects(async () => {
+      snapshots = await collectSnapshots(
+        { CMS_BASE_URL: "https://cms.example.org", CONTENT_BACKUP_API_TOKEN: "six-type-token" },
+        fetchImpl,
+      );
+    }, /HTTP 403/);
+    assert.equal(snapshots, undefined, `${path}: no partial snapshot map is returned to write`);
   }
 });

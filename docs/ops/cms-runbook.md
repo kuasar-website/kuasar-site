@@ -342,7 +342,7 @@ Actions secrets make it work:
 
 | Secret | What it is |
 | --- | --- |
-| `CONTENT_BACKUP_API_TOKEN` | A Strapi **custom**-type API token (Settings → API Tokens), granted `find`/`findOne` on exactly the six exported content types below — no other action, no other content type, and explicitly **never** Alumni |
+| `CONTENT_BACKUP_API_TOKEN` | A Strapi **custom**-type API token (Settings → API Tokens), granted `find`/`findOne` on exactly the eight exported content types below (`find` only on Project Platform, a single type, which has no `findOne`) — no other action, no other content type, and explicitly **never** Alumni |
 | `CMS_BASE_URL` | The production Strapi host |
 
 Neither secret exists yet as of this writing — create the token and add both secrets before
@@ -369,9 +369,12 @@ repository is public** (see
 Both are argued in [../adr/0002-cms.md](../adr/0002-cms.md), *Known debt: KVKK*. Neither may
 be relaxed to make restores easier.
 
-**Exactly six content types are exported** — Stellar Talk, Nebula Night, Galactic Summit,
-Schedule Event, Announcement, Sponsor — in both `en` and `tr`. Alumni is the seventh and is
-not among them.
+**Exactly eight content types are exported** — Stellar Talk, Nebula Night, Galactic Summit,
+Schedule Event, Announcement, Sponsor, Platform Project and Project Platform — in both `en`
+and `tr`. Alumni is the one CMS content type not among them. Project Platform is a single
+type: its file holds at most one entry per locale, and a locale with nothing published is
+simply absent (`[]` when neither locale is published), never an error. A missing token
+permission is a 403, which fails the whole run and writes nothing.
 
 **Trigger the workflow by hand once and open the dump before trusting the schedule.** Search
 it for an alumnus's name and for a known draft. Finding either means the filters are not
@@ -412,6 +415,50 @@ asserts the Editor role exists; it does not set or verify its action permissions
 (see `openspec/changes/cms-platform/design.md`, Risks). Verify this once per environment
 (a fresh App Platform deploy or a new database both count), not once per new editor invited
 to an already-configured environment.
+
+### Rolling out a new content type: the backup comes before the editors
+
+A new content type must not hold production content that the backup cannot see. The
+schema, its exporter support and the token scope therefore ship in one pull request, and
+the steps after merge happen **in this order**, each one checked before the next. The
+first use is Project Platform and Platform Project
+(`openspec/changes/project-platform-cms/`, whose `tasks.md` records the dates).
+
+1. **Merge between Tuesday and Thursday**, never close to the Monday 03:00 UTC snapshot.
+   Merging to `main` deploys the CMS (`cms-deploy.yml`); wait for that run to go green.
+   Strapi creates the new tables on boot; nothing is migrated by hand.
+2. **Super Admin:** Settings → API Tokens → the backup token (`CONTENT_BACKUP_API_TOKEN`).
+   Add `find`/`findOne` on each new collection type and `find` on each new single type.
+   Nothing else; never Alumni. The token value does not change, so no secret is updated.
+3. **Run the content snapshot by hand** (Actions → Content snapshot → Run workflow).
+4. **Confirm it went green and the new files exist** on `content-snapshots` (for Project
+   Platform: `platform-projects.json` and `project-platforms.json`, both `[]` at this point).
+   A red run with `HTTP 403` means step 2 is incomplete; fix it and re-run. Until then the
+   weekly run fails too, loudly, and the previous snapshot stays as it was.
+5. **Only then** grant the **Editor** role Read, Create, Update, Delete and Publish on the
+   new types, in `en` and `tr` (Settings → Administration Panel → Roles → Editor), and check
+   they are actually on. Strapi gives new types to Super Admin automatically, not to Editor.
+   Until this step, editors cannot see the new types at all, which is the point.
+6. **After the first real editor publish**, run the snapshot by hand again and confirm the
+   entries appear in both locales.
+
+Public (anonymous) read permission is not part of this. It is granted only when the
+frontend page for the type ships, in that change.
+
+**Editing notes for Project Platform and Platform Project** (`design/content-model.md`):
+
+- `projectStatus` is your call, `current` or `past`. It is never worked out from the years.
+- `applicationUrl` is the Apply / Başvur link (HTTPS, for example a Google Form). Leave it
+  empty when there is no open application; the page then shows no button.
+- `whatsappUrl` takes HTTPS WhatsApp links only: `chat.whatsapp.com/…`, `whatsapp.com/…`
+  (including `www.whatsapp.com/channel/…`) or `wa.me/…`.
+- Strapi lets a **draft** hold an invalid link or a year outside 1900–2100, and refuses it at
+  **publish**. Nothing invalid can be published, so nothing invalid reaches the site or the
+  backup; fix the value and publish again.
+- Rocket Missions are not Platform Projects. They stay in git.
+- The Project Platform entry's header in the admin shows the first text field
+  (`whatsappUrl`). To show something else, a Super Admin can change it under the entry's
+  "Configure the view" (stored in the database, not in code).
 
 ### Monthly: confirm the backup is still running
 
@@ -529,6 +576,8 @@ Two of those will bite you during a restore, so know them before you start:
 
 - **Media** is not in the backup by design. If the bucket is also gone, see the annual
   verification above.
+- **Project Platform is a single type**: restore it by filling the one entry per locale,
+  keeping `features` in the order the snapshot lists them (the order is content).
 - **Alumni will be missing entirely, and no dump anywhere has them.** You will have to
   re-enter the records by hand from the club's own membership records; the portraits are in
   the media Shared Drive. This is deliberate and is explained in

@@ -2,7 +2,7 @@
 
 Every entity, its fields, and where it is stored.
 
-- **Last updated:** 2026-10-01
+- **Last updated:** 2026-10-17
 - **Related:** [../docs/adr/0002-cms.md](../docs/adr/0002-cms.md), [i18n.md](i18n.md)
 
 Model for the **shape**, not for a known volume. Real content, counts and image assets are
@@ -22,7 +22,7 @@ request a year and costs every future editor an inexplicable half-empty record.
 | Storage | Entities | Edited by |
 | --- | --- | --- |
 | **Git** | Mission, Timeline Entry | Developers, through pull requests |
-| **Strapi** | Stellar Talk, Nebula Night, Galactic Summit, Schedule Event, Announcement, Alumni, Sponsor | Editors, in the admin panel |
+| **Strapi** | Stellar Talk, Nebula Night, Galactic Summit, Schedule Event, Announcement, Alumni, Sponsor, Platform Project, Project Platform | Editors, in the admin panel |
 
 ## Locale conventions
 
@@ -338,6 +338,63 @@ because a logo is "already public."
 
 The site launches without a sponsors section. Adding it is a later change proposal, gated
 on the permissions existing, not on the components being ready.
+
+## Project Platform and Platform Project
+
+The Project Platform page is where KUASAR shows **non-rocket space and aerospace projects**
+and invites members into them. It has two Strapi entities: the page's own content (one
+single type) and the projects (a collection). OpenSpec:
+`openspec/changes/project-platform-cms/`.
+
+**The Mission boundary.** KUASAR's rocket Missions stay in git as Missions (the storage rule
+above). A rocket Mission is **never** also entered as a Platform Project, and the Project
+Platform does not replace the Missions archive. If a project is a KUASAR rocket flight, it is
+a Mission.
+
+**No frontend reads these yet**, and the Public role has no read permission on them until
+the page ships. The content is in the weekly content snapshot from the start.
+
+### Project Platform (single type)
+
+One entry per locale: the page intro and hero, the WhatsApp call to action and the
+platform's functions. The page heading comes from code, like every section heading.
+
+| Field | Type | | Notes |
+| --- | --- | --- | --- |
+| `intro` | rich text | L | **Required.** What the Project Platform is |
+| `whatsappUrl` | url? | F | HTTPS on `chat.whatsapp.com`, `whatsapp.com` (or one subdomain of it, e.g. `www.`) or `wa.me`, with a non-empty path. Null hides the button |
+| `whatsappLabel` | string? | L | The button text. Empty means the page's default label |
+| `features` | component[] | L | Repeatable `platform.feature`: `{title, description}`, both required. Each locale keeps its own items in its own order |
+
+`features` are the platform's functions (at the time of writing: Project Sharing, Team
+Formation, Project Development, Project Support). Their text, count and order are content,
+so nothing in the schema fixes them to four.
+
+### Platform Project
+
+| Field | Type | | Notes |
+| --- | --- | --- | --- |
+| `title` | string | L | |
+| `summary` | text | L | Short description |
+| `coverImage` | image? | F | |
+| `startYear` | number | F | **Required**, 1900–2100. The sort key within each section |
+| `endYear` | number? | F | 1900–2100 |
+| `projectStatus` | **enum** | F | `current` \| `past`, required, no default |
+| `applicationUrl` | url? | F | HTTPS. When set, the page shows Apply / Başvur; when empty, no application button |
+
+**`projectStatus` is an editorial classification, never derived from the years.** A
+current project may be recruiting or may have no open application. A past project belongs in
+the past-projects section. The field is not called `status` because Strapi 5 reserves that
+name on every type with draft/publish.
+
+**Deliberately absent:** a slug, a long body, a manual display order, and any
+application-state field (open/closed, deadline, form type). The suggested page order is
+current projects first, then past, each newest `startYear` first, then title. Adding any of
+the absent fields later is additive; removing a field deletes its data, so the model starts
+small.
+
+**Zero, one, many:** the CMS accepts zero, one or many Platform Projects, and the page is
+expected to handle each when it is built.
 
 ---
 

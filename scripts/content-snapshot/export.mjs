@@ -2,7 +2,7 @@
 /**
  * Content-backup export entrypoint.
  *
- * Fetches every published entry, in both locales, for exactly the six
+ * Fetches every published entry, in both locales, for exactly the eight
  * content types in content-types.mjs (`alumnus` is never in that list),
  * and writes one deterministic JSON file per content type to
  * `content/_snapshots/`.
@@ -17,7 +17,7 @@
  * Required environment variables (see design.md, "Required secrets"):
  *   CMS_BASE_URL            - the production Strapi host, e.g. https://cms.kuasar.org
  *   CONTENT_BACKUP_API_TOKEN - a Strapi custom API token, find/findOne only,
- *                              scoped to exactly the six content types below
+ *                              scoped to exactly the eight content types below
  *
  * Never logs either value, or the constructed Authorization header.
  */
@@ -28,10 +28,14 @@ import { fileURLToPath } from "node:url";
 
 import { CONTENT_TYPES, LOCALES } from "./content-types.mjs";
 import { fetchAllPages } from "./paginate.mjs";
+import { fetchSingleType } from "./single.mjs";
 import { reduceEntry } from "./transform.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SNAPSHOT_DIR = path.join(__dirname, "..", "..", "content", "_snapshots");
+
+/** A collection is read page by page; a single type is one document per locale. */
+const FETCHERS = Object.freeze({ collection: fetchAllPages, single: fetchSingleType });
 
 function compareEntries(a, b) {
   if (a.documentId !== b.documentId) {
@@ -62,7 +66,11 @@ export async function collectSnapshots(env = process.env, fetchImpl = fetch) {
     const combined = [];
     for (const locale of LOCALES) {
       console.log(`[content-snapshot] Fetching ${contentType.uid} (${locale})...`);
-      const rawEntries = await fetchAllPages({
+      const fetchEntries = FETCHERS[contentType.kind];
+      if (!fetchEntries) {
+        throw new Error(`[content-snapshot] Unknown kind "${contentType.kind}" for content type "${contentType.uid}"`);
+      }
+      const rawEntries = await fetchEntries({
         cmsBaseUrl,
         token,
         contentType,

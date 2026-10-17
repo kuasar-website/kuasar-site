@@ -1,0 +1,40 @@
+{
+  "kind": "singleType",
+  "collectionName": "project_platforms",
+  "info": {
+    "singularName": "project-platform",
+    "pluralName": "project-platforms",
+    "displayName": "Project Platform",
+    "description": "The Project Platform page's own content: the intro, the WhatsApp call to action and the platform's functions (features). The projects themselves are Platform Project entries. whatsappUrl accepts HTTPS WhatsApp links only (chat.whatsapp.com, whatsapp.com and its subdomains, wa.me) (project-platform-cms)."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "intro": {
+      "type": "richtext",
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "whatsappUrl": {
+      "type": "string",
+      "regex": "^https://(([a-z0-9-]+\\.)?whatsapp\\.com|wa\\.me)/\\S+$",
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "whatsappLabel": {
+      "type": "string",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "features": {
+      "type": "component",
+      "repeatable": true,
+      "component": "platform.feature",
+      "pluginOptions": { "i18n": { "localized": true } }
+    }
+  }
+}

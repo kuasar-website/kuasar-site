@@ -350,3 +350,86 @@ test("every attribute of every exported schema is kept by its picker", () => {
     }
   }
 });
+
+// The same guarantee one level down: every field of every component a schema uses is kept.
+// shared.image is the one deliberate reduction (the file object becomes its public url).
+test("every field of every component used by an exported schema is kept by its picker", () => {
+  const componentFields = (name) => {
+    const [category, file] = name.split(".");
+    const url = new URL(`../../apps/cms/src/components/${category}/${file}.json`, import.meta.url);
+    return Object.keys(JSON.parse(readFileSync(url, "utf8")).attributes);
+  };
+  for (const { uid } of CONTENT_TYPES) {
+    const schemaUrl = new URL(`../../apps/cms/src/api/${uid}/content-types/${uid}/schema.json`, import.meta.url);
+    const attributes = JSON.parse(readFileSync(schemaUrl, "utf8")).attributes;
+    for (const [name, attribute] of Object.entries(attributes)) {
+      if (attribute.type !== "component") continue;
+      const isImage = attribute.component === "shared.image";
+      const item = isImage
+        ? { image: { url: "https://media.kuasar.org/x.jpg" }, altEn: "en", altTr: "tr" }
+        : Object.fromEntries(componentFields(attribute.component).map((field) => [field, null]));
+      const entry = reduceEntry(uid, { documentId: "doc-1", [name]: attribute.repeatable ? [item] : item }, "en");
+      const reduced = attribute.repeatable ? entry[name]?.[0] : entry[name];
+      if (isImage) {
+        assert.deepEqual(reduced, { url: "https://media.kuasar.org/x.jpg", altEn: "en", altTr: "tr" }, `${uid}.${name}: shared.image`);
+        continue;
+      }
+      for (const field of componentFields(attribute.component)) {
+        assert.ok(reduced && Object.hasOwn(reduced, field), `${uid}.${name}: component field "${field}" is missing from the snapshot`);
+      }
+    }
+  }
+});
+
+test("reduceEntry for platform-project keeps every field, with the cover reduced to url and alts", () => {
+  const entry = reduceEntry(
+    "platform-project",
+    {
+      documentId: "proj-1",
+      title: "Dummy satellite study",
+      summary: "A summary.",
+      coverImage: { id: 3, image: { id: 9, url: "https://media.kuasar.org/cover.png", hash: "h" }, altEn: "Cover", altTr: "Kapak" },
+      startYear: 2024,
+      endYear: 2026,
+      projectStatus: "past",
+      applicationUrl: "https://example.test/apply",
+    },
+    "en",
+  );
+  assert.deepEqual(entry, {
+    applicationUrl: "https://example.test/apply",
+    coverImage: { altEn: "Cover", altTr: "Kapak", url: "https://media.kuasar.org/cover.png" },
+    documentId: "proj-1",
+    endYear: 2026,
+    locale: "en",
+    projectStatus: "past",
+    startYear: 2024,
+    summary: "A summary.",
+    title: "Dummy satellite study",
+  });
+});
+
+test("reduceEntry for project-platform keeps features in the editor's order", () => {
+  const entry = reduceEntry(
+    "project-platform",
+    {
+      documentId: "pp-1",
+      intro: "TR giriş",
+      whatsappUrl: "https://chat.whatsapp.com/DummyInvite0",
+      whatsappLabel: "Katıl",
+      features: [
+        { id: 4, title: "Proje Desteği", description: "d1" },
+        { id: 2, title: "Proje Paylaşımı", description: "d2" },
+        { id: 3, title: "Ekip Kurma", description: "d3" },
+      ],
+    },
+    "tr",
+  );
+  assert.deepEqual(entry.features, [
+    { description: "d1", title: "Proje Desteği" },
+    { description: "d2", title: "Proje Paylaşımı" },
+    { description: "d3", title: "Ekip Kurma" },
+  ]);
+  assert.equal(entry.whatsappUrl, "https://chat.whatsapp.com/DummyInvite0");
+  assert.equal(entry.locale, "tr");
+});

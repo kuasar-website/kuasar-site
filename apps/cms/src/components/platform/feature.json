@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_platform_features",
+  "info": {
+    "displayName": "Feature",
+    "description": "One function of the Project Platform (for example Project Sharing or Team Formation): a title and a short description. Repeatable and localized on Project Platform, so each locale keeps its own items in its own order."
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text",
+      "required": true
+    }
+  }
+}
