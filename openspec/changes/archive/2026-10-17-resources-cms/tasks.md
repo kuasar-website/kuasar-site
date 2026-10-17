@@ -41,14 +41,14 @@ preview.
 - [x] 5.5 File picker: PDFs and a `.docx` are selectable and a ticked PDF lands in the field; an image and a video have no selection checkbox. Recorded: the Content API itself accepts an image or video id (design D3)
 - [x] 5.6 Publish, unpublish and republish; anonymous `/api/resources` (both locales) and `?status=draft` → 403
 - [x] 5.7 Backup against local Strapi, written to a scratch directory only: no Resources → run succeeds, `resources.json` is `[]`; populated → one entry per published locale with its own file URL, name and type, no draft; a token without Resource permission → `HTTP 403`, run fails, 0 files written
-- [ ] 5.8 Human code review and approval of the pull request
+- [x] 5.8 Human code review and approval of the pull request (#53 approved at `41cfeb3`, 2026-10-17; the reviewer's runbook note was then added as `4d62613`, with the approval kept)
 
 ## 6. After merge, in this order (`docs/ops/cms-runbook.md`, "Rolling out a new content type")
 
-- [ ] 6.1 Merge (after #52), Tuesday–Thursday; `cms-deploy.yml` on `main` goes green
-- [ ] 6.2 Super Admin adds `find`/`findOne` on Resource to `CONTENT_BACKUP_API_TOKEN`, nothing else
-- [ ] 6.3 Run Content snapshot by hand
-- [ ] 6.4 Confirm it is green and `resources.json` exists on `content-snapshots`
+- [x] 6.1 Merge (after #52), Tuesday–Thursday; `cms-deploy.yml` on `main` goes green (merged after #52 as `242dba5` on Saturday 2026-10-17, outside the Tuesday–Thursday window; `cms-deploy.yml` run 39058607821 on `242dba5` succeeded)
+- [x] 6.2 Super Admin adds `find`/`findOne` on Resource to `CONTENT_BACKUP_API_TOKEN`, nothing else (the 6.3 run read Resource without a permission error, which a token without it fails; that the scope is nothing else is not verified here)
+- [x] 6.3 Run Content snapshot by hand (run 39060286595 on `242dba5`, `workflow_dispatch`, succeeded)
+- [x] 6.4 Confirm it is green and `resources.json` exists on `content-snapshots` (snapshot commit `c2e9e4b`: `content/_snapshots/resources.json` present, `[]`)
 - [ ] 6.5 Only then grant the Editor role Read, Create, Update, Delete and Publish on Resource, in `en` and `tr`, and check they are on
 - [ ] 6.6 After the first real editor publish, run the snapshot by hand again and confirm the entry appears
 
