@@ -13,7 +13,7 @@ test("the content-type allowlist excludes alumnus", () => {
   assert.ok(!uids.includes("alumni"), "neither singular nor plural form of Alumni may appear");
 });
 
-test("the content-type allowlist is exactly the eight approved types", () => {
+test("the content-type allowlist is exactly the nine approved types", () => {
   const uids = CONTENT_TYPES.map((c) => c.uid).sort();
   assert.deepEqual(uids, [
     "announcement",
@@ -21,6 +21,7 @@ test("the content-type allowlist is exactly the eight approved types", () => {
     "nebula-night",
     "platform-project",
     "project-platform",
+    "resource",
     "schedule-event",
     "sponsor",
     "stellar-talk",
@@ -96,6 +97,7 @@ const REQUIRED_POPULATE_ATTRIBUTES = {
   sponsor: ["logo", "logoLight", "summits"],
   "platform-project": ["coverImage"],
   "project-platform": ["features"],
+  resource: ["file"],
 };
 
 test("every component/media/relation attribute has its own populate entry, for every content type", () => {

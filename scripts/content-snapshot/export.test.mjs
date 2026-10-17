@@ -38,7 +38,7 @@ test("collectSnapshots produces [] for every content type when nothing is publis
     { CMS_BASE_URL: "https://cms.example.org", CONTENT_BACKUP_API_TOKEN: "fixture" },
     async (url) => nothingPublished(url),
   );
-  assert.equal(snapshots.size, 8);
+  assert.equal(snapshots.size, 9);
   for (const [, entries] of snapshots) {
     assert.deepEqual(entries, []);
   }
@@ -262,4 +262,52 @@ test("a backup token without permission on a new type fails the whole run, and n
     }, /HTTP 403/);
     assert.equal(snapshots, undefined, `${path}: no partial snapshot map is returned to write`);
   }
+});
+
+test("collectSnapshots end to end: Resources keep each locale's own file, and English-only and Turkish-only entries stay in their locale", async () => {
+  const urls = [];
+  const fetchImpl = async (url) => {
+    urls.push(url);
+    const parsed = new URL(url);
+    if (parsed.pathname !== "/api/resources") return nothingPublished(url);
+    const locale = parsed.searchParams.get("locale");
+    const file = (name, mime) => ({ id: 1, name, url: `https://media.kuasar.org/${name}`, mime, size: 120.5, hash: "h" });
+    const data =
+      locale === "en"
+        ? [
+            { documentId: "res-both", title: "Guide", description: "EN", file: file("guide-en.pdf", "application/pdf") },
+            { documentId: "res-en-only", title: "Checklist", description: "EN only", file: file("checklist.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document") },
+          ]
+        : [
+            { documentId: "res-both", title: "Rehber", description: "TR", file: file("guide-tr.pdf", "application/pdf") },
+            { documentId: "res-tr-only", title: "Eğitim notları", description: "TR only", file: file("notlar.pdf", "application/pdf") },
+          ];
+    return jsonResponse({ data, meta: { pagination: { page: 1, pageCount: 1, total: data.length } } });
+  };
+
+  const snapshots = await collectSnapshots(
+    { CMS_BASE_URL: "https://cms.example.org", CONTENT_BACKUP_API_TOKEN: "fixture" },
+    fetchImpl,
+  );
+
+  assert.deepEqual(snapshots.get("resources").map((r) => `${r.documentId}:${r.locale}:${r.file.url}`), [
+    "res-both:en:https://media.kuasar.org/guide-en.pdf",
+    "res-both:tr:https://media.kuasar.org/guide-tr.pdf",
+    "res-en-only:en:https://media.kuasar.org/checklist.docx",
+    "res-tr-only:tr:https://media.kuasar.org/notlar.pdf",
+  ]);
+  assert.ok(urls.some((u) => u.includes("/api/resources?") && u.includes("populate[file]=true")));
+});
+
+test("a backup token without permission on Resource fails the whole run, and nothing is written", async () => {
+  const forbidden = { ok: false, status: 403, json: async () => ({ data: null, error: { status: 403, name: "ForbiddenError" } }) };
+  const fetchImpl = async (url) => (new URL(url).pathname === "/api/resources" ? forbidden : nothingPublished(url));
+  let snapshots;
+  await assert.rejects(async () => {
+    snapshots = await collectSnapshots(
+      { CMS_BASE_URL: "https://cms.example.org", CONTENT_BACKUP_API_TOKEN: "eight-type-token" },
+      fetchImpl,
+    );
+  }, /resource \(en\) page 1 failed: HTTP 403/);
+  assert.equal(snapshots, undefined, "no partial snapshot map is returned to write");
 });

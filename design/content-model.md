@@ -22,7 +22,7 @@ request a year and costs every future editor an inexplicable half-empty record.
 | Storage | Entities | Edited by |
 | --- | --- | --- |
 | **Git** | Mission, Timeline Entry | Developers, through pull requests |
-| **Strapi** | Stellar Talk, Nebula Night, Galactic Summit, Schedule Event, Announcement, Alumni, Sponsor, Platform Project, Project Platform | Editors, in the admin panel |
+| **Strapi** | Stellar Talk, Nebula Night, Galactic Summit, Schedule Event, Announcement, Alumni, Sponsor, Platform Project, Project Platform, Resource | Editors, in the admin panel |
 
 ## Locale conventions
 
@@ -395,6 +395,38 @@ small.
 
 **Zero, one, many:** the CMS accepts zero, one or many Platform Projects, and the page is
 expected to handle each when it is built.
+
+## Resource
+
+A downloadable resource on the Resources page: training material, a guide, a document.
+The file is uploaded through the Media Library; no resource is a hard-coded file or an
+external link. The page's heading and intro are page copy in code, like every section's, so
+there is no page-level type. OpenSpec: `openspec/changes/resources-cms/`.
+
+| Field | Type | | Notes |
+| --- | --- | --- | --- |
+| `title` | string | L | |
+| `description` | text | L | Short |
+| `file` | media | **L** | **Required.** One file, `allowedTypes: files`: the document types the upload configuration allows (PDF, Word and other Office documents, plain text, CSV), never an image, video or audio |
+
+**The entry's locale is the language of its file.** That is why `file` is localized, unlike
+every image in this model: a document's language is its content, not a fact about it. A
+resource in both languages has its English file in `en` and its Turkish file in `tr`. An
+English-only document is created in `en` only and reaches `/tr` through the usual silent
+fallback, marked `lang="en"`. A Turkish-only document is created in `tr` only and does not
+appear on `/en`.
+
+**Uploaded files are public from the moment they are uploaded,** at their `media.<DOMAIN>`
+URL, even while the entry is a draft. The snapshot stores the file's URL, original name and
+type, never the file itself, so the original must also be kept in the media archive
+([ADR 0002](../docs/adr/0002-cms.md), decision 6).
+
+**Deliberately absent:** a category (no agreed taxonomy yet; an enum is the additive path), a
+cover image, a year or date, a manual order, an external URL, a slug and a body. The page
+sorts by the localized title. **No frontend reads Resource yet**, and the Public role has no
+read permission on it until the page ships.
+
+**Zero, one, many:** the CMS accepts zero, one or many Resources, in either or both locales.
 
 ---
 

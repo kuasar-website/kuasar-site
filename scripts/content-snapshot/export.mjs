@@ -2,7 +2,7 @@
 /**
  * Content-backup export entrypoint.
  *
- * Fetches every published entry, in both locales, for exactly the eight
+ * Fetches every published entry, in both locales, for exactly the nine
  * content types in content-types.mjs (`alumnus` is never in that list),
  * and writes one deterministic JSON file per content type to
  * `content/_snapshots/`.
@@ -17,7 +17,7 @@
  * Required environment variables (see design.md, "Required secrets"):
  *   CMS_BASE_URL            - the production Strapi host, e.g. https://cms.kuasar.org
  *   CONTENT_BACKUP_API_TOKEN - a Strapi custom API token, find/findOne only,
- *                              scoped to exactly the eight content types below
+ *                              scoped to exactly the nine content types below
  *
  * Never logs either value, or the constructed Authorization header.
  */

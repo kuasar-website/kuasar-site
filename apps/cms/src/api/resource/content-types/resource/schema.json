@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "resources",
+  "info": {
+    "singularName": "resource",
+    "pluralName": "resources",
+    "displayName": "Resource",
+    "description": "A downloadable resource (training material, guide, document). The entry's locale is the language of its file: add a locale only when a file in that language exists. Uploaded files are public at their media URL from the moment they are uploaded, even while the entry is a draft, so never upload confidential documents. Upload a new file for a revision rather than Replace media (resources-cms)."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "description": {
+      "type": "text",
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "file": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["files"],
+      "pluginOptions": { "i18n": { "localized": true } }
+    }
+  }
+}

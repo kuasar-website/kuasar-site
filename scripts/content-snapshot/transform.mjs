@@ -108,6 +108,7 @@ const EXPECTED = {
   sponsor: ["name", "logo", "logoLight", "url", "since", "isCurrent", "blurb", "summits"],
   "platform-project": ["title", "summary", "coverImage", "startYear", "endYear", "projectStatus", "applicationUrl"],
   "project-platform": ["intro", "whatsappUrl", "whatsappLabel", "features"],
+  resource: ["title", "description", "file"],
 };
 
 function pickStellarTalk(raw, locale) {
@@ -265,6 +266,26 @@ function pickProjectPlatform(raw, locale) {
   };
 }
 
+function pickResource(raw, locale) {
+  warnUnexpectedKeys(raw, EXPECTED.resource, "resource");
+  return {
+    documentId: raw.documentId,
+    locale,
+    title: raw.title ?? null,
+    description: raw.description ?? null,
+    // Localized: each locale's own file. The binary is never in the snapshot; the original is
+    // kept in the media archive (Shared Drive), where `name` (the uploaded file name, not
+    // the hashed R2 one) is how a restore finds it.
+    file: reduceResourceFile(raw.file),
+  };
+}
+
+/** A Resource file: its public URL, original file name and MIME type. Nothing else. */
+function reduceResourceFile(file) {
+  if (file === null || file === undefined) return null;
+  return { url: file.url ?? null, name: file.name ?? null, mime: file.mime ?? null };
+}
+
 /** @type {Record<string, (raw: object, locale: "en" | "tr") => object>} */
 export const PICKERS = Object.freeze({
   "stellar-talk": pickStellarTalk,
@@ -275,6 +296,7 @@ export const PICKERS = Object.freeze({
   sponsor: pickSponsor,
   "platform-project": pickPlatformProject,
   "project-platform": pickProjectPlatform,
+  resource: pickResource,
 });
 
 /**
