@@ -26,7 +26,7 @@ order tasks around. Both locales are covered in every content task. Depends on
 - [x] 4.2 `npm run build -w cms`
 - [x] 4.3 `npm run test:content-backup`, `npm run test:cms`, the CMS unit tests (`apps/cms/src/**/*.test.ts`)
 - [x] 4.4 Tier A steps locally; Tier A in CI on the pull request
-- [ ] 4.5 Manual `cms-deploy.yml` run from `change/resources-cms`: builds and checks the image; pushes and deploys nothing
+- [x] 4.5 Manual `cms-deploy.yml` run from `change/resources-cms`: builds and checks the image; pushes and deploys nothing (run 39032983953 at `af97084`: build-push succeeded, deploy skipped)
 
 **CI gate:** none covers the CMS schema (`docs/adr/0004-verification.md`), and no CI workflow
 runs `test:content-backup`. Sections 4 and 5 are the pre-merge substitute for a Strapi
