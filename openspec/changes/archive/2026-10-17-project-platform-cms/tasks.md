@@ -46,15 +46,15 @@ pre-merge substitute for a Strapi preview, which does not exist.
 - [x] 5.5 Validation (dummy URLs): `whatsappUrl` accepts the four WhatsApp shapes and refuses `http://`, lookalikes, other hosts, a bare host and text; `applicationUrl` refuses `http://` and text; years outside 1900–2100 refused. Strapi saves these in a **draft** and refuses them at **publish** (D6)
 - [x] 5.6 Publish, unpublish and republish for both types; unauthenticated `?status=draft` → 403; unauthenticated published read → 403 (no Public permission)
 - [x] 5.7 Backup against local Strapi, written to a scratch directory only: new types empty → run succeeds with both files `[]`; populated → every field, both locales, feature order kept, no draft and no Alumni in any file; the old six-type token → `HTTP 403`, run fails, 0 files written
-- [ ] 5.8 Human code review and approval of the pull request
+- [x] 5.8 Human code review and approval of the pull request (#52 approved at `b45f6c8`, 2026-10-17)
 
 ## 6. After merge, in this order (`docs/ops/cms-runbook.md`, "Rolling out a new content type")
 
-- [ ] 6.1 Merge Tuesday–Thursday; `cms-deploy.yml` on `main` goes green
-- [ ] 6.2 Super Admin adds `find`/`findOne` on Platform Project and `find` on Project Platform to `CONTENT_BACKUP_API_TOKEN`, nothing else
-- [ ] 6.3 Run Content snapshot by hand
-- [ ] 6.4 Confirm it is green and `platform-projects.json` and `project-platforms.json` exist on `content-snapshots`
-- [ ] 6.5 Only then grant the Editor role Read, Create, Update, Delete and Publish on both types, in `en` and `tr`, and check they are on
+- [x] 6.1 Merge Tuesday–Thursday; `cms-deploy.yml` on `main` goes green (merged as `9fa4128` on Saturday 2026-10-17, outside the Tuesday–Thursday window; `cms-deploy.yml` run 39053122226 on `9fa4128` succeeded)
+- [x] 6.2 Super Admin adds `find`/`findOne` on Platform Project and `find` on Project Platform to `CONTENT_BACKUP_API_TOKEN`, nothing else (reported done by the operator; the 6.3 run reading both types without a permission error confirms the read side)
+- [x] 6.3 Run Content snapshot by hand (run 39054243908 on `9fa4128`, `workflow_dispatch`, succeeded)
+- [x] 6.4 Confirm it is green and `platform-projects.json` and `project-platforms.json` exist on `content-snapshots` (snapshot commit `fdaf87a`: both files present under `content/_snapshots/`, each `[]`)
+- [x] 6.5 Only then grant the Editor role Read, Create, Update, Delete and Publish on both types, in `en` and `tr`, and check they are on (reported done by the operator after 6.4)
 - [ ] 6.6 After the first real editor publish, run the snapshot by hand again and confirm the entries appear in both locales
 
 Public read permission is not granted here; the frontend change grants it.
