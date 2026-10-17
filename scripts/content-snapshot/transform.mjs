@@ -104,7 +104,7 @@ const EXPECTED = {
   "nebula-night": ["date", "photos", "title", "description", "filmTitle"],
   "galactic-summit": ["year", "date", "location", "isCurrent", "purpose", "programme", "speakers", "sponsors", "photos", "contactAddress", "sponsorshipPdf", "registrationUrl", "accentToken", "heroTreatment", "backgroundImage"],
   "schedule-event": ["startsAt", "endsAt", "type", "location", "title", "description", "url"],
-  announcement: ["pinned", "title", "slug", "excerpt", "body", "coverImage"],
+  announcement: ["pinned", "announcementDate", "title", "slug", "excerpt", "body", "coverImage"],
   sponsor: ["name", "logo", "logoLight", "url", "since", "isCurrent", "blurb", "summits"],
 };
 
@@ -198,6 +198,9 @@ function pickAnnouncement(raw, locale) {
     documentId: raw.documentId,
     locale,
     pinned: raw.pinned ?? null,
+    // The editorial date and News's sort key (required in the schema). Never publishedAt,
+    // which Strapi resets on every republish.
+    announcementDate: raw.announcementDate ?? null,
     title: raw.title ?? null,
     // The exact recorded slug — restore must set this verbatim, never
     // regenerate it from title. See design.md, "Restore procedure."

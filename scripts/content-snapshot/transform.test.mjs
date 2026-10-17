@@ -1,5 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+
+import { CONTENT_TYPES } from "./content-types.mjs";
 
 import {
   sortKeysDeep,
@@ -143,6 +146,24 @@ test("reduceEntry for announcement preserves the exact slug value verbatim", () 
     "en",
   );
   assert.equal(entry.slug, "launch-day-exact-slug");
+});
+
+test("reduceEntry for announcement keeps announcementDate, the editorial date News sorts by", () => {
+  const warnings = [];
+  const originalWarn = console.warn;
+  console.warn = (message) => warnings.push(message);
+  let entry;
+  try {
+    entry = reduceEntry(
+      "announcement",
+      { documentId: "ann-1", title: "Launch Day", announcementDate: "2026-09-10T15:30:00.000Z" },
+      "en",
+    );
+  } finally {
+    console.warn = originalWarn;
+  }
+  assert.equal(entry.announcementDate, "2026-09-10T15:30:00.000Z");
+  assert.deepEqual(warnings, [], "announcementDate is an expected field, never dropped as unexpected");
 });
 
 test("reduceEntry for stellar-talk reduces the direct hoverVideo media field", () => {
@@ -304,4 +325,28 @@ test("reduceEntry for schedule-event preserves a full, non-empty entry", () => {
     type: "talk",
     url: "https://kuasar.org/events/avionics",
   });
+});
+
+// A snapshot that silently drops a schema field cannot restore it. This reads every
+// exported type's schema.json, so a field added to a schema without a matching picker
+// update fails here (it happened once: Announcement's announcementDate).
+test("every attribute of every exported schema is kept by its picker", () => {
+  for (const { uid } of CONTENT_TYPES) {
+    const schemaUrl = new URL(`../../apps/cms/src/api/${uid}/content-types/${uid}/schema.json`, import.meta.url);
+    const attributes = Object.keys(JSON.parse(readFileSync(schemaUrl, "utf8")).attributes);
+    const raw = Object.fromEntries([["documentId", "doc-1"], ...attributes.map((name) => [name, null])]);
+    const warnings = [];
+    const originalWarn = console.warn;
+    console.warn = (message) => warnings.push(message);
+    let entry;
+    try {
+      entry = reduceEntry(uid, raw, "en");
+    } finally {
+      console.warn = originalWarn;
+    }
+    assert.deepEqual(warnings, [], `${uid}: a schema attribute is treated as unexpected`);
+    for (const name of attributes) {
+      assert.ok(Object.hasOwn(entry, name), `${uid}: schema attribute "${name}" is missing from the snapshot`);
+    }
+  }
 });
