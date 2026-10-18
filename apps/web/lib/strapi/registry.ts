@@ -17,6 +17,8 @@ export const CACHE_TAGS = {
   announcements: "announcements",
   /** Reserved for Dev 3's alumni-directory capability. */
   alumni: "alumni-directory",
+  /** One tag for both Project Platform types: one page reads both (project-platform-page D7). */
+  projectPlatform: "project-platform",
 } as const;
 
 export type ContentTypeEntry = { readonly tags: readonly string[]; readonly section: SectionKey | null; readonly preview: boolean };
@@ -29,6 +31,9 @@ export const CONTENT_TYPES: Readonly<Record<string, ContentTypeEntry>> = {
   // Dev 3: enable preview when the News / Alumni routes exist (and add slug detail paths).
   "api::announcement.announcement": { tags: [CACHE_TAGS.announcements], section: "news", preview: false },
   "api::alumnus.alumnus": { tags: [CACHE_TAGS.alumni], section: "alumni", preview: false },
+  // Published-only page; preview needs the preview token's scope widened (its own change).
+  "api::project-platform.project-platform": { tags: [CACHE_TAGS.projectPlatform], section: "projects", preview: false },
+  "api::platform-project.platform-project": { tags: [CACHE_TAGS.projectPlatform], section: "projects", preview: false },
   // Sponsors showcase is held (trademark permission); nothing public reads sponsors.
   "api::sponsor.sponsor": { tags: [], section: null, preview: false },
 };

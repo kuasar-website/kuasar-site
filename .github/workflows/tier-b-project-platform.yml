@@ -1,0 +1,46 @@
+name: Tier B project platform
+# project-platform-page: mapper and published-only loader unit tests (strict content-model
+# contract, dropped unsafe links, single-type 404, Turkish fallback, ordering, years), the
+# registry tag, then real production builds of /en/projects and /tr/projeler against a
+# synthetic Strapi: nothing published, an English-only entry with no functions, everything
+# populated in both locales, and a malformed year range that must fail the build (routes,
+# metadata, lang, navigation, switcher, 404s, sitemap, no request-time CMS fetches, Draft
+# Mode isolation, budgets). Not a required check; path-filtered.
+on:
+  push:
+    branches: [change/project-platform-page]
+    paths:
+      - "apps/web/**"
+      - "apps/cms/src/api/project-platform/**"
+      - "apps/cms/src/api/platform-project/**"
+      - "apps/cms/src/components/platform/**"
+      - "tests/project-platform/**"
+      - "package*.json"
+      - ".nvmrc"
+      - ".github/workflows/tier-b-project-platform.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "apps/cms/src/api/project-platform/**"
+      - "apps/cms/src/api/platform-project/**"
+      - "apps/cms/src/components/platform/**"
+      - "tests/project-platform/**"
+      - "package*.json"
+      - ".nvmrc"
+      - ".github/workflows/tier-b-project-platform.yml"
+permissions:
+  contents: read
+jobs:
+  project-platform-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: node --test apps/web/lib/cms/project-platform.test.ts apps/web/lib/cms/project-platform-data.test.ts apps/web/lib/strapi/registry.test.ts apps/web/lib/strapi/revalidate.test.ts
+      - run: node tests/project-platform/check-routes.mjs

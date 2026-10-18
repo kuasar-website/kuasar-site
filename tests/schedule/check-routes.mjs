@@ -32,6 +32,8 @@ const cms = createServer((request, response) => {
   requests++;
   const url = new URL(request.url, 'http://localhost');
   assert.equal(url.searchParams.get('status'), 'published');
+  // The Project Platform single type (another build-time consumer) has nothing published here.
+  if (url.pathname === '/api/project-platform') { response.writeHead(404, { 'Content-Type': 'application/json' }); response.end(JSON.stringify({ data: null, error: { status: 404, name: 'NotFoundError', message: 'Not Found', details: {} } })); return; }
   const locale = url.searchParams.get('locale');
   const page = Number(url.searchParams.get('pagination[page]'));
   // Other build-time collections (events-showcase) are empty here.

@@ -11,7 +11,7 @@ export type ShellCopy = {
 };
 
 type NavigationItem = {
-  readonly section: Exclude<SectionKey, "projects" | "timeline">;
+  readonly section: Exclude<SectionKey, "timeline">;
   readonly label: Readonly<Record<Locale, string>>;
 };
 
@@ -47,6 +47,10 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   },
   { section: "missions", label: { en: "Missions", tr: "Görevler" } },
   { section: "events", label: { en: "Events", tr: "Etkinlikler" } },
+  {
+    section: "projects",
+    label: { en: "Project Platform", tr: "Proje Platformu" },
+  },
   { section: "alumni", label: { en: "Alumni", tr: "Mezunlar" } },
   { section: "join", label: { en: "Join", tr: "Bize Katıl" } },
   { section: "news", label: { en: "News", tr: "Duyurular" } },

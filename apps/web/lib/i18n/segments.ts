@@ -4,10 +4,11 @@
  * is defined. Both the switcher's section-level resolution and `sitemap.ts`
  * read from `resolvedSegments()` below; there is no second copy.
  *
- * An entry can be `unresolved` (currently only `projects`/`projeler`, which
- * has no backing entity in design/content-model.md). `resolvedSegments()`
- * filters these out, and `resolveSegment()` throws if called on one — an
- * unresolved section must never produce a switcher target or a sitemap entry.
+ * An entry can be `unresolved` (none today; `projects`/`projeler` was until
+ * the Project Platform page gave it a backing entity — openspec/changes/
+ * project-platform-page). `resolvedSegments()` filters these out, and
+ * `resolveSegment()` throws if called on one — an unresolved section must
+ * never produce a switcher target or a sitemap entry.
  *
  * Reusable pattern for future capabilities (not built by this change): a
  * section route can live under a dynamic `[segment]` folder whose
@@ -57,14 +58,7 @@ const SEGMENTS: Readonly<Record<SectionKey, SegmentEntry>> = {
   "galactic-summit": { en: "galactic-summit", tr: "galactic-summit" },
   missions: { en: "missions", tr: "gorevler" },
   events: { en: "events", tr: "etkinlikler" },
-  projects: {
-    unresolved: true,
-    reason:
-      "design/i18n.md's segment map lists 'projects | projeler', but no " +
-      "Project entity exists in design/content-model.md. Do not invent one " +
-      "or a route for it — this is a recorded open question, tracked " +
-      "separately from locale-routing (see proposal.md, Impact).",
-  },
+  projects: { en: "projects", tr: "projeler" },
   alumni: { en: "alumni", tr: "mezunlar" },
   join: { en: "join", tr: "bize-katil" },
   timeline: { en: "timeline", tr: "zaman-cizelgesi" },
@@ -106,7 +100,7 @@ export function resolvedSegments(): readonly ResolvedSection[] {
     });
 }
 
-/** True for a section with no backing route yet (currently only `projects`). */
+/** True for a section with no backing route yet (none today). */
 export function isUnresolvedSection(section: SectionKey): boolean {
   return !isResolvedEntry(SEGMENTS[section]);
 }

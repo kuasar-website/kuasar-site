@@ -31,6 +31,8 @@ const cms = createServer((request, response) => {
   const status = url.searchParams.get('status');
   const auth = request.headers.authorization ?? '';
   requests.push(`${url.pathname}|${status}|${auth ? 'auth' : 'anon'}`);
+  // The Project Platform single type (another build-time consumer) has nothing published here.
+  if (url.pathname === '/api/project-platform') { response.writeHead(404, { 'Content-Type': 'application/json' }); response.end(JSON.stringify({ data: null, error: { status: 404, name: 'NotFoundError', message: 'Not Found', details: {} } })); return; }
   if (status === 'draft' && auth !== `Bearer ${PREVIEW_TOKEN}`) { response.writeHead(403).end('{}'); return; }
   const locale = url.searchParams.get('locale');
   const page = Number(url.searchParams.get('pagination[page]'));
