@@ -444,7 +444,12 @@ is Resource (`openspec/changes/resources-cms/`, which records its own).
    entries appear in both locales.
 
 Public (anonymous) read permission is not part of this. It is granted only when the
-frontend page for the type ships, in that change.
+frontend page for the type ships, in that change, and only `find` (plus `findOne` if that
+page's loader reads single entries). Project Platform and Platform Project: `find` on each,
+granted by a Super Admin before the page's Vercel Preview is reviewed
+(`openspec/changes/project-platform-page/`, tasks 7.1). Check afterwards that an anonymous
+`?status=draft` request for either type still answers 403. Without the grant the frontend
+build fails with `Strapi HTTP 403`.
 
 **Editing notes for Project Platform and Platform Project** (`design/content-model.md`):
 
@@ -456,6 +461,9 @@ frontend page for the type ships, in that change.
 - Strapi lets a **draft** hold an invalid link or a year outside 1900–2100, and refuses it at
   **publish**. Nothing invalid can be published, so nothing invalid reaches the site or the
   backup; fix the value and publish again.
+- **`endYear` must not be before `startYear`.** Strapi cannot check this, so it publishes,
+  but the page's rebuild then fails and the site keeps showing the last good version of the
+  page until the years are fixed and republished. Nothing else on the page updates meanwhile.
 - Rocket Missions are not Platform Projects. They stay in git.
 - The Project Platform entry's header in the admin shows the first text field
   (`whatsappUrl`). To show something else, a Super Admin can change it under the entry's

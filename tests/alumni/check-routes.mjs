@@ -41,6 +41,8 @@ const cms = createServer((request, response) => {
   requests++;
   const url = new URL(request.url, 'http://localhost');
   assert.equal(url.searchParams.get('status'), 'published', `${url.pathname} must request published content only`);
+  // The Project Platform single type (another build-time consumer) has nothing published here.
+  if (url.pathname === '/api/project-platform') { response.writeHead(404, { 'Content-Type': 'application/json' }); response.end(JSON.stringify({ data: null, error: { status: 404, name: 'NotFoundError', message: 'Not Found', details: {} } })); return; }
   const page = Number(url.searchParams.get('pagination[page]') || 1);
   const data = url.pathname === '/api/alumni' ? alumni(url.searchParams.get('locale')) : [];
   response.setHeader('Content-Type', 'application/json');

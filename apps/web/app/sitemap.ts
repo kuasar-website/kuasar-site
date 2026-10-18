@@ -1,8 +1,10 @@
 import type { MetadataRoute } from "next";
 import { loadEvents } from "../components/events/content";
 import { loadNews } from "../components/news/content";
+import { loadProjectPlatform } from "../components/project-platform/content";
 import { scheduleConfigured } from "../components/schedule/content";
 import { summitConfigured } from "../components/summit/content";
+import { hasProjectPlatformContent } from "../lib/cms/project-platform-data";
 import { loadTimelineEntries } from "../lib/content/timeline";
 import { LOCALES, sectionPath } from "../lib/i18n/segments";
 
@@ -24,9 +26,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const news = await Promise.all(LOCALES.map(locale => loadNews(locale)));
   const newsLanguages = Object.fromEntries(LOCALES.map(locale => [locale, new URL(sectionPath("news", locale), siteUrl).href]));
   const newsUrls = LOCALES.filter((_, i) => news[i].length).map(locale => ({ url: newsLanguages[locale], alternates: { languages: newsLanguages } }));
-  if (loadTimelineEntries().length === 0) return [...eventUrls, ...scheduleUrls, ...summitUrls, ...newsUrls];
+  // Project Platform is listed per locale only once it has content (a page entry or a project).
+  const platform = await Promise.all(LOCALES.map(locale => loadProjectPlatform(locale)));
+  const platformLanguages = Object.fromEntries(LOCALES.map(locale => [locale, new URL(sectionPath("projects", locale), siteUrl).href]));
+  const platformUrls = LOCALES.filter((_, i) => hasProjectPlatformContent(platform[i])).map(locale => ({ url: platformLanguages[locale], alternates: { languages: platformLanguages } }));
+  const cmsUrls = [...eventUrls, ...scheduleUrls, ...summitUrls, ...newsUrls, ...platformUrls];
+  if (loadTimelineEntries().length === 0) return cmsUrls;
   const languages = Object.fromEntries(LOCALES.map((locale) => [locale, new URL(sectionPath("timeline", locale), siteUrl).href]));
-  return [...eventUrls, ...scheduleUrls, ...summitUrls, ...newsUrls, ...LOCALES.map((locale) => ({
+  return [...cmsUrls, ...LOCALES.map((locale) => ({
     url: languages[locale],
     alternates: { languages },
   }))];

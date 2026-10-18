@@ -53,6 +53,11 @@ test('events, Dev 3 reserved types and the model fallback', async () => {
     [{ event: 'entry.unpublish', uid: 'api::announcement.announcement' }, 'announcements'],
     [{ event: 'entry.delete', uid: 'api::alumnus.alumnus' }, 'alumni-directory'],
     [{ event: 'entry.publish', model: 'galactic-summit' }, 'galactic-summit'],
+    // Project Platform: the single type and the collection share one tag (project-platform-page D7).
+    [{ event: 'entry.publish', uid: 'api::project-platform.project-platform' }, 'project-platform'],
+    [{ event: 'entry.unpublish', model: 'project-platform' }, 'project-platform'],
+    [{ event: 'entry.delete', uid: 'api::platform-project.platform-project' }, 'project-platform'],
+    [{ event: 'entry.update', model: 'platform-project' }, 'project-platform'],
   ] as const) {
     const s = setup();
     assert.equal((await handleRevalidate(post(body), s.deps)).status, 200);
@@ -63,7 +68,7 @@ test('events, Dev 3 reserved types and the model fallback', async () => {
 test('media changes revalidate every registered tag and path', async () => {
   const s = setup();
   assert.equal((await handleRevalidate(post({ event: 'media.update', media: {} }), s.deps)).status, 200);
-  assert.deepEqual(s.tags.map(([t]) => t).sort(), ['alumni-directory', 'announcements', 'events-showcase', 'galactic-summit', 'schedule-calendar']);
+  assert.deepEqual(s.tags.map(([t]) => t).sort(), ['alumni-directory', 'announcements', 'events-showcase', 'galactic-summit', 'project-platform', 'schedule-calendar']);
   assert.ok(s.tags.every(([, p]) => p === 'max'));
 });
 

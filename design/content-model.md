@@ -344,15 +344,18 @@ on the permissions existing, not on the components being ready.
 The Project Platform page is where KUASAR shows **non-rocket space and aerospace projects**
 and invites members into them. It has two Strapi entities: the page's own content (one
 single type) and the projects (a collection). OpenSpec:
-`openspec/changes/project-platform-cms/`.
+`openspec/changes/project-platform-cms/` (the types) and
+`openspec/changes/project-platform-page/` (the page).
 
 **The Mission boundary.** KUASAR's rocket Missions stay in git as Missions (the storage rule
 above). A rocket Mission is **never** also entered as a Platform Project, and the Project
 Platform does not replace the Missions archive. If a project is a KUASAR rocket flight, it is
 a Mission.
 
-**No frontend reads these yet**, and the Public role has no read permission on them until
-the page ships. The content is in the weekly content snapshot from the start.
+**The page is `/en/projects` and `/tr/projeler`**, titled Project Platform / Proje
+Platformu (`apps/web/components/project-platform/`). It reads both types published-only, so
+the Public role has `find` on each and nothing else. The content is in the weekly content
+snapshot from the start.
 
 ### Project Platform (single type)
 
@@ -378,7 +381,7 @@ so nothing in the schema fixes them to four.
 | `summary` | text | L | Short description |
 | `coverImage` | image? | F | |
 | `startYear` | number | F | **Required**, 1900–2100. The sort key within each section |
-| `endYear` | number? | F | 1900–2100 |
+| `endYear` | number? | F | 1900–2100, and not before `startYear`: Strapi cannot check that, so the page's build refuses it |
 | `projectStatus` | **enum** | F | `current` \| `past`, required, no default |
 | `applicationUrl` | url? | F | HTTPS. When set, the page shows Apply / Başvur; when empty, no application button |
 
@@ -393,8 +396,8 @@ current projects first, then past, each newest `startYear` first, then title. Ad
 the absent fields later is additive; removing a field deletes its data, so the model starts
 small.
 
-**Zero, one, many:** the CMS accepts zero, one or many Platform Projects, and the page is
-expected to handle each when it is built.
+**Zero, one, many:** the CMS accepts zero, one or many Platform Projects, and the page handles
+each: a section with none shows its own empty message.
 
 ## Resource
 

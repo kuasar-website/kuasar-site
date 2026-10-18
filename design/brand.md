@@ -129,7 +129,7 @@ section rather than keeping a rule that no longer applies.
 glyph argument that used to sit here does not hold.
 
 Every Turkish navigation label is in fact safe in Orbitron — **Hakkımızda, Takvim,
-Görevler, Etkinlikler, Projeler, Mezunlar, Bize Katıl, Duyurular** contain only `ö`, `ı`
+Görevler, Etkinlikler, Proje Platformu, Mezunlar, Bize Katıl, Duyurular** contain only `ö`, `ı`
 and ASCII, all of which the font covers. The navbar never trips the restriction above.
 
 The real argument is the one this document already makes about the display face: Orbitron
