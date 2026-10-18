@@ -49,7 +49,7 @@ preview.
 - [x] 6.2 Super Admin adds `find`/`findOne` on Resource to `CONTENT_BACKUP_API_TOKEN`, nothing else (the 6.3 run read Resource without a permission error, which a token without it fails; that the scope is nothing else is not verified here)
 - [x] 6.3 Run Content snapshot by hand (run 39060286595 on `242dba5`, `workflow_dispatch`, succeeded)
 - [x] 6.4 Confirm it is green and `resources.json` exists on `content-snapshots` (snapshot commit `c2e9e4b`: `content/_snapshots/resources.json` present, `[]`)
-- [ ] 6.5 Only then grant the Editor role Read, Create, Update, Delete and Publish on Resource, in `en` and `tr`, and check they are on
+- [x] 6.5 Only then grant the Editor role Read, Create, Update, Delete and Publish on Resource, in `en` and `tr`, and check they are on (reported done by the operator after 6.4: the production Editor role has Create, Read, Update, Delete and Publish on Resource; the per-locale scope was not reported separately)
 - [ ] 6.6 After the first real editor publish, run the snapshot by hand again and confirm the entry appears
 
 Public read permission is not granted here; the frontend change grants it.
