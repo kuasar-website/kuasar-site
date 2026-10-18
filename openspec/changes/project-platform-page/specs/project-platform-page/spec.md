@@ -40,7 +40,7 @@ The page SHALL show the Project Platform entry's `intro` as formatted text under
 It SHALL show a WhatsApp button, opening in a new tab, only when `whatsappUrl` is an HTTPS
 link to `whatsapp.com`, one subdomain of it, or `wa.me`, with a non-empty path and no
 credentials. The button text SHALL be the entry's `whatsappLabel` when it is not blank, and
-otherwise "Join the Project Platform WhatsApp group" in English and "Project Platform
+otherwise "Join the Project Platform WhatsApp group" in English and "Proje Platformu
 WhatsApp grubuna katıl" in Turkish. When no Project Platform entry is published for the page
 (after the Turkish fallback below), the page SHALL still return 200 with its heading and its
 project sections, and SHALL show no intro, no WhatsApp button and no functions section.
@@ -53,7 +53,7 @@ shown as escaped text, never injected.
 
 #### Scenario: No label
 - **WHEN** the entry has a valid `whatsappUrl` and a blank `whatsappLabel`
-- **THEN** the button reads "Join the Project Platform WhatsApp group" on `/en/projects` and "Project Platform WhatsApp grubuna katıl" on `/tr/projeler`
+- **THEN** the button reads "Join the Project Platform WhatsApp group" on `/en/projects` and "Proje Platformu WhatsApp grubuna katıl" on `/tr/projeler`
 
 #### Scenario: No WhatsApp link
 - **WHEN** the entry has no `whatsappUrl`

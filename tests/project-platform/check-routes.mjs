@@ -212,7 +212,7 @@ try {
   assert.match(en, /<a [^>]*target="_blank"[^>]*href="https:\/\/chat\.whatsapp\.com\/DummyInvite0"[^>]*><span>Join the Project Platform WhatsApp group/, '/en: default WhatsApp label, new tab');
   assert.ok(en.includes('aria-label="Join the Project Platform WhatsApp group (opens in a new tab)"'), '/en: WhatsApp accessible name');
   assert.match(tr, /Gruba katıl/, '/tr: the editor label');
-  assert.ok(!tr.includes('Project Platform WhatsApp grubuna katıl'), '/tr: the editor label replaces the default');
+  assert.ok(!tr.includes('Proje Platformu WhatsApp grubuna katıl'), '/tr: the editor label replaces the default');
   // Functions, in each locale's order.
   const functionTitles = html => [...section(html, 'project-platform-functions').matchAll(/<h3>([^<]+)<\/h3>/g)].map(m => m[1]);
   assert.deepEqual(functionTitles(en), ['Project Sharing', 'Team Formation', 'Project Development', 'Project Support']);

@@ -57,7 +57,7 @@ drops the WhatsApp button; an `applicationUrl` that is not an absolute HTTPS URL
 - **Intro:** editor Markdown, rendered by `components/news/body.ts` into `MissionProse`. It
   never throws; raw HTML and unsupported syntax show as escaped text. Its headings are h3.
 - **WhatsApp button:** only for a valid link. Text: the editor's `whatsappLabel`, or "Join
-  the Project Platform WhatsApp group" / "Project Platform WhatsApp grubuna katıl".
+  the Project Platform WhatsApp group" / "Proje Platformu WhatsApp grubuna katıl".
 - **Functions:** in the editor's order for that locale. None, no section.
 - **Current / past:** by `projectStatus` only, never by the years or the date. Within each,
   `startYear` newest first, then title (page locale's collation), then `documentId`. Each

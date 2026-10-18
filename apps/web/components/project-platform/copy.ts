@@ -34,7 +34,7 @@ export const PROJECT_PLATFORM_COPY: Readonly<Record<Locale, ProjectPlatformCopy>
   },
   tr: {
     heading: "Proje Platformu",
-    whatsappDefault: "Project Platform WhatsApp grubuna katıl",
+    whatsappDefault: "Proje Platformu WhatsApp grubuna katıl",
     newTab: "(yeni sekmede açılır)",
     functions: "Platform işlevleri",
     current: "Güncel projeler",
