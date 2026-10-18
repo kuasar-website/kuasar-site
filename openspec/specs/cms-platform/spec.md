@@ -9,7 +9,7 @@ Gives editors a Strapi 5 admin on DigitalOcean App Platform, backed by Neon Post
 The CMS SHALL be configured with locale codes `en` and `tr` only — the same short ISO 639-1 strings the App Router uses. `en` SHALL be the default locale. The CMS SHALL NOT register `en-US`, `tr-TR`, or any third locale.
 
 #### Scenario: Locale switcher shows only en and tr
-- **WHEN** an Editor opens any of the eight collections or the Project Platform single type in the Content Manager
+- **WHEN** an Editor opens any of the nine collections or the Project Platform single type in the Content Manager
 - **THEN** the locale control offers `en` and `tr` and no other codes
 
 #### Scenario: Default locale is English
@@ -81,11 +81,11 @@ The Sponsor collection SHALL include `name`, `logo`, optional `logoLight`, `url`
 - **THEN** the entry has no `tier` attribute
 
 ### Requirement: Editor and Super Admin roles
-The CMS SHALL provide an Editor role distinct from Super Admin. Editors SHALL create, update, publish, unpublish, and delete entries in the eight collections and the Project Platform single type, and SHALL use the media library. Editors SHALL NOT modify the content-type schema or assign Super Admin. Super Admin SHALL remain available for the operators named in `docs/HANDOVER.md`. Editor access to a newly added content type SHALL be granted only after the content snapshot has been confirmed to export that type.
+The CMS SHALL provide an Editor role distinct from Super Admin. Editors SHALL create, update, publish, unpublish, and delete entries in the nine collections and the Project Platform single type, and SHALL use the media library. Editors SHALL NOT modify the content-type schema or assign Super Admin. Super Admin SHALL remain available for the operators named in `docs/HANDOVER.md`. Editor access to a newly added content type SHALL be granted only after the content snapshot has been confirmed to export that type.
 
 #### Scenario: Editor can manage entries in both locales
 - **WHEN** a user with the Editor role is signed in
-- **THEN** they can create and edit entries in all eight collections and in the Project Platform single type, in `en` and in `tr`
+- **THEN** they can create and edit entries in all nine collections and in the Project Platform single type, in `en` and in `tr`
 
 #### Scenario: Editor cannot change the schema
 - **WHEN** a user with the Editor role opens administration settings
@@ -128,18 +128,18 @@ Uploaded media SHALL be stored on Cloudflare R2 via the S3-compatible provider. 
 - **WHEN** the repository is inspected for R2 keys, database URLs, and Strapi secrets
 - **THEN** those values are absent from committed files and are supplied as environment variables
 
-### Requirement: Exactly eight locale-enabled collections and one single type
-The CMS SHALL expose exactly these eight **KUASAR/project-defined** content collections in the Content Manager, each with i18n enabled: Stellar Talk, Nebula Night, Galactic Summit, Schedule Event, Announcement, Alumni, Sponsor, and Platform Project. It SHALL also expose exactly one **KUASAR/project-defined** single type, Project Platform, with i18n enabled. It SHALL NOT expose any other project-defined collection type or single type. Mission and Timeline Entry SHALL NOT appear in the CMS. Each collection SHALL accept zero entries, a single entry, and many entries.
+### Requirement: The CMS exposes exactly the listed project-defined content types
+The CMS SHALL expose exactly these nine **KUASAR/project-defined** content collections in the Content Manager, each with i18n enabled: Stellar Talk, Nebula Night, Galactic Summit, Schedule Event, Announcement, Alumni, Sponsor, Platform Project, and Resource. It SHALL also expose exactly one **KUASAR/project-defined** single type, Project Platform, with i18n enabled. It SHALL NOT expose any other project-defined collection type or single type. Mission and Timeline Entry SHALL NOT appear in the CMS. Each collection SHALL accept zero entries, a single entry, and many entries.
 
-A content type that Strapi or one of its core plugins registers for its own operation — for example `plugin::users-permissions.user`, which backs the Public role's API permissions rather than any project content — is **not** a project-defined content type and SHALL NOT count toward, or be counted against, the eight collections and one single type. Such a plugin-provided type SHALL NOT be visible in the Content Manager, since it has no editorial purpose here and its presence would be indistinguishable from an unauthorized extra collection.
+A content type that Strapi or one of its core plugins registers for its own operation — for example `plugin::users-permissions.user`, which backs the Public role's API permissions rather than any project content — is **not** a project-defined content type and SHALL NOT count toward, or be counted against, the nine collections and one single type. Such a plugin-provided type SHALL NOT be visible in the Content Manager, since it has no editorial purpose here and its presence would be indistinguishable from an unauthorized extra collection.
 
 #### Scenario: Admin lists only the project-defined content types
 - **WHEN** an Editor opens the Content Manager
-- **THEN** the collection list contains Stellar Talk, Nebula Night, Galactic Summit, Schedule Event, Announcement, Alumni, Sponsor, and Platform Project, the single-type list contains Project Platform, and there is no other collection or single type and no Mission or Timeline Entry
+- **THEN** the collection list contains Stellar Talk, Nebula Night, Galactic Summit, Schedule Event, Announcement, Alumni, Sponsor, Platform Project, and Resource, the single-type list contains Project Platform, and there is no other collection or single type and no Mission or Timeline Entry
 
 #### Scenario: A plugin-provided type stays hidden
 - **WHEN** the `users-permissions` plugin remains enabled for its Public-role API permissions
-- **THEN** its `User` content type does not appear anywhere in the Content Manager, and the visible lists still contain exactly the eight KUASAR collections and the one KUASAR single type
+- **THEN** its `User` content type does not appear anywhere in the Content Manager, and the visible lists still contain exactly the nine KUASAR collections and the one KUASAR single type
 
 #### Scenario: Empty collections are valid
 - **WHEN** a collection has zero published entries
