@@ -1,0 +1,34 @@
+name: Tier B timeline signature
+on:
+  push:
+    branches: [change/timeline-signature]
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "tests/timeline-signature/**"
+      - "package*.json"
+      - ".nvmrc"
+      - ".github/workflows/tier-b-timeline-signature.yml"
+permissions:
+  contents: read
+jobs:
+  timeline-signature:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm ci --prefix tests/timeline-signature
+      - run: npm exec --prefix tests/timeline-signature -- playwright install --with-deps chromium firefox
+      - run: npm --prefix tests/timeline-signature test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: timeline-signature-recordings
+          path: tests/timeline-signature/test-results/
+          retention-days: 14

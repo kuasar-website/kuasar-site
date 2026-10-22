@@ -130,7 +130,7 @@ const LOCALE_ROOT_SEGMENTS = new Set(["en", "tr", "[locale]"]);
  * be one path segment.
  */
 export function matchRouteBudgetKey(route) {
-  if (route === "/[locale]/timeline" || /^\/[^/]+\/timeline$/.test(route)) {
+  if (/^\/(?:en|tr|\[locale\])\/(?:timeline|zaman-cizelgesi)$/.test(route)) {
     return "timeline";
   }
 

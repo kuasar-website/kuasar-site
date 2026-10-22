@@ -1,3 +1,4 @@
+import { TimelineSignature } from "../_signature/launcher";
 import { TimelinePage, timelineMetadata, type TimelinePageProps } from "@/components/timeline/page";
 
 export function generateMetadata({ params }: TimelinePageProps) {
@@ -5,5 +6,5 @@ export function generateMetadata({ params }: TimelinePageProps) {
 }
 
 export default function Page({ params }: TimelinePageProps) {
-  return <TimelinePage params={params} locale="en" />;
+  return <TimelineSignature locale="en"><TimelinePage params={params} locale="en" /></TimelineSignature>;
 }
