@@ -1,4 +1,5 @@
 import type { ReactElement } from "react";
+import { Quasar } from "./quasar";
 import { Wordmark } from "./wordmark";
 import styles from "./hero.module.css";
 
@@ -26,6 +27,7 @@ export function Hero({ locale, sponsorAction, joinAction }: HeroProps) {
         </div>
         <p className={styles.subtitle} lang="en">Koç University Association of Space &amp; Rocketry</p>
       </div>
+      <Quasar />
       <div className={styles.actions}>
         <div className={styles.audience}>
           <p>{labels.sponsors}</p>
