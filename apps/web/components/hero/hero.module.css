@@ -1,4 +1,6 @@
 .hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   padding: calc(6 * var(--spacing));
   background: var(--color-canvas);
   color: var(--color-ink);
@@ -36,6 +38,7 @@
 }
 
 .actions {
+  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   gap: calc(8 * var(--spacing));
@@ -56,6 +59,8 @@
 
 @media (width >= 48rem) {
   .hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
     padding: calc(12 * var(--spacing));
   }
 }

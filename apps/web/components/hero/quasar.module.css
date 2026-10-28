@@ -1,0 +1,17 @@
+.art {
+  width: min(100%, 36rem);
+  margin-inline: auto;
+  pointer-events: none;
+}
+
+.art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.rings,
+.jets {
+  transform-origin: 300px 300px;
+}

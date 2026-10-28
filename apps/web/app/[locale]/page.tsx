@@ -1,3 +1,4 @@
+import { HeroSignature } from "./_hero-signature/launcher";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -51,7 +52,7 @@ export default async function HomePage({ params }: HomePageProps) {
 
   return (
     <>
-      <HomeHero locale={locale} sponsorHref={FORM_LINKS.connect} />
+      <HeroSignature><HomeHero locale={locale} sponsorHref={FORM_LINKS.connect} /></HeroSignature>
       <div className="empty:hidden mx-auto w-[min(calc(100%_-_2rem),76rem)] py-[var(--space-section)] lg:py-[var(--space-section-lg)]">
         <TimelineSection locale={locale} />
       </div>

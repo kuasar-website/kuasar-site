@@ -17,6 +17,7 @@ function load(name) {
   runInThisContext(`(function(require,module,exports){${outputText}\n})`)((id) => {
     if (id.endsWith('.css')) return { __esModule: true, default: new Proxy({}, { get: (_, key) => String(key) }) };
     if (id === './wordmark') return load('wordmark');
+    if (id === './quasar') return load('quasar');
     return requireWeb(id);
   }, module, module.exports);
   return module.exports;
@@ -47,7 +48,7 @@ test('inline wordmark preserves canonical artwork and inherits colour', () => {
     return [...markup.matchAll(/<path\b([^>]*)\/?\s*>/g)].map(([, attrs]) =>
       Object.fromEntries([...attrs.matchAll(/([\w-]+)="([^"]*)"/g)].map(([, k, v]) => [k, v])));
   }
-  assert.deepEqual(paths(html), paths(original));
+  assert.deepEqual(paths(html.match(/<h1[\s\S]*?<\/h1>/)[0]), paths(original));
   assert.match(html, /<svg[^>]*fill="none"/);
   assert.equal(html.match(/viewBox="([^"]+)"/)[1], original.match(/viewBox="([^"]+)"/)[1]);
 });
